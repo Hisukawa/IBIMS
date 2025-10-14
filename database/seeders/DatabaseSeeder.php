@@ -74,6 +74,7 @@ class DatabaseSeeder extends Seeder
         $residentRole = Role::firstOrCreate(['name' => 'resident']);
         $superAdminRole = Role::firstOrCreate(['name' => 'super_admin']);
         $cdrrmoRole = Role::firstOrCreate(['name' => 'cdrrmo_admin']);
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
 
         // System users
         User::factory()->create([
@@ -97,7 +98,7 @@ class DatabaseSeeder extends Seeder
         ])->assignRole($cdrrmoRole);
 
         // $barangays = Barangay::all();
-        $barangays = Barangay::take(1)->get();
+        $barangays = Barangay::take(5)->get();
         //  foreach ($barangays->take(2) as $barangay)
         foreach ($barangays as $barangay) {
             // Create 7 puroks per barangay
@@ -120,17 +121,30 @@ class DatabaseSeeder extends Seeder
             $resident = Resident::factory()->create(['barangay_id' => $barangay->id]);
 
             $adminUser = User::factory()->create([
+                'resident_id' => null,
+                'barangay_id' => $barangay->id,
+                'username' => $barangay->barangay_name . ' Admin',
+                'email' => $barangay->email ?? 'barangay' . $barangay->id . '@example.com',
+                'password' => bcrypt('admin123'),
+                'email_verified_at' => now(),
+                'role' => 'admin',
+                'status' => 'inactive',
+                'is_disabled' => false,
+            ]);
+            $adminUser->assignRole($adminRole);
+
+            $admin = User::factory()->create([
                 'resident_id' => $resident->id,
                 'barangay_id' => $barangay->id,
-                'username' => $barangay->name . ' Admin',
-                'email' => $barangay->email ?? 'barangay' . $barangay->id . '@example.com',
+                'username' => $barangay->barangay_name . ' Barangay Officer',
+                'email' => 'barangayofficer' . $barangay->id . '@example.com',
                 'password' => bcrypt('admin123'),
                 'email_verified_at' => now(),
                 'role' => 'barangay_officer',
                 'status' => 'inactive',
                 'is_disabled' => false,
             ]);
-            $adminUser->assignRole($barangayOfficerRole);
+            $admin->assignRole($barangayOfficerRole);
 
             // Create Barangay Official Term
             $term = BarangayOfficialTerm::factory()->create([

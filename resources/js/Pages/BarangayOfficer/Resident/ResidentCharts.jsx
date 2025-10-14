@@ -18,19 +18,25 @@ import { FileChartPie } from 'lucide-react';
 
 // --- Color constants and data processing logic ---
 
-const COLORS_GENDER = ["#2563EB", "#60A5FA", "#1E40AF"];
-const COLORS_WELFARE = ["#2563EB", "#60A5FA", "#1E40AF"];
+const COLORS_GENDER = [
+    "#3B82F6", // Blue - Male
+    "#F472B6", // Pink - Female
+    "#10B981",
+];
+
+const COLORS_WELFARE = [
+    "#3B82F6",
+    "#F59E0B",
+    "#10B981",
+];
+
 const COLORS_PUROK = ["#1E40AF"];
 const COLORS_VOTERS = ["#2563EB", "#60A5FA"];
-const COLORS_EMPLOYMENT = [
-    "#1E3A8A", "#1D4ED8", "#2563EB", "#3B82F6", "#60A5FA"
-];
+const COLORS_EMPLOYMENT = ["#06b6d4", "#f43f5e", "#a855f7", "#facc15", "#10b981"]
 const COLORS_AGE = [
     "#1E3A8A", "#1D4ED8", "#2563EB", "#3B82F6", "#60A5FA", "#93C5FD", "#BFDBFE"
 ];
-const COLORS_CIVIL = [
-    "#1E3A8A", "#2563EB", "#3B82F6", "#60A5FA", "#93C5FD", "#BFDBFE", "#DBEAFE"
-];
+const COLORS_CIVIL = ["#06b6d4", "#f43f5e", "#a855f7", "#facc15", "#10b981", "#fb923c"]
 
 const AGE_GROUPS = [
     { label: "0-6m", min: 0, max: 0.5 },
@@ -67,7 +73,6 @@ const getAgeGroup = (age) => {
 
 // Add welfareFilters prop here
 const ResidentCharts = ({ residents, isLoading, welfareFilters = [] }) => {
-    // --- ALL HOOKS MUST BE CALLED UNCONDITIONALLY AT THE TOP LEVEL ---
 
     // 1. Memoize residentArray first
     const residentArray = useMemo(() => Array.isArray(residents) ? residents : residents?.data || [], [residents]);
@@ -87,12 +92,12 @@ const ResidentCharts = ({ residents, isLoading, welfareFilters = [] }) => {
 
     const { welfareData, totalWelfare } = useMemo(() => {
         const counts = residentArray.reduce((acc, r) => {
+            // Count independently
             if (r.is_pwd) acc.PWD++;
-            else if (r.is4ps) acc.FourPs++;
-            else if (r.isSoloParent) acc.SoloParent++;
+            if (r.is4ps) acc.FourPs++;
+            if (r.isSoloParent) acc.SoloParent++;
             return acc;
         }, { PWD: 0, FourPs: 0, SoloParent: 0 });
-
 
         let data = [];
         const allWelfareCategories = ["PWD", "FourPs", "SoloParent"];
@@ -112,12 +117,12 @@ const ResidentCharts = ({ residents, isLoading, welfareFilters = [] }) => {
 
         // Filter out categories with 0 values only if they are not explicitly selected
         // Or if all are shown by default and a category has 0 value
+        // Also, ensure categories with 0 value are displayed if they are part of `categoriesToDisplay`
         data = data.filter(item => item.value > 0 || categoriesToDisplay.includes(item.name));
-
 
         const total = data.reduce((sum, item) => sum + item.value, 0);
         return { welfareData: data, totalWelfare: total };
-    }, [residentArray, welfareFilters]); // Add welfareFilters to dependency array
+    }, [residentArray, welfareFilters]);
 
     const purokData = useMemo(() => {
         const counts = residentArray.reduce((acc, r) => {

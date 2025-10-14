@@ -6,6 +6,7 @@ use App\Http\Controllers\BarangayController;
 use App\Http\Controllers\BarangayInfrastructureController;
 use App\Http\Controllers\BarangayFacilityController;
 use App\Http\Controllers\BarangayInstitutionController;
+use App\Http\Controllers\BarangayManagementController;
 use App\Http\Controllers\BarangayOfficialController;
 use App\Http\Controllers\BarangayProfileController;
 use App\Http\Controllers\BarangayProjectController;
@@ -60,7 +61,7 @@ use Maatwebsite\Excel\Facades\Excel;
 Route::get('/', [IBIMSController::class, 'welcome'])->name('welcome'); // Welcome page accessible to both admin and resident
 
 // Admin-only routes
-Route::middleware(['auth', 'role:barangay_officer|cdrrmo_admin|super_admin'])->group(function () {
+Route::middleware(['auth', 'role:barangay_officer|cdrrmo_admin|super_admin|admin'])->group(function () {
     Route::get('/document/fill/{resident}/{template}', [DocumentGenerationController::class, 'generateFilledDocument'])
         ->name('document.fill');
 
@@ -96,7 +97,7 @@ Route::middleware(['auth', 'role:barangay_officer|cdrrmo_admin|super_admin'])->g
     Route::get('resident/chartdata', [ResidentController::class, 'chartData'])->name('resident.chartdata');
 
     // barangay
-    Route::get('barangay_profile/barangaydetails', [BarangayProfileController::class, 'barangayDetails'])->name('barangay_profile.details');
+    Route::get('barangay_management/barangaydetails', [BarangayManagementController::class, 'barangayDetails'])->name('barangay_profile.details');
     Route::get('barangay_official/officialsinfo/{id}', [BarangayOfficialController::class, 'getOfficialInformation'])->name('barangay_official.info');
     Route::get('barangay_infrastructure/details/{id}', [BarangayInfrastructureController::class, 'infrastructureDetails'])->name('barangay_infrastructure.details');
     Route::get('barangay_institution/details/{id}', [BarangayInstitutionController::class, 'institutionDetails'])->name('barangay_institution.details');
@@ -184,14 +185,12 @@ Route::middleware(['auth', 'role:barangay_officer|cdrrmo_admin|super_admin'])->g
 
         return response()->json(['unique' => !$exists]);
     });
-    Route::patch('/user/{user}/toggle-account', [UserController::class, 'toggleAccount'])
-    ->name('user.toggle');
 
     // households
     Route::get('/overview', [HouseholdController::class, 'householdOverview'])->name('household.overview');
 
     // residents
-    Route::resource('user', UserController::class);
+
     Route::resource('resident', ResidentController::class);
     Route::resource('document', DocumentController::class);
     Route::resource('household', HouseholdController::class);
@@ -215,13 +214,14 @@ Route::middleware(['auth', 'role:barangay_officer|cdrrmo_admin|super_admin'])->g
     Route::get('summon/elevate/{id}', [SummonController::class, 'elevate'])->name('summon.elevate');
     Route::get('blotter_report/generateform/{id}', [BlotterController::class, 'generateForm'])->name('blotter_report.generateForm');
     Route::get('summon/generateform/{id}', [SummonController::class, 'generateForm'])->name('summon.generateForm');
+    Route::get('summon/fileaction/{id}', [SummonController::class, 'generateFileAction'])->name('summon.fileaction');
     Route::resource('blotter_report', BlotterController::class);
     Route::resource('case_participant', CaseParticipantController::class);
     Route::resource('summon', SummonController::class);
 
     // barangay
     Route::resource('barangay_official', BarangayOfficialController::class);
-    Route::resource('barangay_profile', BarangayProfileController::class);
+    Route::resource('barangay_management', BarangayManagementController::class);
     Route::resource('barangay_project', BarangayProjectController::class);
     Route::resource('barangay_infrastructure', BarangayInfrastructureController::class);
     Route::resource('barangay_facility', BarangayFacilityController::class);
@@ -239,8 +239,24 @@ Route::middleware(['auth', 'role:barangay_officer'])->group(function () {
         ->name('barangay_officer.dashboard');
 });
 
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin', function () {
+        return redirect()->route('admin.dashboard');
+    });
+    Route::get('/admin/dashboard', [DashboardController::class, 'dashboard'])
+        ->name('admin.dashboard');
+
+    Route::get('/barangay_profile', [BarangayProfileController::class, 'index'])->name('barangay_profile.index');
+    Route::put('/barangay_profile/update/{barangay}', [BarangayProfileController::class, 'update'])->name('barangay_profile.update');
+
+    Route::patch('/user/{user}/toggle-account', [UserController::class, 'toggleAccount'])
+    ->name('user.toggle');
+
+    Route::resource('user', UserController::class);
+});
+
 Route::middleware(['auth', 'role:cdrrmo_admin'])->prefix('cdrrmo_admin')->group(function () {
-    Route::get('dashboard', [CDRRMOAdminController::class, 'index'])
+    Route::get('/dashboard', [CDRRMOAdminController::class, 'index'])
         ->name('cdrrmo_admin.dashboard');
         Route::get('alldatacollection', [CDRRMOAdminController::class, 'allDataCollectionSummary'])
         ->name('cdrrmo_admin.datacollection');
@@ -257,18 +273,17 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('super_admin')->group(fu
     Route::resource('barangay', BarangayController::class);
 });
 // Resident-only routes
-Route::middleware(['auth', 'role:resident'])->prefix('resident')->group(function () {
+Route::middleware(['auth', 'role:resident'])->prefix('account')->group(function () {
     Route::get('/dashboard', [ResidentAccountController::class, 'dashboard'])->name('resident_account.dashboard');
     Route::get('/certificates', [ResidentAccountController::class, 'residentCertificates'])->name('resident_account.certificates');
-    Route::resource('resident_account', ResidentAccountController::class);
     Route::get('/document/fetchplaceholders/{id}', [DocumentController::class, 'fetchPlaceholders'])
-    ->name('resident.document.placeholders');
+        ->name('resident.document.placeholders');
     Route::post('/certificate-request', [ResidentAccountController::class, 'requestCertificate'])
-    ->name('resident.certificate.store');
+        ->name('resident.certificate.store');
 });
 
 // Routes accessible to both resident and admin users (verified users)
-Route::middleware(['auth', 'verified', 'role:resident|barangay_officer'])->group(function () {
+Route::middleware(['auth', 'role:resident|barangay_officer|super_admin|admin'])->group(function () {
     // Profile management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
