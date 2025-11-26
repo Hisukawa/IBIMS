@@ -1,0 +1,161 @@
+import { useState } from "react";
+import { Sprout, Wheat } from "lucide-react";
+import AdminLayout from "@/Layouts/AdminLayout";
+import { Head, router } from "@inertiajs/react";
+import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
+import TableSection from "@/Components/TableSection";
+import DynamicTable from "@/Components/DynamicTable";
+import BarangayFilterCard from "@/Components/BarangayFilterCard";
+import NoDataPlaceholder from "@/Components/NoDataPlaceholder";
+
+export default function DisasterAgriDamage({
+    disasterAgriData,
+    overallDisasterAgriData = [],
+    barangays = [],
+    selectedBarangay,
+    tip = null,
+    queryParams,
+}) {
+    const breadcrumbs = [{ label: "Dashboard", showOnMobile: true }];
+    queryParams = queryParams || {};
+
+    const isBarangayView = !!selectedBarangay;
+    const isBarangayDataNull =
+        !disasterAgriData || disasterAgriData.length === 0;
+
+    const isDataNull = !disasterAgriData || disasterAgriData.length === 0;
+
+    const handleBarangayChange = (e) => {
+        const barangayId = e.target.value;
+        router.get(
+            route("cdrrmo_admin.damageagri"),
+            barangayId ? { barangay_id: barangayId } : {}
+        );
+    };
+
+    return (
+        <AdminLayout>
+            <Head title="Agricultural Damages Dashboard" />
+            <BreadCrumbsHeader breadcrumbs={breadcrumbs} />
+
+            <div className="pt-8 pb-2 min-h-screen bg-gray-50">
+                <div className="mx-auto w-full">
+                    {/* Barangay Filter */}
+                    <BarangayFilterCard
+                        selectedBarangay={selectedBarangay}
+                        handleBarangayChange={handleBarangayChange}
+                        barangays={barangays}
+                    />
+
+                    {!selectedBarangay ? (
+                        <div className="flex flex-col items-center justify-center mt-15 bg-gradient-to-br from-gray-50 to-gray-100 p-12 rounded-3xl shadow-xl border border-gray-200 hover:border-gray-300 transition-all duration-300">
+                            <img
+                                src="/images/chart_error.png"
+                                alt="No data"
+                                className="w-48 h-48 mb-6 animate-bounce"
+                            />
+                            <h2 className="text-3xl font-extrabold text-gray-800 mb-3 text-center">
+                                No Data Available
+                            </h2>
+                            <p className="text-gray-700 text-center mb-3 max-w-xl text-base leading-relaxed">
+                                To view disaster population impact data, please{" "}
+                                <span className="font-bold text-blue-600">
+                                    select a barangay
+                                </span>{" "}
+                                from the dropdown above. Only barangays with
+                                recorded disaster impact data for the chosen
+                                year will display results.
+                            </p>
+                            <p className="text-gray-600 text-center mb-6 max-w-xl text-sm italic leading-relaxed">
+                                Ensure the data for the selected barangay has
+                                been properly recorded in the system. Once
+                                selected, the dashboard will display accurate
+                                statistics and affected population information.
+                            </p>
+                            <button
+                                onClick={() => router.reload()}
+                                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition transform hover:scale-105 hover:shadow-lg"
+                            >
+                                Refresh Page
+                            </button>
+                        </div>
+                    ) : isDataNull ? (
+                        <div className="w-full px-2 sm:px-4 lg:px-6">
+                            <NoDataPlaceholder tip="Use the year selector above to navigate to a year with available data." />
+                        </div>
+                    ) : (
+                        disasterAgriData.map((barangay, bIndex) => {
+                            const disastersGrouped = barangay.disasters.reduce(
+                                (acc, d) => {
+                                    if (!acc[d.disaster_id])
+                                        acc[d.disaster_id] = [];
+                                    acc[d.disaster_id].push(d);
+                                    return acc;
+                                },
+                                {}
+                            );
+
+                            return Object.entries(disastersGrouped).map(
+                                ([disasterId, damageRows], dIndex) => {
+                                    const allColumns = [
+                                        {
+                                            key: "description",
+                                            label: "Description",
+                                        },
+                                        { key: "value", label: "Value" },
+                                        { key: "source", label: "Source" },
+                                    ];
+
+                                    const columnRenderers = {
+                                        description: (row) => (
+                                            <span className="text-gray-700">
+                                                {row.description}
+                                            </span>
+                                        ),
+                                        value: (row) => (
+                                            <span className="font-bold text-green-600">
+                                                {row.value}
+                                            </span>
+                                        ),
+                                        source: (row) => (
+                                            <span className="text-gray-700">
+                                                {row.source}
+                                            </span>
+                                        ),
+                                    };
+
+                                    const disasterName =
+                                        damageRows[0].disaster_name;
+                                    const disasterYear = damageRows[0].year;
+
+                                    const totalValue = null;
+
+                                    return (
+                                        <TableSection
+                                            key={`${bIndex}-${disasterId}`}
+                                            icon={<Sprout />}
+                                            color="emerald"
+                                            title={`${disasterName} in ${barangay.barangay_name} (${disasterYear})`}
+                                            description={`Damage details for this barangay`}
+                                            tableProps={{
+                                                component: DynamicTable,
+                                                passedData: damageRows,
+                                                allColumns,
+                                                columnRenderers,
+                                                visibleColumns: allColumns.map(
+                                                    (c) => c.key
+                                                ),
+                                                showTotal: true,
+                                                tableHeight: "400px",
+                                            }}
+                                        />
+                                    );
+                                }
+                            );
+                        })
+                    )}
+                </div>
+            </div>
+        </AdminLayout>
+    );
+}

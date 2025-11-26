@@ -1,0 +1,1 @@
+function r(e){return e.replace(/\b\w+/g,t=>t.charAt(0).toUpperCase()+t.slice(1).toLowerCase())}function a(e){if(!e)return"";const t=e.trimStart();return t.charAt(0).toUpperCase()+t.slice(1).toLowerCase()}function n(e){return e.toUpperCase()}export{n as a,a as b,r as t};
