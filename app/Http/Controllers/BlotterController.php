@@ -458,7 +458,7 @@ class BlotterController extends Controller
 
         $barangayId   = $barangay->id;
         $barangayName = $barangay->barangay_name;
-        $userResidentId = auth()->user()->resident_id;
+        $userResidentId = auth()->user()->resident_id ?? null;
 
         $officer = null;
 
@@ -568,6 +568,7 @@ class BlotterController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
+            dd($e->getMessage());
             \Log::error('Blotter form generation failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
