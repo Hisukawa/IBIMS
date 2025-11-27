@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('household_position', 55)->nullable();
 
             $table->boolean('is_household_head')->default(false); // quick filter
-            $table->foreignId('family_id')->nullable()->constrained('families')->onDelete('cascade');
+            $table->foreignId('family_id')->nullable()->constrained('families')->onDelete('set null');
 
             $table->timestamps();
         });

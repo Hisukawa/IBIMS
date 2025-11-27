@@ -77,11 +77,18 @@ class FamilyController extends Controller
         // 🟢 Paginate Results
         $families = $query->paginate(10)->withQueryString();
 
+        $members = Resident::with('latestHousehold:household_id,house_number')
+        ->where('barangay_id', $barangayId)
+        ->where('is_deceased', false) // filter by barangay
+        ->select('id', 'household_id', 'purok_number', 'resident_picture_path', 'firstname', 'middlename', 'lastname', 'birthdate', 'barangay_id')
+        ->get();
+
         // 🟢 Return to View
         return Inertia::render('BarangayOfficer/Family/Index', [
             'families' => $families,
             'queryParams' => $request->query() ?: null,
             'puroks' => $puroks,
+            'members' => $members,
         ]);
     }
 
@@ -460,18 +467,11 @@ class FamilyController extends Controller
     {
         DB::beginTransaction();
         try {
-            // Load members and their family relations
-            $family->load(['members.familyRelations']);
 
-            // Delete each member's family relations and detach family_id
             foreach ($family->members as $member) {
-                $member->familyRelations()->delete();
                 $member->update(['family_id' => null]);
             }
-
-            // Delete the family itself
-            $family->delete(); // or forceDelete() if using SoftDeletes
-
+            $family->delete();
             DB::commit();
 
             return redirect()
