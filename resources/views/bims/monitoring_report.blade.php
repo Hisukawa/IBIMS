@@ -115,12 +115,16 @@
     </tr>
     <tr>
         <td>
-            <div class="sig-line">{{ $barangay_secretary ?? 'Barangay Secretary' }}</div>
+            <div class="sig-line">
+                {{ ucwords(strtolower($barangay_secretary ?? 'Barangay Secretary')) }}
+            </div>
             <br>
             <span>(Signature over Printed Name)</span>
         </td>
         <td>
-            <div class="sig-line">{{ $punong_barangay ?? 'Punong Barangay' }}</div>
+            <div class="sig-line">
+                {{ ucwords(strtolower($punong_barangay ?? 'Punong Barangay')) }}
+            </div>
             <br>
             <span>(Signature over Printed Name)</span>
         </td>

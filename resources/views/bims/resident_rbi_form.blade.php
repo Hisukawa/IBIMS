@@ -533,7 +533,7 @@
                     </div>
                     <div style="border-bottom: 1.3px solid #000; width: 70%; height: 20px; margin: 0 auto;">
                         <span style="font-size: 11px; display: block; text-align: center;">
-                            {{ $barangaySecretary }}
+                            {{ ucwords(strtolower($barangaySecretary)) }}
                         </span>
                     </div>
                     <div style="font-size: 10px; margin-top: 4px; text-align: center;">
