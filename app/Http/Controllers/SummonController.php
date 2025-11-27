@@ -412,7 +412,7 @@ class SummonController extends Controller
 
     public function generateForm($id)
     {
-        $user       = auth()->user()->resident;
+        $user       = auth()->user();
         $barangayId = $user->barangay_id;
 
         try {
@@ -625,7 +625,7 @@ class SummonController extends Controller
 
     public function generateFileAction($id)
     {
-        $user       = auth()->user()->resident;
+        $user       = auth()->user();
         $barangayId = $user->barangay_id;
 
         try {
