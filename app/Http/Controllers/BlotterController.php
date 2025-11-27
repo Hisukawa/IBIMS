@@ -312,17 +312,154 @@ class BlotterController extends Controller
         }
     }
 
+    // localhost
+    // public function generateForm($id)
+    // {
+
+    //     $barangay     = Auth()->user()->barangay;
+
+    //     $barangayId   = $barangay->id;
+    //     $barangayName = $barangay->barangay_name;
+    //     $userResidentId = auth()->user()->resident_id;
+
+    //     $officer = null;
+
+    //     if ($userResidentId) {
+    //         $officer = BarangayOfficial::where('resident_id', $userResidentId)->first();
+    //     }
+
+    //     DB::beginTransaction();
+
+    //     try {
+    //         // Load blotter report with participants
+    //         $blotter = BlotterReport::with([
+    //             'complainants.resident',
+    //             'respondents.resident',
+    //             'witnesses.resident',
+    //             'recordedBy.resident'
+    //         ])->findOrFail($id);
+
+
+    //         // Load the latest 'blotter' template
+    //         $template = Document::where('barangay_id', $barangayId)
+    //             ->where('specific_purpose', 'blotter')
+    //             ->latest()
+    //             ->first();
+
+    //         // Template not found
+    //         if (!$template) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Blotter template not found.'
+    //             ], 404);
+    //         }
+
+    //         $templatePath = storage_path('app/public/' . $template->file_path);
+    //         // Template file missing in storage
+    //         if (!file_exists($templatePath)) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Template file missing in storage.'
+    //             ], 404);
+    //         }
+
+    //         $templateProcessor = new TemplateProcessor($templatePath);
+
+    //         // Prepare placeholder values
+    //         $values = collect([
+    //             'type_of_incident'           => $blotter->type_of_incident ?? '',
+    //             'inclusive_date_of_incident' => $blotter->incident_date
+    //                 ? Carbon::parse($blotter->incident_date)->format('F j, Y h:i A') // e.g., September 29, 2025 07:45 AM
+    //                 : '',
+
+    //             // Combine respondents and witnesses with distinction
+    //             'respondents_witnesses'      => trim(
+    //                 "\nRespondents: " . $blotter->respondents->map(fn($p) => $p->resident?->full_name ?? $p->name)->join(", ") . "\n" .
+    //                 "Witnesses: "   . $blotter->witnesses->map(fn($p) => $p->resident?->full_name ?? $p->name)->join(", ")
+    //             ),
+
+    //             'narrative_details'          => $blotter->narrative_details ?? '',
+    //             'actions_taken'              => $blotter->actions_taken ?? '',
+    //             'recommendation'             => $blotter->recommendations ?? '',
+
+    //             // Complainants / reported by
+    //             'complainants'               => $blotter->complainants->map(fn($p) => $p->resident?->full_name ?? $p->name)->join(", "),
+
+    //             'date_recieved'              => $blotter->created_at?->format('Y-m-d') ?? '',
+    //             // REVIEWED BY (the official who recorded it)
+    //             'reviewed_by' => $blotter->recordedBy->resident->full_name ?? str_repeat("\u{00A0}", 30),
+    //         ]);
+
+    //         // Fill placeholders dynamically
+    //         foreach ($templateProcessor->getVariables() as $placeholder) {
+    //             $templateProcessor->setValue($placeholder, $values->get($placeholder, ''));
+    //         }
+
+    //         // Generate file names and temp paths
+    //         $baseName    = "blotter_report_{$blotter->id}";
+    //         $docxFilename = "{$baseName}.docx";
+
+    //         $tempDir = sys_get_temp_dir();
+    //         $tempDocx = $tempDir . DIRECTORY_SEPARATOR . $docxFilename;
+
+    //         // Save DOCX
+    //         $templateProcessor->saveAs($tempDocx);
+
+    //         if (!file_exists($tempDocx) || filesize($tempDocx) === 0) {
+    //             throw new \Exception('Generated DOCX is empty or invalid.');
+    //         }
+
+    //         // Save files to public storage
+    //         $barangaySlug = Str::slug($barangayName);
+    //         $docxRelative = "blotter_forms/{$barangaySlug}/docx/{$docxFilename}";
+
+    //         \Storage::disk('public')->makeDirectory(dirname($docxRelative));
+
+    //         \Storage::disk('public')->putFileAs(dirname($docxRelative), new \Illuminate\Http\File($tempDocx), basename($docxRelative));
+
+    //         // Record issuance in Certificate table
+    //         Certificate::create([
+    //             'resident_id'    => $blotter->recordedBy->resident->id,
+    //             'document_id'    => $template->id,
+    //             'barangay_id'    => $barangayId,
+    //             'request_status' => 'issued',
+    //             'purpose'        => 'blotter',
+    //             'issued_at'      => now(),
+    //             'issued_by'      => $officer->id ?? null,
+    //             'docx_path'      => $docxRelative,
+    //             'pdf_path'       => null,
+    //             'control_number' => $blotter->id . '-' . now()->format('YmdHis'),
+    //         ]);
+
+    //         DB::commit();
+
+    //         // Return download response
+    //         return response()->download($tempDocx, $docxFilename)->deleteFileAfterSend(true);
+
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         \Log::error('Blotter form generation failed', [
+    //             'error' => $e->getMessage(),
+    //             'trace' => $e->getTraceAsString()
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to generate KP Form: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
+
+    // hosted
     public function generateForm($id)
     {
-
-        $barangay     = Auth()->user()->barangay;
-
-        $barangayId   = $barangay->id;
-        $barangayName = $barangay->barangay_name;
+        $barangay       = Auth()->user()->barangay;
+        $barangayId     = $barangay->id;
+        $barangayName   = $barangay->barangay_name;
         $userResidentId = auth()->user()->resident_id;
 
         $officer = null;
-
         if ($userResidentId) {
             $officer = BarangayOfficial::where('resident_id', $userResidentId)->first();
         }
@@ -330,7 +467,7 @@ class BlotterController extends Controller
         DB::beginTransaction();
 
         try {
-            // Load blotter report with participants
+            // Load blotter report
             $blotter = BlotterReport::with([
                 'complainants.resident',
                 'respondents.resident',
@@ -338,14 +475,12 @@ class BlotterController extends Controller
                 'recordedBy.resident'
             ])->findOrFail($id);
 
-
-            // Load the latest 'blotter' template
+            // Load template from public storage
             $template = Document::where('barangay_id', $barangayId)
                 ->where('specific_purpose', 'blotter')
                 ->latest()
                 ->first();
 
-            // Template not found
             if (!$template) {
                 return response()->json([
                     'success' => false,
@@ -353,8 +488,7 @@ class BlotterController extends Controller
                 ], 404);
             }
 
-            $templatePath = storage_path('app/public/' . $template->file_path);
-            // Template file missing in storage
+            $templatePath = public_path("storage/{$template->file_path}");
             if (!file_exists($templatePath)) {
                 return response()->json([
                     'success' => false,
@@ -368,55 +502,50 @@ class BlotterController extends Controller
             $values = collect([
                 'type_of_incident'           => $blotter->type_of_incident ?? '',
                 'inclusive_date_of_incident' => $blotter->incident_date
-                    ? Carbon::parse($blotter->incident_date)->format('F j, Y h:i A') // e.g., September 29, 2025 07:45 AM
+                    ? Carbon::parse($blotter->incident_date)->format('F j, Y h:i A')
                     : '',
-
-                // Combine respondents and witnesses with distinction
                 'respondents_witnesses'      => trim(
                     "\nRespondents: " . $blotter->respondents->map(fn($p) => $p->resident?->full_name ?? $p->name)->join(", ") . "\n" .
-                    "Witnesses: "   . $blotter->witnesses->map(fn($p) => $p->resident?->full_name ?? $p->name)->join(", ")
+                    "Witnesses: " . $blotter->witnesses->map(fn($p) => $p->resident?->full_name ?? $p->name)->join(", ")
                 ),
-
                 'narrative_details'          => $blotter->narrative_details ?? '',
                 'actions_taken'              => $blotter->actions_taken ?? '',
                 'recommendation'             => $blotter->recommendations ?? '',
-
-                // Complainants / reported by
                 'complainants'               => $blotter->complainants->map(fn($p) => $p->resident?->full_name ?? $p->name)->join(", "),
-
                 'date_recieved'              => $blotter->created_at?->format('Y-m-d') ?? '',
-                // REVIEWED BY (the official who recorded it)
-                'reviewed_by' => $blotter->recordedBy->resident->full_name ?? str_repeat("\u{00A0}", 30),
+                'reviewed_by'                => $blotter->recordedBy->resident->full_name ?? str_repeat("\u{00A0}", 30),
             ]);
 
-            // Fill placeholders dynamically
+            // Fill placeholders
             foreach ($templateProcessor->getVariables() as $placeholder) {
                 $templateProcessor->setValue($placeholder, $values->get($placeholder, ''));
             }
 
-            // Generate file names and temp paths
+            // Generate DOCX filename
             $baseName    = "blotter_report_{$blotter->id}";
             $docxFilename = "{$baseName}.docx";
 
-            $tempDir = sys_get_temp_dir();
-            $tempDocx = $tempDir . DIRECTORY_SEPARATOR . $docxFilename;
+            // Temporary file in public/temp
+            $tempDir  = public_path("temp");
+            if (!is_dir($tempDir)) mkdir($tempDir, 0755, true);
 
-            // Save DOCX
+            $tempDocx = $tempDir . '/' . $docxFilename;
             $templateProcessor->saveAs($tempDocx);
 
             if (!file_exists($tempDocx) || filesize($tempDocx) === 0) {
                 throw new \Exception('Generated DOCX is empty or invalid.');
             }
 
-            // Save files to public storage
+            // Save to public/storage
             $barangaySlug = Str::slug($barangayName);
             $docxRelative = "blotter_forms/{$barangaySlug}/docx/{$docxFilename}";
+            $finalPath    = public_path("storage/{$docxRelative}");
 
-            \Storage::disk('public')->makeDirectory(dirname($docxRelative));
+            if (!is_dir(dirname($finalPath))) mkdir(dirname($finalPath), 0755, true);
 
-            \Storage::disk('public')->putFileAs(dirname($docxRelative), new \Illuminate\Http\File($tempDocx), basename($docxRelative));
+            rename($tempDocx, $finalPath);
 
-            // Record issuance in Certificate table
+            // Save issuance record
             Certificate::create([
                 'resident_id'    => $blotter->recordedBy->resident->id,
                 'document_id'    => $template->id,
@@ -432,8 +561,8 @@ class BlotterController extends Controller
 
             DB::commit();
 
-            // Return download response
-            return response()->download($tempDocx, $docxFilename)->deleteFileAfterSend(true);
+            // Return download
+            return response()->download($finalPath, $docxFilename);
 
         } catch (\Throwable $e) {
             DB::rollBack();
