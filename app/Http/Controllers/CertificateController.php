@@ -257,7 +257,108 @@ class CertificateController extends Controller
     // }
 
 
+    // localhost
+    // public function store(Document $template, Resident $resident, array $data)
+    // {
+    //     $this->validateInput($data);
 
+    //     $user       = auth()->user()->resident; // might be null
+    //     $barangay   = auth()->user()->barangay; // might be null
+
+    //     $barangayId   = $barangay?->id;        // null-safe
+    //     $barangayName = $barangay?->barangay_name ?? 'Unknown Barangay';
+
+    //     $officer = $user ? BarangayOfficial::where('resident_id', $user->id)->first() : null;
+    //     $issuedBy = $officer?->id;             // use this later in DB save
+
+    //     DB::beginTransaction();
+
+    //     try {
+    //         // Prepare template processor
+    //         $templateProcessor = $this->loadTemplate($template->file_path);
+
+    //         // --- Handle primary resident values ---
+    //         $values = $this->prepareValues($resident, $data);
+    //         $secondResident = null;
+
+    //         // --- Handle dual resident placeholders ---
+    //         if (isset($data['resident_id_2'])) {
+    //             $resident2 = Resident::findOrFail($data['resident_id_2']);
+    //             if($resident2){
+    //                 $values = $values->merge($this->prepareSecondResidentValues($resident2, $data));
+    //             }
+    //             $secondResident = $resident2;
+    //         }else{
+    //             $val = collect([
+    //                 'fullname_2'     => str_repeat("\u{00A0}", 40),
+    //                 'civil_status_2' => str_repeat("\u{00A0}", 10),
+    //                 'gender_2'       => str_repeat("\u{00A0}", 8),
+    //                 'purpose_2'      => str_repeat("\u{00A0}", 50),
+    //                 'purok_2'        => str_repeat("\u{00A0}", 3),
+    //                 'day_2'          => str_repeat("\u{00A0}", 5),
+    //                 'month_2'        => str_repeat("\u{00A0}", 12),
+    //                 'year_2'         => str_repeat("\u{00A0}", 8),
+    //                 'issued_on'      => str_repeat("\u{00A0}", 30),
+    //             ]);
+    //             $values = $values->merge($val);
+    //         }
+
+    //         // Fill placeholders
+    //         foreach ($templateProcessor->getVariables() as $placeholder) {
+    //             $templateProcessor->setValue($placeholder, $values->get($placeholder, ''));
+    //         }
+
+    //         // Generate file names & paths
+    //         $baseName = $this->generateBaseName(
+    //                             $resident,
+    //                             $template->name,
+    //                             $secondResident ?? null
+    //                         );
+
+    //         $docxFilename = "{$baseName}.docx";
+    //         $tempDocx     = storage_path("app/temp/{$docxFilename}");
+
+    //         $this->ensureTempDirectory(dirname($tempDocx));
+
+    //         // Save as DOCX
+    //         $templateProcessor->saveAs($tempDocx);
+
+    //         // Store in public storage
+    //         $barangaySlug = Str::slug($barangayName);
+    //         $docxRelative = "certificates/{$barangaySlug}/docx/{$docxFilename}";
+
+    //         $this->storeFiles($tempDocx, $docxRelative);
+
+    //         // Save DB record (still tied to primary resident)
+    //         $certificate = Certificate::create([
+    //             'resident_id'    => $resident->id,
+    //             'document_id'    => $template->id,
+    //             'barangay_id'    => $barangayId,
+    //             'request_status' => 'issued',
+    //             'purpose'        => $data['purpose'],
+    //             'issued_at'      => now(),
+    //             'issued_by'      => $officer?->id,
+    //             'docx_path'      => $docxRelative,
+    //             'control_number' => $values['ctrl_no'],
+    //         ]);
+
+    //         DB::commit();
+
+    //         return Storage::disk('public')->download($docxRelative, $docxFilename);
+
+    //     } catch (\Throwable $e) {
+    //         \Log::error('Certificate generation failed: ' . $e->getMessage());
+    //         \Log::error($e->getTraceAsString());
+    //         DB::rollBack();
+
+    //         return response()->json([
+    //             'error' => 'Certificate generation failed.',
+    //             'message' => $e->getMessage(), // Add this
+    //         ], 500);
+    //     }
+    // }
+
+    // hosted
     public function store(Document $template, Resident $resident, array $data)
     {
         $this->validateInput($data);
@@ -265,30 +366,30 @@ class CertificateController extends Controller
         $user       = auth()->user()->resident; // might be null
         $barangay   = auth()->user()->barangay; // might be null
 
-        $barangayId   = $barangay?->id;        // null-safe
+        $barangayId   = $barangay?->id;
         $barangayName = $barangay?->barangay_name ?? 'Unknown Barangay';
 
         $officer = $user ? BarangayOfficial::where('resident_id', $user->id)->first() : null;
-        $issuedBy = $officer?->id;             // use this later in DB save
 
         DB::beginTransaction();
 
         try {
-            // Prepare template processor
-            $templateProcessor = $this->loadTemplate($template->file_path);
+            // Load template from public/storage
+            $templatePath = public_path("storage/{$template->file_path}");
+            if (!file_exists($templatePath)) {
+                throw new \Exception("Template file not found: {$templatePath}");
+            }
 
-            // --- Handle primary resident values ---
+            $templateProcessor = new TemplateProcessor($templatePath);
+
+            // Prepare values
             $values = $this->prepareValues($resident, $data);
-            $secondResident = null;
 
-            // --- Handle dual resident placeholders ---
+            // Handle optional second resident
             if (isset($data['resident_id_2'])) {
                 $resident2 = Resident::findOrFail($data['resident_id_2']);
-                if($resident2){
-                    $values = $values->merge($this->prepareSecondResidentValues($resident2, $data));
-                }
-                $secondResident = $resident2;
-            }else{
+                $values = $values->merge($this->prepareSecondResidentValues($resident2, $data));
+            } else {
                 $val = collect([
                     'fullname_2'     => str_repeat("\u{00A0}", 40),
                     'civil_status_2' => str_repeat("\u{00A0}", 10),
@@ -308,28 +409,34 @@ class CertificateController extends Controller
                 $templateProcessor->setValue($placeholder, $values->get($placeholder, ''));
             }
 
-            // Generate file names & paths
-            $baseName = $this->generateBaseName(
-                                $resident,
-                                $template->name,
-                                $secondResident ?? null
-                            );
-
+            // Generate file names
+            $baseName   = $this->generateBaseName($resident, $template->name, $data['resident_id_2'] ?? null);
             $docxFilename = "{$baseName}.docx";
-            $tempDocx     = storage_path("app/temp/{$docxFilename}");
 
-            $this->ensureTempDirectory(dirname($tempDocx));
+            // Temporary folder inside public/temp
+            $tempFolder = public_path("temp");
+            if (!is_dir($tempFolder)) {
+                mkdir($tempFolder, 0755, true);
+            }
+            $tempDocx = $tempFolder . '/' . $docxFilename;
 
-            // Save as DOCX
+            // Save temporary DOCX
             $templateProcessor->saveAs($tempDocx);
 
-            // Store in public storage
+            // Final storage path in public/storage
             $barangaySlug = Str::slug($barangayName);
-            $docxRelative = "certificates/{$barangaySlug}/docx/{$docxFilename}";
+            $finalRelative = "certificates/{$barangaySlug}/docx/{$docxFilename}";
+            $finalPath     = public_path("storage/{$finalRelative}");
 
-            $this->storeFiles($tempDocx, $docxRelative);
+            // Ensure destination folder exists
+            if (!is_dir(dirname($finalPath))) {
+                mkdir(dirname($finalPath), 0755, true);
+            }
 
-            // Save DB record (still tied to primary resident)
+            // Move file from temp to public/storage
+            rename($tempDocx, $finalPath);
+
+            // Save DB record
             $certificate = Certificate::create([
                 'resident_id'    => $resident->id,
                 'document_id'    => $template->id,
@@ -338,13 +445,14 @@ class CertificateController extends Controller
                 'purpose'        => $data['purpose'],
                 'issued_at'      => now(),
                 'issued_by'      => $officer?->id,
-                'docx_path'      => $docxRelative,
+                'docx_path'      => $finalRelative,
                 'control_number' => $values['ctrl_no'],
             ]);
 
             DB::commit();
 
-            return Storage::disk('public')->download($docxRelative, $docxFilename);
+            // Return download
+            return response()->download($finalPath, $docxFilename);
 
         } catch (\Throwable $e) {
             \Log::error('Certificate generation failed: ' . $e->getMessage());
@@ -352,11 +460,12 @@ class CertificateController extends Controller
             DB::rollBack();
 
             return response()->json([
-                'error' => 'Certificate generation failed.',
-                'message' => $e->getMessage(), // Add this
+                'error'   => 'Certificate generation failed.',
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
+
 
 /* ----------------- HELPER METHODS ----------------- */
 
