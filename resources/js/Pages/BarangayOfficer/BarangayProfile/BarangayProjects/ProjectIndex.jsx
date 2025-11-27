@@ -311,7 +311,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
             );
 
             const project = response.data.project;
-            console.log(project);
+            // console.log(project);
 
             setProjectDetails(project); // store for modal display if needed
 
