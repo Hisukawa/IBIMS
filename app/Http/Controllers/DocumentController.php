@@ -63,7 +63,9 @@ class DocumentController extends Controller
     public function fetchPlaceholders($id)
     {
         $template = Document::findOrFail($id);
-        $templatePath = storage_path("app/public/{$template->file_path}");
+
+        // Use public_path since files are now in public/storage
+        $templatePath = public_path("storage/{$template->file_path}");
 
         if (!file_exists($templatePath)) {
             abort(404, 'Template file not found.');
