@@ -274,7 +274,7 @@ const InstitutionIndex = ({ institutions, institutionNames, queryParams }) => {
                 `${APP_URL}/barangay_institution/details/${id}`
             );
             const institution = response.data.institution;
-            console.log(institution);
+            // console.log(institution);
             setInstitutionDetails(institution);
             setData({
                 institutions: [

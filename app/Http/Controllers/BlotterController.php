@@ -454,12 +454,14 @@ class BlotterController extends Controller
     // hosted
     public function generateForm($id)
     {
-        $barangay       = Auth()->user()->barangay;
-        $barangayId     = $barangay->id;
-        $barangayName   = $barangay->barangay_name;
+        $barangay     = Auth()->user()->barangay;
+
+        $barangayId   = $barangay->id;
+        $barangayName = $barangay->barangay_name;
         $userResidentId = auth()->user()->resident_id;
 
         $officer = null;
+
         if ($userResidentId) {
             $officer = BarangayOfficial::where('resident_id', $userResidentId)->first();
         }

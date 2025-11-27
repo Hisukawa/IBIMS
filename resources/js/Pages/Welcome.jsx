@@ -16,7 +16,7 @@ export default function Welcome({
     familyIncomeData,
     employmentStatusData,
 }) {
-    console.log(employmentStatusData);
+    // console.log(employmentStatusData);
 
     const handleImageError = () => {
         document

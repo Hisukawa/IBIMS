@@ -313,7 +313,7 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
                 `${APP_URL}/barangay_road/details/${id}`
             );
             const road = response.data.road;
-            console.log(road);
+            // console.log(road);
 
             setRoadDetails(road);
 

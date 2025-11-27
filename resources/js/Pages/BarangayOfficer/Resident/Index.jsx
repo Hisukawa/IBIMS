@@ -497,7 +497,7 @@ export default function Index({
             replace: true,
         });
     };
-    console.log("Rendering Resident Index with residents:", residents);
+    // console.log("Rendering Resident Index with residents:", residents);
 
     return (
         <AdminLayout>

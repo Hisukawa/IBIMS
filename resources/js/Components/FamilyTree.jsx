@@ -11,7 +11,7 @@ const CARD_WIDTH = 240;
 const CARD_HEIGHT = 90;
 
 const FamilyTree = ({ familyData }) => {
-    console.log(familyData);
+    // console.log(familyData);
     const svgRef = useRef();
     const [nodes, setNodes] = useState([]);
     const [connections, setConnections] = useState([]);
@@ -48,7 +48,6 @@ const FamilyTree = ({ familyData }) => {
                 const members = d.data.members;
                 const spacing = CARD_WIDTH + 130;
 
-
                 if (members.length === 1) {
                     positioned.push({
                         ...members[0],
@@ -59,7 +58,9 @@ const FamilyTree = ({ familyData }) => {
                     });
                 } else {
                     const self = members.find((m) => m.relation === "Self");
-                    const spouses = members.filter((m) => m.relation === "Spouse");
+                    const spouses = members.filter(
+                        (m) => m.relation === "Spouse"
+                    );
 
                     if (self) {
                         positioned.push({
@@ -73,7 +74,8 @@ const FamilyTree = ({ familyData }) => {
                         spouses.forEach((spouse, idx) => {
                             const direction = idx % 2 === 0 ? -1 : 1;
                             const multiplier = Math.ceil((idx + 1) / 2);
-                            const spouseX = baseX + direction * spacing * multiplier;
+                            const spouseX =
+                                baseX + direction * spacing * multiplier;
 
                             positioned.push({
                                 ...spouse,
@@ -122,7 +124,9 @@ const FamilyTree = ({ familyData }) => {
             );
 
             sameLevelNodes.sort((a, b) => a.x - b.x);
-            const selfIndex = sameLevelNodes.findIndex((n) => n.id === selfNode.id);
+            const selfIndex = sameLevelNodes.findIndex(
+                (n) => n.id === selfNode.id
+            );
 
             if (selfIndex !== -1) {
                 const gapSize = CARD_WIDTH * 0.8;
@@ -295,7 +299,9 @@ const FamilyTree = ({ familyData }) => {
         root.descendants().forEach((d) => {
             if (d.parent) {
                 const parentId = d.parent.data.id;
-                const parentInPositioned = positioned.some((p) => p.id === parentId);
+                const parentInPositioned = positioned.some(
+                    (p) => p.id === parentId
+                );
 
                 const isTopLevelSibling =
                     parentId === "virtual-root" ||
@@ -306,9 +312,13 @@ const FamilyTree = ({ familyData }) => {
                         topLevelSiblingGroups.set(parentId, []);
                     }
 
-                    const positionedNode = positioned.find((p) => p.id === d.data.id);
+                    const positionedNode = positioned.find(
+                        (p) => p.id === d.data.id
+                    );
                     if (positionedNode) {
-                        topLevelSiblingGroups.get(parentId).push(positionedNode);
+                        topLevelSiblingGroups
+                            .get(parentId)
+                            .push(positionedNode);
                     }
                 }
             }
@@ -321,12 +331,14 @@ const FamilyTree = ({ familyData }) => {
                 topLevelSiblingGroups.set(parentId, []);
             }
             // Add self and siblings together
-            const siblings = [selfNode, ...familyData.siblings.data
-                .map((sib) => positioned.find((p) => p.id === sib.id))
-                .filter(Boolean)];
+            const siblings = [
+                selfNode,
+                ...familyData.siblings.data
+                    .map((sib) => positioned.find((p) => p.id === sib.id))
+                    .filter(Boolean),
+            ];
             topLevelSiblingGroups.set(parentId, siblings);
         }
-
 
         // --- Draw sibling connection lines (supports couples) ---
         topLevelSiblingGroups.forEach((siblings) => {
@@ -339,13 +351,19 @@ const FamilyTree = ({ familyData }) => {
                         // Get all member nodes (self + spouse)
                         const memberNodes = [];
                         sibling.members?.forEach((m) => {
-                            const memberPos = positioned.find((p) => p.id === m.id);
+                            const memberPos = positioned.find(
+                                (p) => p.id === m.id
+                            );
                             if (memberPos) memberNodes.push(memberPos);
                         });
 
                         if (memberNodes.length > 0) {
-                            const minX = Math.min(...memberNodes.map((n) => n.x));
-                            const maxX = Math.max(...memberNodes.map((n) => n.x));
+                            const minX = Math.min(
+                                ...memberNodes.map((n) => n.x)
+                            );
+                            const maxX = Math.max(
+                                ...memberNodes.map((n) => n.x)
+                            );
                             const centerX = (minX + maxX + CARD_WIDTH) / 2;
                             const centerY = memberNodes[0].y + CARD_HEIGHT / 2;
                             return { ...sibling, centerX, centerY };

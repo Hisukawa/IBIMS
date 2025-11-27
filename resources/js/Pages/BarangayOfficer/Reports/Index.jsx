@@ -29,7 +29,7 @@ const Index = () => {
         {
             title: "Families",
             baseDesc: "family composition records.",
-            url: "report/export-family-excel",
+            url: "/report/export-family-excel",
             // pdfUrl: "/report/export-family-pdf",
         },
         {
