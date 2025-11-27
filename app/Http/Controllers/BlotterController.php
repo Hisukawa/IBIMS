@@ -515,7 +515,8 @@ class BlotterController extends Controller
                 'recommendation'             => $blotter->recommendations ?? '',
                 'complainants'               => $blotter->complainants->map(fn($p) => $p->resident?->full_name ?? $p->name)->join(", "),
                 'date_recieved'              => $blotter->created_at?->format('Y-m-d') ?? '',
-                'reviewed_by'                => $blotter->recordedBy->resident->full_name ?? str_repeat("\u{00A0}", 30),
+                'reviewed_by' => $blotter->recordedBy?->resident?->full_name
+                                ?? str_repeat("\u{00A0}", 30),
             ]);
 
             // Fill placeholders
@@ -549,7 +550,9 @@ class BlotterController extends Controller
 
             // Save issuance record
             Certificate::create([
-                'resident_id'    => $blotter->recordedBy->resident->id,
+                'resident_id'    => $blotter->complainants->first()?->resident?->id
+                    ?? $blotter->recordedBy?->resident?->id
+                    ?? null,
                 'document_id'    => $template->id,
                 'barangay_id'    => $barangayId,
                 'request_status' => 'issued',
@@ -568,7 +571,6 @@ class BlotterController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            dd($e->getMessage());
             \Log::error('Blotter form generation failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
