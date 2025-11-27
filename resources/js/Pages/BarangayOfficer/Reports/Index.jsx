@@ -18,7 +18,7 @@ const Index = () => {
             title: "Residents",
             baseDesc: "resident records.",
             url: "/report/export-residents-excel",
-            pdfUrl: "/report/export-resident-pdf",
+            // pdfUrl: "/report/export-resident-pdf",
         },
         {
             title: "Senior Citizens",
@@ -30,13 +30,13 @@ const Index = () => {
             title: "Families",
             baseDesc: "family composition records.",
             url: "report/export-family-excel",
-            pdfUrl: "/report/export-family-pdf",
+            // pdfUrl: "/report/export-family-pdf",
         },
         {
             title: "Households",
             baseDesc: "household listings.",
             url: "/report/export-household-excel",
-            pdfUrl: "/report/export-household-pdf",
+            // pdfUrl: "/report/export-household-pdf",
         },
         {
             title: "Vehicles",
@@ -48,13 +48,13 @@ const Index = () => {
             title: "Occupations",
             baseDesc: "employment data.",
             url: "/report/export-occupations-excel",
-            pdfUrl: "/report/export-occupations-pdf",
+            // pdfUrl: "/report/export-occupations-pdf",
         },
         {
             title: "Education",
             baseDesc: "student statistics.",
             url: "/report/export-education-excel",
-            pdfUrl: "/report/export-education-pdf",
+            // pdfUrl: "/report/export-education-pdf",
         },
         {
             title: "Blotter",
@@ -72,7 +72,7 @@ const Index = () => {
             title: "Medical",
             baseDesc: "health records.",
             url: "/report/export-medical-excel",
-            pdfUrl: "/report/export-medical-pdf",
+            // pdfUrl: "/report/export-medical-pdf",
         },
     ];
 
