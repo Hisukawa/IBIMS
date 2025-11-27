@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BodiesOFWater;
+
 use App\Http\Requests\StoreBodiesOFWaterRequest;
 use App\Http\Requests\UpdateBodiesOFWaterRequest;
+use App\Models\BodiesOfWater;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -44,7 +45,7 @@ class WaterController extends Controller
 
         try {
             foreach ($data['bodiesOfWater'] as $water) {
-                BodiesOFWater::create([
+                BodiesOfWater::create([
                     'barangay_id' => $data['barangay_id'] ?? auth()->user()->barangay_id, // optional if barangay-based
                     'name' => $water['name'],
                     'type' => $water['type'],
@@ -66,7 +67,7 @@ class WaterController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(BodiesOFWater $bodiesOFWater)
+    public function show(BodiesOfWater $bodiesOfWater)
     {
         //
     }
@@ -74,7 +75,7 @@ class WaterController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(BodiesOFWater $bodiesOFWater)
+    public function edit(BodiesOfWater $bodiesOfWater)
     {
         //
     }

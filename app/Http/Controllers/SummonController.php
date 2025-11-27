@@ -676,12 +676,13 @@ class SummonController extends Controller
                 'month'               => now()->translatedFormat('F'),
                 'day'                 => now()->format('d'),
                 'type_of_incident'    => $blotter->type_of_incident ?? '',
-                'complainants'        => $blotter->complainants
-                                            ->map(fn($p) => $p->resident?->full_name ?? $p->name)
-                                            ->join(', '),
-                'respondents'         => $blotter->respondents
-                                            ->map(fn($p) => $p->resident?->full_name ?? $p->name)
-                                            ->join(', '),
+                'complainants' => $blotter->complainants
+                    ->map(fn($p) => Str::title($p->resident?->full_name ?? $p->name))
+                    ->join(', '),
+
+                'respondents' => $blotter->respondents
+                    ->map(fn($p) => Str::title($p->resident?->full_name ?? $p->name))
+                    ->join(', '),
                 'barangay_captian'    => $captain?->resident?->full_name ?? '',
                 'baranggay_secretary' => $secretary?->resident?->full_name ?? '',
             ]);

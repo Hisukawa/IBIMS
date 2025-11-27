@@ -222,7 +222,7 @@ class BarangayInfrastructureController extends Controller
 
         return redirect()
                 ->route('barangay_infrastructure.index')
-                ->with('success','Infrastructure(s) saved successfully.');
+                ->with('success','Infrastructure(s) deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Infrastructure could not be deleted: ' . $e->getMessage());

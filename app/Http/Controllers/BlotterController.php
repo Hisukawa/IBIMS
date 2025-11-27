@@ -513,7 +513,9 @@ class BlotterController extends Controller
                 'narrative_details'          => $blotter->narrative_details ?? '',
                 'actions_taken'              => $blotter->actions_taken ?? '',
                 'recommendation'             => $blotter->recommendations ?? '',
-                'complainants'               => $blotter->complainants->map(fn($p) => $p->resident?->full_name ?? $p->name)->join(", "),
+                'complainants' => $blotter->complainants
+                ->map(fn($p) => Str::title($p->resident?->full_name ?? $p->name))
+                ->join(', '),
                 'date_recieved'              => $blotter->created_at?->format('Y-m-d') ?? '',
                 'reviewed_by' => $blotter->recordedBy?->resident?->full_name
                                 ?? str_repeat("\u{00A0}", 30),

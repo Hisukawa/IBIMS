@@ -119,7 +119,7 @@ class BarangayProjectController extends Controller
                         'barangay_id'             => $brgy_id,
                         'project_image'           => $imagePath, // stored file or null
                         'title'                   => $project['title'],
-                        'description'             => $project['description'],
+                        'description'             => $project['description'] ?? null,
                         'status'                  => $project['status'],
                         'category'                => $project['category'],
                         'responsible_institution' => $project['responsible_institution'] ?? null,
