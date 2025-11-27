@@ -486,9 +486,10 @@ class CertificateController extends Controller
 
     protected function loadTemplate(string $path): TemplateProcessor
     {
-        $templatePath = storage_path("app/public/{$path}");
+        // Use public_path since files are in public/storage
+        $templatePath = public_path("storage/{$path}");
         if (!file_exists($templatePath)) {
-            throw new \Exception('Template file not found.');
+            throw new \Exception("Template file not found: {$templatePath}");
         }
 
         return new TemplateProcessor($templatePath);
