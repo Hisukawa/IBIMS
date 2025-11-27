@@ -162,7 +162,7 @@ class ExcelDataSeeder extends Seeder
                     'resident_id' => $residentId,
                     'occupation'  => $occupation,
                     'is_ofw'      => $isOFW,
-                    'is_main_livelihood' => 1,
+                    'is_main_livelihood' => 0,
                     'created_at'  => now(),
                     'updated_at'  => now(),
                 ]);
@@ -190,6 +190,14 @@ class ExcelDataSeeder extends Seeder
                     'philsys_card_no'             => $philsys ?? null,
                     'created_at'                  => now(),
                     'updated_at'                  => now(),
+                ]);
+            }
+
+            if ($isDeceased  === 1) {
+                DB::table('deceaseds')->insert([
+                    'resident_id'            => $residentId,
+                    'created_at'             => now(),
+                    'updated_at'             => now(),
                 ]);
             }
         }

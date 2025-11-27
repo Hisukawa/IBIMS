@@ -19,7 +19,7 @@ class BarangayProject extends Model
         'description',
         'status',
         'category',
-        'responsible_institution_id',
+        'responsible_institution',
         'budget',
         'funding_source',
         'start_date',

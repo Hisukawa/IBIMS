@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BodiesOFLand;
+
 use App\Http\Requests\StoreBodiesOFLandRequest;
 use App\Http\Requests\UpdateBodiesOFLandRequest;
-use App\Models\BodiesOfWater;
+use App\Models\BodiesOfLand;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -18,7 +18,7 @@ class LandController extends Controller
     {
         $brgy_id = auth()->user()->barangay_id;
 
-        $query = BodiesOFLand::where('barangay_id', $brgy_id);
+        $query = BodiesOfLand::where('barangay_id', $brgy_id);
 
         // ✅ Pagination with query string preservation
         $bodiesOfLand = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
@@ -67,7 +67,7 @@ class LandController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(BodiesOFLand $bodiesOFLand)
+    public function show(BodiesOfLand $bodiesOfLand)
     {
         //
     }
@@ -75,7 +75,7 @@ class LandController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(BodiesOFLand $bodiesOFLand)
+    public function edit(BodiesOfLand $bodiesOfLand)
     {
         //
     }
@@ -108,7 +108,7 @@ class LandController extends Controller
      */
     public function destroy($id)
     {
-        $bodiesOFWater = BodiesOFLand::where('id', $id)
+        $bodiesOFWater = BodiesOfLand::where('id', $id)
         ->first();
         DB::beginTransaction();
         try {

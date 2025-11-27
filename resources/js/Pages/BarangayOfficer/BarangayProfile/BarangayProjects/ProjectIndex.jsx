@@ -210,11 +210,11 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
         actions: (row) => (
             <ActionMenu
                 actions={[
-                    {
-                        label: "View",
-                        icon: <Eye className="w-4 h-4 text-indigo-600" />,
-                        onClick: () => handleView(row.id),
-                    },
+                    // {
+                    //     label: "View",
+                    //     icon: <Eye className="w-4 h-4 text-indigo-600" />,
+                    //     onClick: () => handleView(row.id),
+                    // },
                     {
                         label: "Edit",
                         icon: <SquarePen className="w-4 h-4 text-green-500" />,
