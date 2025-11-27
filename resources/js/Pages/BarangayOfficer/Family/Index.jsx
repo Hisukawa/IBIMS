@@ -46,7 +46,12 @@ import DeleteConfirmationModal from "@/Components/DeleteConfirmationModal";
 import ExportButton from "@/Components/ExportButton";
 import { useQuery } from "@tanstack/react-query";
 
-export default function Index({ families, queryParams = null, puroks }) {
+export default function Index({
+    families,
+    queryParams = null,
+    puroks,
+    members,
+}) {
     const breadcrumbs = [
         { label: "Residents Information", showOnMobile: false },
         {
@@ -66,7 +71,6 @@ export default function Index({ families, queryParams = null, puroks }) {
     const [familyDetails, setFamilyDetails] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); //delete
     const [familyToDelete, setFamilyToDelete] = useState(null); //delete
-    const [members, setMembers] = useState([]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -104,10 +108,6 @@ export default function Index({ families, queryParams = null, puroks }) {
         { key: "purok_number", label: "Purok Number" },
         { key: "actions", label: "Actions" },
     ];
-
-    const handleDelete = (id) => {
-        // Your delete logic here
-    };
 
     const viewFamily = (id) => {
         router.get(route("family.showfamily", id));
@@ -237,23 +237,13 @@ export default function Index({ families, queryParams = null, puroks }) {
         ),
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get("/family/residents-members");
-                setMembers(response.data.members || []);
-            } catch (err) {
-                console.error("Error fetching data:", err);
-            }
-        };
-
-        fetchData();
-    }, []);
-
     // add family
     const handleAddFamily = () => {
+        setQuery(""); // optional
         setIsModalOpen(true);
+        setData("_method", undefined);
     };
+
     const defaultMember = {
         resident_id: null,
         resident_name: "",
@@ -289,6 +279,7 @@ export default function Index({ families, queryParams = null, puroks }) {
         setIsModalOpen(false);
         setFamilyDetails(null);
         reset();
+        setData("_method", undefined); // reset method
         clearErrors();
     };
 
@@ -436,8 +427,14 @@ export default function Index({ families, queryParams = null, puroks }) {
     };
 
     const confirmDelete = () => {
-        router.delete(route("family.destroy", familyToDelete));
-        setIsDeleteModalOpen(false);
+        router.delete(route("family.destroy", familyToDelete), {
+            onSuccess: () => {
+                setIsDeleteModalOpen(false);
+                setFamilyDetails(null);
+                reset(); // reset form
+                setData("_method", undefined); // ensure method is POST
+            },
+        });
     };
 
     useEffect(() => {
