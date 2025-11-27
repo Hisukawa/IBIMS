@@ -212,16 +212,19 @@ class SummonExport implements FromCollection, WithHeadings, ShouldAutoSize, With
                 $signatureStartRow = $lastRow + 3;
                 $halfColumn = floor(($lastColumnIndex + 1)/2);
 
+                $secretaryName = ucwords(strtolower($secretary));
+                $captainName = ucwords(strtolower($captain));
+
                 $sheet->mergeCells("A{$signatureStartRow}:".Coordinate::stringFromColumnIndex($halfColumn).$signatureStartRow);
                 $sheet->setCellValue("A{$signatureStartRow}","______________________________");
                 $sheet->mergeCells("A".($signatureStartRow+1).":".Coordinate::stringFromColumnIndex($halfColumn).($signatureStartRow+1));
-                $sheet->setCellValue("A".($signatureStartRow+1),"Hon. ".$captain);
+                $sheet->setCellValue("A".($signatureStartRow+1),"Hon. ".$captainName);
                 $sheet->getStyle("A{$signatureStartRow}:".Coordinate::stringFromColumnIndex($halfColumn).($signatureStartRow+1))->getAlignment()->setHorizontal('center');
 
                 $sheet->mergeCells(Coordinate::stringFromColumnIndex($halfColumn+1)."{$signatureStartRow}:{$lastColumn}{$signatureStartRow}");
                 $sheet->setCellValue(Coordinate::stringFromColumnIndex($halfColumn+1)."{$signatureStartRow}","______________________________");
                 $sheet->mergeCells(Coordinate::stringFromColumnIndex($halfColumn+1).($signatureStartRow+1).":{$lastColumn}".($signatureStartRow+1));
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($halfColumn+1).($signatureStartRow+1),"Hon. ".$secretary);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($halfColumn+1).($signatureStartRow+1),"Hon. ".$secretaryName);
                 $sheet->getStyle(Coordinate::stringFromColumnIndex($halfColumn+1)."{$signatureStartRow}:{$lastColumn}".($signatureStartRow+1))->getAlignment()->setHorizontal('center');
 
                 $sheet->freezePane("A".($headerRow+1));
