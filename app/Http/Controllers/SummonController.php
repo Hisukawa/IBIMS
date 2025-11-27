@@ -309,13 +309,114 @@ class SummonController extends Controller
         ]);
     }
 
+    // public function generateForm($id)
+    // {
+    //     $user       = auth()->user()->resident;
+    //     $barangayId = $user->barangay_id;
+
+    //     try {
+    //         // Load blotter report with participants
+    //         $blotter = BlotterReport::with([
+    //             'complainants.resident',
+    //             'respondents.resident',
+    //             'recordedBy.resident'
+    //         ])->findOrFail($id);
+
+    //         // Load summon template (KP Form 9)
+    //         $template = Document::where('barangay_id', $barangayId)
+    //             ->where('specific_purpose', 'summon')
+    //             ->latest()
+    //             ->first();
+
+    //         // Template not found
+    //         if (!$template) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Summon template not found.'
+    //             ], 404);
+    //         }
+
+    //         $templatePath = storage_path('app/public/' . $template->file_path);
+
+    //         // Template file missing in storage
+    //         if (!file_exists($templatePath)) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Template file missing in storage.'
+    //             ], 404);
+    //         }
+
+    //         $templateProcessor = new TemplateProcessor($templatePath);
+
+    //         // Prepare replacement values
+    //         $officer = BarangayOfficial::where('resident_id', $user->id)->first();
+    //         $barangayCaptain = BarangayOfficial::where('position', 'Captain')
+    //             ->whereHas('resident', fn($q) => $q->where('barangay_id', $barangayId))
+    //             ->first()?->resident?->full_name ?? $officer?->resident?->full_name ?? '';
+
+    //         $values = collect([
+    //             'type_of_incident'  => $blotter->type_of_incident ?? '',
+    //             'complainants'      => $blotter->complainants
+    //                                     ->map(fn($p) => $p->resident?->full_name ?? $p->name)
+    //                                     ->join(", "),
+    //             'respondents'       => $blotter->respondents
+    //                                     ->map(fn($p) => $p->resident?->full_name ?? $p->name)
+    //                                     ->join(", "),
+    //             'narrative_details' => $blotter->narrative_details ?? '',
+    //             'recommendation'    => $blotter->recommendations ?? '',
+    //             'day'                => now()->format('d'),
+    //             'month'              => now()->translatedFormat('F'),
+    //             'year'               => now()->format('Y'),
+    //             'time'               => now()->format('h:i A'),
+    //             'barangay_captain'   => $barangayCaptain,
+    //         ]);
+
+    //         // Fill template placeholders
+    //         foreach ($templateProcessor->getVariables() as $placeholder) {
+    //             $templateProcessor->setValue($placeholder, $values->get($placeholder, ''));
+    //         }
+
+    //         // File paths
+    //         $baseName     = "kp_form9_{$blotter->id}";
+    //         $docxFilename = "{$baseName}.docx";
+    //         $barangaySlug = \Str::slug($user->barangay->barangay_name);
+    //         $docxRelative = "kp_forms/{$barangaySlug}/docx/{$docxFilename}";
+    //         $docxPath     = storage_path("app/public/{$docxRelative}");
+
+    //         \Storage::disk('public')->makeDirectory(dirname($docxRelative));
+    //         $templateProcessor->saveAs($docxPath);
+
+    //         if (!file_exists($docxPath) || filesize($docxPath) === 0) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Generated DOCX is empty or invalid.'
+    //             ], 500);
+    //         }
+
+    //         // Return file for download
+    //         return response()->download($docxPath, $docxFilename);
+
+    //     } catch (\Throwable $e) {
+    //         \Log::error('KP Form generation failed', [
+    //             'error' => $e->getMessage(),
+    //             'trace' => $e->getTraceAsString()
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to generate KP Form: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
+
     public function generateForm($id)
     {
         $user       = auth()->user()->resident;
         $barangayId = $user->barangay_id;
 
         try {
-            // Load blotter report with participants
+            // Load blotter report
             $blotter = BlotterReport::with([
                 'complainants.resident',
                 'respondents.resident',
@@ -328,7 +429,6 @@ class SummonController extends Controller
                 ->latest()
                 ->first();
 
-            // Template not found
             if (!$template) {
                 return response()->json([
                     'success' => false,
@@ -336,9 +436,8 @@ class SummonController extends Controller
                 ], 404);
             }
 
-            $templatePath = storage_path('app/public/' . $template->file_path);
-
-            // Template file missing in storage
+            // Load template from public/storage
+            $templatePath = public_path("storage/{$template->file_path}");
             if (!file_exists($templatePath)) {
                 return response()->json([
                     'success' => false,
@@ -348,27 +447,29 @@ class SummonController extends Controller
 
             $templateProcessor = new TemplateProcessor($templatePath);
 
-            // Prepare replacement values
+            // Prepare placeholder values
             $officer = BarangayOfficial::where('resident_id', $user->id)->first();
             $barangayCaptain = BarangayOfficial::where('position', 'Captain')
                 ->whereHas('resident', fn($q) => $q->where('barangay_id', $barangayId))
-                ->first()?->resident?->full_name ?? $officer?->resident?->full_name ?? '';
+                ->first()?->resident?->full_name
+                ?? $officer?->resident?->full_name
+                ?? '';
 
             $values = collect([
                 'type_of_incident'  => $blotter->type_of_incident ?? '',
                 'complainants'      => $blotter->complainants
-                                        ->map(fn($p) => $p->resident?->full_name ?? $p->name)
-                                        ->join(", "),
+                                            ->map(fn($p) => $p->resident?->full_name ?? $p->name)
+                                            ->join(", "),
                 'respondents'       => $blotter->respondents
-                                        ->map(fn($p) => $p->resident?->full_name ?? $p->name)
-                                        ->join(", "),
+                                            ->map(fn($p) => $p->resident?->full_name ?? $p->name)
+                                            ->join(", "),
                 'narrative_details' => $blotter->narrative_details ?? '',
                 'recommendation'    => $blotter->recommendations ?? '',
-                'day'                => now()->format('d'),
-                'month'              => now()->translatedFormat('F'),
-                'year'               => now()->format('Y'),
-                'time'               => now()->format('h:i A'),
-                'barangay_captain'   => $barangayCaptain,
+                'day'               => now()->format('d'),
+                'month'             => now()->translatedFormat('F'),
+                'year'              => now()->format('Y'),
+                'time'              => now()->format('h:i A'),
+                'barangay_captain'  => $barangayCaptain,
             ]);
 
             // Fill template placeholders
@@ -381,9 +482,14 @@ class SummonController extends Controller
             $docxFilename = "{$baseName}.docx";
             $barangaySlug = \Str::slug($user->barangay->barangay_name);
             $docxRelative = "kp_forms/{$barangaySlug}/docx/{$docxFilename}";
-            $docxPath     = storage_path("app/public/{$docxRelative}");
+            $docxPath     = public_path("storage/{$docxRelative}");
 
-            \Storage::disk('public')->makeDirectory(dirname($docxRelative));
+            // Ensure directory exists
+            if (!is_dir(dirname($docxPath))) {
+                mkdir(dirname($docxPath), 0755, true);
+            }
+
+            // Save DOCX
             $templateProcessor->saveAs($docxPath);
 
             if (!file_exists($docxPath) || filesize($docxPath) === 0) {
@@ -408,26 +514,134 @@ class SummonController extends Controller
             ], 500);
         }
     }
+
+    // public function generateFileAction($id)
+    // {
+    //     $user       = auth()->user()->resident;
+    //     $barangayId = $user->barangay_id;
+
+    //     try {
+    //         // Load blotter report with related participants and officer
+    //         $blotter = BlotterReport::with([
+    //             'complainants.resident',
+    //             'respondents.resident',
+    //             'recordedBy.resident'
+    //         ])->findOrFail($id);
+
+    //         // Load Certificate to File Action template (KP Form 10)
+    //         $template = Document::where('barangay_id', $barangayId)
+    //             ->where('specific_purpose', 'file_action')
+    //             ->latest()
+    //             ->first();
+
+    //         // Template not found
+    //         if (!$template) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Certificate to File Action template not found.'
+    //             ], 404);
+    //         }
+
+    //         $templatePath = storage_path('app/public/' . $template->file_path);
+
+    //         // Template file missing in storage
+    //         if (!file_exists($templatePath)) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Template file missing in storage.'
+    //             ], 404);
+    //         }
+
+    //         $templateProcessor = new TemplateProcessor($templatePath);
+
+    //         // Get barangay officials
+    //         $captain = BarangayOfficial::where('position', 'barangay_captain')
+    //             ->whereHas('resident', fn($q) => $q->where('barangay_id', $barangayId))
+    //             ->first();
+
+    //         $secretary = BarangayOfficial::where('position', 'barangay_secretary')
+    //             ->whereHas('resident', fn($q) => $q->where('barangay_id', $barangayId))
+    //             ->first();
+
+    //         // Prepare replacement values for placeholders
+    //         $values = collect([
+    //             'id'                  => $blotter->id,
+    //             'year'                => now()->format('Y'),
+    //             'month'               => now()->translatedFormat('F'),
+    //             'day'                 => now()->format('d'),
+    //             'type_of_incident'  => $blotter->type_of_incident ?? '',
+    //             'complainants'        => $blotter->complainants
+    //                                         ->map(fn($p) => $p->resident?->full_name ?? $p->name)
+    //                                         ->join(', '),
+    //             'respondents'         => $blotter->respondents
+    //                                         ->map(fn($p) => $p->resident?->full_name ?? $p->name)
+    //                                         ->join(', '),
+    //             'barangay_captian'    => $captain?->resident?->full_name ?? '',
+    //             'baranggay_secretary' => $secretary?->resident?->full_name ?? '',
+    //         ]);
+
+    //         // Fill all placeholders
+    //         foreach ($templateProcessor->getVariables() as $placeholder) {
+    //             $templateProcessor->setValue($placeholder, $values->get($placeholder, ''));
+    //         }
+
+    //         // File paths
+    //         $incidentType = Str::slug($blotter->type_of_incident, '_'); // make it filename-safe
+    //         $baseName = "certificate_file_action_{$incidentType}";
+    //         $docxFilename = "{$baseName}.docx";
+    //         $barangaySlug = \Str::slug($user->barangay->barangay_name);
+    //         $docxRelative = "kp_forms/{$barangaySlug}/docx/{$docxFilename}";
+    //         $docxPath     = storage_path("app/public/{$docxRelative}");
+
+    //         // Ensure directory exists
+    //         \Storage::disk('public')->makeDirectory(dirname($docxRelative));
+
+    //         // Save generated document
+    //         $templateProcessor->saveAs($docxPath);
+
+    //         if (!file_exists($docxPath) || filesize($docxPath) === 0) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Generated DOCX is empty or invalid.'
+    //             ], 500);
+    //         }
+
+    //         // Return file for download
+    //         return response()->download($docxPath, $docxFilename);
+
+    //     } catch (\Throwable $e) {
+    //         \Log::error('Certificate to File Action generation failed', [
+    //             'error' => $e->getMessage(),
+    //             'trace' => $e->getTraceAsString(),
+    //         ]);
+
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to generate Certificate to File Action: ' . $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
+
+
     public function generateFileAction($id)
     {
         $user       = auth()->user()->resident;
         $barangayId = $user->barangay_id;
 
         try {
-            // Load blotter report with related participants and officer
+            // Load blotter report with participants
             $blotter = BlotterReport::with([
                 'complainants.resident',
                 'respondents.resident',
                 'recordedBy.resident'
             ])->findOrFail($id);
 
-            // Load Certificate to File Action template (KP Form 10)
+            // Load template from public storage
             $template = Document::where('barangay_id', $barangayId)
                 ->where('specific_purpose', 'file_action')
                 ->latest()
                 ->first();
 
-            // Template not found
             if (!$template) {
                 return response()->json([
                     'success' => false,
@@ -435,9 +649,7 @@ class SummonController extends Controller
                 ], 404);
             }
 
-            $templatePath = storage_path('app/public/' . $template->file_path);
-
-            // Template file missing in storage
+            $templatePath = public_path("storage/{$template->file_path}");
             if (!file_exists($templatePath)) {
                 return response()->json([
                     'success' => false,
@@ -456,13 +668,13 @@ class SummonController extends Controller
                 ->whereHas('resident', fn($q) => $q->where('barangay_id', $barangayId))
                 ->first();
 
-            // Prepare replacement values for placeholders
+            // Prepare placeholder values
             $values = collect([
                 'id'                  => $blotter->id,
                 'year'                => now()->format('Y'),
                 'month'               => now()->translatedFormat('F'),
                 'day'                 => now()->format('d'),
-                'type_of_incident'  => $blotter->type_of_incident ?? '',
+                'type_of_incident'    => $blotter->type_of_incident ?? '',
                 'complainants'        => $blotter->complainants
                                             ->map(fn($p) => $p->resident?->full_name ?? $p->name)
                                             ->join(', '),
@@ -473,23 +685,24 @@ class SummonController extends Controller
                 'baranggay_secretary' => $secretary?->resident?->full_name ?? '',
             ]);
 
-            // Fill all placeholders
             foreach ($templateProcessor->getVariables() as $placeholder) {
                 $templateProcessor->setValue($placeholder, $values->get($placeholder, ''));
             }
 
             // File paths
-            $incidentType = Str::slug($blotter->type_of_incident, '_'); // make it filename-safe
-            $baseName = "certificate_file_action_{$incidentType}";
+            $incidentType = Str::slug($blotter->type_of_incident ?? 'incident', '_');
+            $baseName     = "certificate_file_action_{$incidentType}";
             $docxFilename = "{$baseName}.docx";
             $barangaySlug = \Str::slug($user->barangay->barangay_name);
             $docxRelative = "kp_forms/{$barangaySlug}/docx/{$docxFilename}";
-            $docxPath     = storage_path("app/public/{$docxRelative}");
+            $docxPath     = public_path("storage/{$docxRelative}");
 
             // Ensure directory exists
-            \Storage::disk('public')->makeDirectory(dirname($docxRelative));
+            if (!is_dir(dirname($docxPath))) {
+                mkdir(dirname($docxPath), 0755, true);
+            }
 
-            // Save generated document
+            // Save generated DOCX
             $templateProcessor->saveAs($docxPath);
 
             if (!file_exists($docxPath) || filesize($docxPath) === 0) {

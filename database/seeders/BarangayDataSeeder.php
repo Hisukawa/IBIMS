@@ -97,7 +97,7 @@ class BarangayDataSeeder extends Seeder
         ];
 
         // Seed ONLY one barangay for testing
-        $barangays = Barangay::take(5)->get();
+        $barangays = Barangay::take(1)->get();
         //$barangays = Barangay::all();
         foreach ($barangays as $barangay) {
             /**
