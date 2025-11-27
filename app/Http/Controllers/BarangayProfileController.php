@@ -37,11 +37,13 @@ class BarangayProfileController extends Controller
                     Storage::disk('public')->delete($barangay->logo_path);
                 }
 
-                // Store new logo
+                // Store new logo directly in public/storage
                 $filename = 'logo_' . time() . '.' . $image->getClientOriginalExtension();
-                $path = $image->storeAs($folder, $filename, 'public');
+                $path = $image->storeAs($folder, $filename, [
+                    'disk' => 'public',
+                ]);
 
-                // Update logo path
+                // Update logo path in DB (relative to /storage)
                 $data['logo_path'] = $path;
             } else {
                 // Keep the existing logo if none uploaded
