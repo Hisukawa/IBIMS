@@ -23,11 +23,12 @@ import { Toaster, toast } from "sonner";
 import InputError from "@/Components/InputError";
 import { IoIosAddCircleOutline, IoIosCloseCircleOutline } from "react-icons/io";
 import { useQuery } from "@tanstack/react-query";
-import { Home, SquarePen, TableIcon, Trash2 } from "lucide-react";
+import { Home, Plus, SquarePen, TableIcon, Trash2 } from "lucide-react";
 import DynamicTable from "@/Components/DynamicTable";
 import ActionMenu from "@/Components/ActionMenu";
 import { Switch } from "@/components/ui/switch"; // adjust path
 import DeleteConfirmationModal from "@/Components/DeleteConfirmationModal";
+import { Button } from "@/Components/ui/button";
 
 const BarangayOfficials = ({
     officials,
@@ -53,6 +54,12 @@ const BarangayOfficials = ({
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); //delete
     const [officialToDelete, setOfficialToDelete] = useState(null); //delete
     const [selectedTerm, setSelectedTerm] = useState(queryParams["term"] ?? "");
+    const [statusMap, setStatusMap] = useState(
+        officials.reduce((acc, official) => {
+            acc[official.id] = official.status === "active"; // true if active, false if inactive
+            return acc;
+        }, {})
+    );
 
     const props = usePage().props;
     const success = props?.success ?? null;
@@ -343,22 +350,12 @@ const BarangayOfficials = ({
         { key: "status", label: "Status" },
         { key: "term", label: "Term" },
         { key: "designation", label: "Designation" },
+        { key: "contact_number", label: "Contact Number" },
         { key: "actions", label: "Actions" },
     ];
 
     const defaultVisibleCols = allColumns.map((col) => col.key);
-    const [visibleColumns, setVisibleColumns] = useState(() => {
-        const saved = localStorage.getItem("official_visible_columns");
-        return saved ? JSON.parse(saved) : defaultVisibleCols;
-    });
-
-    useEffect(() => {
-        localStorage.setItem(
-            "official_visible_columns",
-            JSON.stringify(visibleColumns)
-        );
-    }, [visibleColumns]);
-
+    const [visibleColumns, setVisibleColumns] = useState(defaultVisibleCols);
     const columnRenderers = {
         id: (row) => (
             <span className="text-gray-700 font-medium">{row.id}</span>
@@ -396,18 +393,54 @@ const BarangayOfficials = ({
             </span>
         ),
 
-        status: (row) => (
-            <span
-                className={
-                    "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide " +
-                    (row.status === "active"
-                        ? "bg-green-100 text-green-800 border border-green-300"
-                        : "bg-gray-200 text-gray-700 border border-gray-300")
-                }
-            >
-                {row.status}
-            </span>
-        ),
+        status: (row) => {
+            const isActive = statusMap[row.id] ?? row.status === "active";
+
+            const handleToggle = (checked) => {
+                setStatusMap((prev) => ({ ...prev, [row.id]: checked }));
+
+                axios
+                    .patch(`/barangayofficial/${row.id}/toggle-status`, {
+                        status: checked ? "active" : "inactive",
+                    })
+                    .then((res) => {
+                        toast[res.data.success ? "success" : "error"](
+                            res.data.message,
+                            {
+                                duration: 3000,
+                                closeButton: true,
+                            }
+                        );
+                    })
+                    .catch(() => {
+                        toast.error("Failed to update status.", {
+                            duration: 3000,
+                            closeButton: true,
+                        });
+                        setStatusMap((prev) => ({
+                            ...prev,
+                            [row.id]: !checked,
+                        }));
+                    });
+            };
+
+            return (
+                <div className="flex items-center gap-2">
+                    <Switch
+                        checked={isActive}
+                        onCheckedChange={handleToggle}
+                        className="bg-gray-200 hover:bg-gray-300"
+                    />
+                    <span
+                        className={`text-xs font-semibold ${
+                            isActive ? "text-green-700" : "text-red-700"
+                        }`}
+                    >
+                        {isActive ? "ACTIVE" : "INACTIVE"}
+                    </span>
+                </div>
+            );
+        },
 
         term: (row) => (
             <span className="text-sm text-gray-700 font-medium">
@@ -429,6 +462,17 @@ const BarangayOfficials = ({
                 </span>
             );
         },
+        contact_number: (row) => (
+            <span
+                className={`text-sm font-medium ${
+                    row.resident.contact_number
+                        ? "text-gray-700"
+                        : "text-gray-400 italic"
+                }`}
+            >
+                {row.resident.contact_number || "No contact number available"}
+            </span>
+        ),
 
         actions: (row) => (
             <ActionMenu
@@ -478,7 +522,7 @@ const BarangayOfficials = ({
             <Toaster richColors />
             <div className="pt-4 mb-10">
                 <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
-                    <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
+                    <div className="shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
                         {/* Header */}
                         <div className="mb-6">
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -500,209 +544,238 @@ const BarangayOfficials = ({
                                 </div>
 
                                 {/* RIGHT: Term Filter Dropdown */}
-                                <div className="flex items-center space-x-2 w-full md:w-[280px]">
-                                    <SelectField
-                                        id="term_filter"
-                                        name="term_filter"
-                                        placeholder="Filter by Terms"
-                                        value={selectedTerm}
-                                        onChange={(e) => {
-                                            searchFieldName(
-                                                "term",
-                                                e.target.value
-                                            );
-                                            setSelectedTerm(e.target.value);
-                                        }}
-                                        className="w-full"
-                                        items={termList}
-                                    />
+                                <div className="flex items-center w-full md:w-auto gap-3">
+                                    {/* Select */}
+                                    <div className="w-full md:w-[280px]">
+                                        <SelectField
+                                            id="term_filter"
+                                            name="term_filter"
+                                            placeholder="Filter by Terms"
+                                            value={selectedTerm}
+                                            onChange={(e) => {
+                                                searchFieldName(
+                                                    "term",
+                                                    e.target.value
+                                                );
+                                                setSelectedTerm(e.target.value);
+                                            }}
+                                            className="w-full"
+                                            items={termList}
+                                        />
+                                    </div>
+
+                                    {/* Button */}
+                                    <Button
+                                        onClick={handleAdd}
+                                        size="lg"
+                                        className="bg-blue-600 text-white hover:bg-blue-700"
+                                    >
+                                        <Plus />
+                                        Add Official
+                                    </Button>
                                 </div>
                             </div>
                         </div>
                         <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
                             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
-                                {Object.keys(groupedOfficials).map(
-                                    (position) => {
-                                        const officials =
-                                            groupedOfficials[position];
-                                        // Check if there is exactly one official
-                                        const isSingle = officials.length === 1;
+                                {!selectedTerm && (
+                                    <div className="max-w-lg mx-auto p-10 text-center bg-yellow-50 rounded-2xl border border-dashed border-yellow-300">
+                                        <p className="text-yellow-600 font-medium">
+                                            Select a term for the chart to view.
+                                        </p>
+                                    </div>
+                                )}
+                                {selectedTerm &&
+                                    Object.keys(groupedOfficials).map(
+                                        (position) => {
+                                            const officials =
+                                                groupedOfficials[position];
+                                            const isSingle =
+                                                officials.length === 1;
 
-                                        return (
-                                            <div
-                                                key={position}
-                                                className="animate-in fade-in slide-in-from-bottom-6 duration-700"
-                                            >
-                                                {/* 1. SYMMETRICAL HEADER */}
-                                                <div className="flex flex-col items-center justify-center mb-10 text-center">
-                                                    <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-800 tracking-tight mb-2 uppercase relative inline-block">
-                                                        {position}
-                                                    </h2>
+                                            return (
+                                                <div
+                                                    key={position}
+                                                    className="animate-in fade-in slide-in-from-bottom-6 duration-700"
+                                                >
+                                                    {/* HEADER */}
+                                                    <div className="flex flex-col items-center justify-center mb-10 text-center">
+                                                        <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-800 tracking-tight mb-2 uppercase relative inline-block">
+                                                            {position}
+                                                        </h2>
 
-                                                    {/* Symmetrical Accent Line */}
-                                                    <div className="w-24 h-1 bg-indigo-600 rounded-full mb-4"></div>
+                                                        <div className="w-24 h-1 bg-indigo-600 rounded-full mb-4"></div>
 
-                                                    <span className="px-4 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full border border-indigo-100 uppercase tracking-wider shadow-sm">
-                                                        {officials.length}{" "}
-                                                        {officials.length === 1
-                                                            ? "Official"
-                                                            : "Officials"}
-                                                    </span>
-                                                </div>
+                                                        <span className="px-4 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full border border-indigo-100 uppercase tracking-wider shadow-sm">
+                                                            {officials.length}{" "}
+                                                            {officials.length ===
+                                                            1
+                                                                ? "Official"
+                                                                : "Officials"}
+                                                        </span>
+                                                    </div>
 
-                                                {/* 2. CONDITIONAL LAYOUT */}
-                                                {officials.length > 0 ? (
-                                                    <div
-                                                        className={
-                                                            isSingle
-                                                                ? // If ONLY 1: Use Flexbox to perfectly center it
-                                                                  "flex justify-center w-full"
-                                                                : // If > 1: Use Grid to arrange in columns
-                                                                  "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center"
-                                                        }
-                                                    >
-                                                        {officials.map(
-                                                            (official) => (
-                                                                <div
-                                                                    className="w-full max-w-[320px]"
-                                                                    key={
-                                                                        official.id
-                                                                    }
-                                                                >
-                                                                    <OfficialCard
-                                                                        id={
+                                                    {/* OFFICIALS OR EMPTY STATE */}
+                                                    {officials.length > 0 ? (
+                                                        <div
+                                                            className={
+                                                                isSingle
+                                                                    ? "flex justify-center w-full"
+                                                                    : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center"
+                                                            }
+                                                        >
+                                                            {officials.map(
+                                                                (official) => (
+                                                                    <div
+                                                                        className="w-full max-w-[320px]"
+                                                                        key={
                                                                             official.id
                                                                         }
-                                                                        onView={() =>
-                                                                            handleView(
+                                                                    >
+                                                                        <OfficialCard
+                                                                            id={
+                                                                                official.id
+                                                                            }
+                                                                            onView={() =>
+                                                                                handleView(
+                                                                                    official
+                                                                                        .resident
+                                                                                        .id
+                                                                                )
+                                                                            }
+                                                                            onEdit={() =>
+                                                                                handleEdit(
+                                                                                    official.id
+                                                                                )
+                                                                            }
+                                                                            onDelete={() =>
+                                                                                handleDeleteClick(
+                                                                                    official.id
+                                                                                )
+                                                                            }
+                                                                            name={`${
                                                                                 official
                                                                                     .resident
-                                                                                    .id
-                                                                            )
-                                                                        }
-                                                                        onEdit={() =>
-                                                                            handleEdit(
-                                                                                official.id
-                                                                            )
-                                                                        }
-                                                                        onDelete={() =>
-                                                                            handleDeleteClick(
-                                                                                official.id
-                                                                            )
-                                                                        }
-                                                                        name={`${official.resident.firstname} ${official.resident.lastname}`}
-                                                                        position={
-                                                                            position
-                                                                        }
-                                                                        purok={
-                                                                            official
-                                                                                .active_designations[0]
-                                                                                ?.purok
-                                                                                ?.purok_number ||
-                                                                            "N/A"
-                                                                        }
-                                                                        term={`${
-                                                                            official
-                                                                                .term
-                                                                                ?.term_start ||
-                                                                            "0000"
-                                                                        } – ${
-                                                                            official
-                                                                                .term
-                                                                                ?.term_end ||
-                                                                            "0000"
-                                                                        }`}
-                                                                        phone={
-                                                                            official
-                                                                                .resident
-                                                                                .contact_number
-                                                                        }
-                                                                        email={
-                                                                            official
-                                                                                .resident
-                                                                                .email
-                                                                        }
-                                                                        image={
-                                                                            official
-                                                                                .resident
-                                                                                .resident_picture_path
-                                                                        }
-                                                                    />
-                                                                </div>
-                                                            )
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    // Centered Empty State
-                                                    <div className="max-w-lg mx-auto p-10 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-300">
-                                                        <p className="text-gray-400 font-medium italic">
-                                                            No officials found
-                                                            for this position.
-                                                        </p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    }
-                                )}
+                                                                                    .firstname
+                                                                            } ${
+                                                                                official
+                                                                                    .resident
+                                                                                    .middlename
+                                                                                    ? official.resident.middlename
+                                                                                          .charAt(
+                                                                                              0
+                                                                                          )
+                                                                                          .toUpperCase() +
+                                                                                      "."
+                                                                                    : ""
+                                                                            } ${
+                                                                                official
+                                                                                    .resident
+                                                                                    .lastname
+                                                                            }`}
+                                                                            position={
+                                                                                position
+                                                                            }
+                                                                            purok={
+                                                                                official
+                                                                                    .active_designations[0]
+                                                                                    ?.purok
+                                                                                    ?.purok_number ||
+                                                                                "N/A"
+                                                                            }
+                                                                            term={`${
+                                                                                official
+                                                                                    .term
+                                                                                    ?.term_start ||
+                                                                                "0000"
+                                                                            } – ${
+                                                                                official
+                                                                                    .term
+                                                                                    ?.term_end ||
+                                                                                "0000"
+                                                                            }`}
+                                                                            phone={
+                                                                                official
+                                                                                    .resident
+                                                                                    .contact_number
+                                                                            }
+                                                                            email={
+                                                                                official
+                                                                                    .resident
+                                                                                    .email
+                                                                            }
+                                                                            image={
+                                                                                official
+                                                                                    .resident
+                                                                                    .resident_picture_path
+                                                                            }
+                                                                        />
+                                                                    </div>
+                                                                )
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        // If selectedTerm exists but no officials
+                                                        <div className="max-w-lg mx-auto p-10 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-300">
+                                                            <p className="text-gray-400 font-medium italic">
+                                                                No officials
+                                                                found for this
+                                                                position.
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        }
+                                    )}
                             </div>
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                                {/* Header Section */}
-                                <div className="px-6 py-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/50">
-                                    {/* Title Area */}
+                            <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+                                {/* Header */}
+                                <div className="px-6 py-5 bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    {/* Title */}
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                                        <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl shadow-sm">
                                             <TableIcon className="w-5 h-5" />
                                         </div>
+
                                         <div>
-                                            <h3 className="text-lg font-bold text-gray-800">
+                                            <h3 className="text-lg font-extrabold text-gray-800 tracking-tight">
                                                 Barangay Officials Directory
                                             </h3>
-                                            <p className="text-xs text-gray-500 font-medium">
+                                            <p className="text-xs font-medium text-gray-500">
                                                 Complete list of current active
                                                 officials
                                             </p>
                                         </div>
                                     </div>
 
-                                    {/* Optional: Action/Filter Placeholder (Visual balance) */}
-                                    <div className="hidden sm:flex items-center gap-2">
-                                        <span className="px-3 py-1 text-xs font-medium text-gray-500 bg-white border border-gray-200 rounded-md shadow-sm">
+                                    {/* Total badge */}
+                                    <div className="flex items-center gap-2">
+                                        <span className="px-3 py-1 text-xs font-semibold bg-white text-gray-600 rounded-md shadow-sm">
                                             Total: {officials?.length || 0}
                                         </span>
                                     </div>
                                 </div>
 
-                                {/* Table Wrapper */}
-                                <div className="p-0 overflow-x-auto">
-                                    {/*
-               Added a wrapper div with min-width to prevent
-               the table from squishing on small screens
-            */}
-                                    <div className="min-w-full inline-block align-middle">
-                                        <div className="border-b border-gray-200">
-                                            <DynamicTable
-                                                passedData={officials}
-                                                allColumns={allColumns}
-                                                columnRenderers={
-                                                    columnRenderers
-                                                }
-                                                visibleColumns={visibleColumns}
-                                                showTotal={true}
-                                            />
-                                        </div>
+                                {/* Table Section */}
+                                <div className="overflow-x-auto">
+                                    <div className="inline-block min-w-full align-middle">
+                                        <DynamicTable
+                                            passedData={officials}
+                                            allColumns={allColumns}
+                                            columnRenderers={columnRenderers}
+                                            visibleColumns={visibleColumns}
+                                            showTotal={true}
+                                        />
                                     </div>
                                 </div>
 
-                                {/* Optional Footer Area (if needed for pagination later) */}
-                                <div className="bg-gray-50 px-6 py-3 border-t border-gray-100"></div>
+                                {/* Footer (kept borderless) */}
+                                <div className="px-6 py-3 bg-gray-50"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                {/* Floating Add Button */}
-                <FloatingAddButton onAdd={handleAdd} />
 
                 {/* Sidebar Modal for Resident Details */}
                 <SidebarModal

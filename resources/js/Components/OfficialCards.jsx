@@ -1,5 +1,6 @@
 import React from "react";
 import { Mail, Phone, X, MapPin, Calendar, User } from "lucide-react";
+import { toTitleCase } from "@/utils/stringFormat";
 
 const OfficialCard = ({
     id,
@@ -57,7 +58,7 @@ const OfficialCard = ({
                         className="text-lg font-bold text-gray-800 leading-tight truncate"
                         title={name}
                     >
-                        {name}
+                        {toTitleCase(name)}
                     </h3>
                     <p className="text-sm font-medium text-indigo-600 uppercase tracking-wide mt-1">
                         {position}

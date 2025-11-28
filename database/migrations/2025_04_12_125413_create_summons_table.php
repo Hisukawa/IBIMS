@@ -17,8 +17,8 @@ return new class extends Migration
                 ->constrained('blotter_reports')
                 ->cascadeOnDelete();
 
-            $table->enum('status', ['arbitration', 'medication','conciliation', 'issued_file_to_action', 'closed'])
-                ->default('medication'); // overall case status
+            $table->enum('status', ['arbitration', 'mediation','conciliation', 'issued_file_to_action', 'closed'])
+                ->default('mediation'); // overall case status
 
             $table->text('remarks')->nullable();
 

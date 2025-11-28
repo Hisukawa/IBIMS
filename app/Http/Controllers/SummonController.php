@@ -458,12 +458,19 @@ class SummonController extends Controller
 
             $values = collect([
                 'type_of_incident'  => $blotter->type_of_incident ?? '',
-                'complainants'      => $blotter->complainants
-                                            ->map(fn($p) => $p->resident?->full_name ?? $p->name)
-                                            ->join(", "),
-                'respondents'       => $blotter->respondents
-                                            ->map(fn($p) => $p->resident?->full_name ?? $p->name)
-                                            ->join(", "),
+                'complainants' => $blotter->complainants
+                    ->map(function ($p) {
+                        $name = $p->resident?->full_name ?? $p->name;
+                        return ucwords(strtolower($name));
+                    })
+                    ->join(", "),
+
+                'respondents' => $blotter->respondents
+                    ->map(function ($p) {
+                        $name = $p->resident?->full_name ?? $p->name;
+                        return ucwords(strtolower($name));
+                    })
+                    ->join(", "),
                 'narrative_details' => $blotter->narrative_details ?? '',
                 'recommendation'    => $blotter->recommendations ?? '',
                 'day'               => now()->format('d'),
