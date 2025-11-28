@@ -47,10 +47,12 @@ export default function BarangayProfileForm({
 
                                 <img
                                     src={
-                                        data.logo
-                                            ? URL.createObjectURL(data.logo) // new uploaded file
-                                            : data.logo_path
-                                            ? `/storage/${data.logo_path}` // old image
+                                        data.preview_logo
+                                            ? data.preview_logo.startsWith(
+                                                  "blob:"
+                                              )
+                                                ? data.preview_logo
+                                                : `/storage/${data.preview_logo}`
                                             : "/images/default-avatar.jpg"
                                     }
                                     alt="Barangay Logo"
@@ -59,11 +61,17 @@ export default function BarangayProfileForm({
 
                                 <input
                                     type="file"
-                                    id="logo_path"
+                                    id="logo"
                                     accept="image/*"
                                     onChange={(e) => {
                                         const file = e.target.files[0];
-                                        if (file) setData("logo_path", file);
+                                        if (file) {
+                                            setData("logo_path", file); // file for upload
+                                            setData(
+                                                "preview_logo",
+                                                URL.createObjectURL(file)
+                                            ); // preview path
+                                        }
                                     }}
                                     className="block w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                 />
