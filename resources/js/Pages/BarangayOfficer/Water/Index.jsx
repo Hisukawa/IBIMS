@@ -122,11 +122,10 @@ export default function Index({ bodiesOfWater, queryParams }) {
 
         exists: (row) => (
             <span
-                className={`px-2 py-0.5 rounded-md text-xs font-medium ${
-                    row.exists
+                className={`px-2 py-0.5 rounded-md text-xs font-medium ${row.exists
                         ? "bg-green-100 text-green-800"
                         : "bg-red-100 text-red-800"
-                }`}
+                    }`}
             >
                 {row.exists ? "Yes" : "No"}
             </span>
@@ -136,12 +135,12 @@ export default function Index({ bodiesOfWater, queryParams }) {
             <span className="text-sm text-gray-500">
                 {row.created_at
                     ? new Date(row.created_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                      })
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    })
                     : "—"}
             </span>
         ),
@@ -235,7 +234,7 @@ export default function Index({ bodiesOfWater, queryParams }) {
         try {
             const response = await axios.get(`${APP_URL}/water/details/${id}`);
             const water = response.data.water;
-            console.log(water);
+            // console.log(water);
             setWaterDetails(water);
             setData({
                 bodiesOfWater: [
@@ -458,7 +457,7 @@ export default function Index({ bodiesOfWater, queryParams }) {
                                             <InputError
                                                 message={
                                                     errors[
-                                                        `bodiesOfWater.${idx}.name`
+                                                    `bodiesOfWater.${idx}.name`
                                                     ]
                                                 }
                                                 className="mt-1"
@@ -488,7 +487,7 @@ export default function Index({ bodiesOfWater, queryParams }) {
                                             <InputError
                                                 message={
                                                     errors[
-                                                        `bodiesOfWater.${idx}.type`
+                                                    `bodiesOfWater.${idx}.type`
                                                     ]
                                                 }
                                                 className="mt-1"

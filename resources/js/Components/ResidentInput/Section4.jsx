@@ -165,7 +165,7 @@ const Section4 = ({ data, setData, errors }) => {
 
                 <div>
                     <RadioGroup
-                        label="PhilHealth"
+                        label="PhilHealth Member"
                         name="has_philhealth"
                         options={[
                             { label: "Yes", value: 1 },

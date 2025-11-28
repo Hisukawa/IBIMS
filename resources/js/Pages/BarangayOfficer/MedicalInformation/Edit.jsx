@@ -85,9 +85,8 @@ export default function Index({ res_med_info }) {
         if (res_med_info) {
             setData({
                 resident_id: res_med_info.resident_id ?? "",
-                resident_name: `${res_med_info.resident.firstname} ${
-                    res_med_info.resident.middlename ?? ""
-                } ${res_med_info.resident.lastname}`.trim(),
+                resident_name: `${res_med_info.resident.firstname} ${res_med_info.resident.middlename ?? ""
+                    } ${res_med_info.resident.lastname}`.trim(),
                 resident_image: res_med_info.resident.image ?? null,
                 birthdate: res_med_info.resident.birthdate ?? null,
                 civil_status: res_med_info.resident.civil_status ?? "",
@@ -293,7 +292,7 @@ export default function Index({ res_med_info }) {
                                                         name="sex"
                                                         value={
                                                             RESIDENT_GENDER_TEXT2[
-                                                                data.sex || ""
+                                                            data.sex || ""
                                                             ]
                                                         }
                                                         placeholder="Select a resident"
@@ -338,7 +337,7 @@ export default function Index({ res_med_info }) {
                                             <div className="grid md:grid-cols-1 gap-4 mx-4">
                                                 <div>
                                                     <RadioGroup
-                                                        label="Do you any allergies?"
+                                                        label="Do you have any allergies?"
                                                         name="has_medication"
                                                         options={[
                                                             {
@@ -368,11 +367,11 @@ export default function Index({ res_med_info }) {
                                                             {data.allergies
                                                                 .length ===
                                                                 0 && (
-                                                                <p className="text-sm text-gray-500 italic mt-2">
-                                                                    No allergy
-                                                                    added yet.
-                                                                </p>
-                                                            )}
+                                                                    <p className="text-sm text-gray-500 italic mt-2">
+                                                                        No allergy
+                                                                        added yet.
+                                                                    </p>
+                                                                )}
                                                             <div className="grid md:grid-cols-1 gap-4">
                                                                 {data.allergies.map(
                                                                     (
@@ -408,7 +407,7 @@ export default function Index({ res_med_info }) {
                                                                                 <InputError
                                                                                     message={
                                                                                         errors[
-                                                                                            `allergies.${aleridx}.allergy_name`
+                                                                                        `allergies.${aleridx}.allergy_name`
                                                                                         ]
                                                                                     }
                                                                                     className="mt-2"
@@ -444,7 +443,7 @@ export default function Index({ res_med_info }) {
                                                                                 <InputError
                                                                                     message={
                                                                                         errors[
-                                                                                            `allergies.${aleridx}.reaction_description`
+                                                                                        `allergies.${aleridx}.reaction_description`
                                                                                         ]
                                                                                     }
                                                                                     className="mt-2"
@@ -483,7 +482,7 @@ export default function Index({ res_med_info }) {
                                                             </button>
                                                         </>
                                                     ) : data.has_medication ==
-                                                      0 ? (
+                                                        0 ? (
                                                         <p className="text-sm text-gray-500 italic mt-2">
                                                             No allergies
                                                             declared.
@@ -503,7 +502,7 @@ export default function Index({ res_med_info }) {
                                             <div className="grid md:grid-cols-1 gap-4 mx-4">
                                                 <div>
                                                     <RadioGroup
-                                                        label="Do you any medications?"
+                                                        label="Do you have any medications?"
                                                         name="has_medication"
                                                         options={[
                                                             {
@@ -529,17 +528,17 @@ export default function Index({ res_med_info }) {
                                                 </div>
                                                 <div>
                                                     {data.has_medication ==
-                                                    1 ? (
+                                                        1 ? (
                                                         <>
                                                             {data.medications
                                                                 .length ===
                                                                 0 && (
-                                                                <p className="text-sm text-gray-500 italic mt-2">
-                                                                    No
-                                                                    medication
-                                                                    added yet.
-                                                                </p>
-                                                            )}
+                                                                    <p className="text-sm text-gray-500 italic mt-2">
+                                                                        No
+                                                                        medication
+                                                                        added yet.
+                                                                    </p>
+                                                                )}
                                                             <div className="grid md:grid-cols-1 gap-4">
                                                                 {data.medications.map(
                                                                     (
@@ -575,7 +574,7 @@ export default function Index({ res_med_info }) {
                                                                                 <InputError
                                                                                     message={
                                                                                         errors[
-                                                                                            `medications.${medIdx}.medication`
+                                                                                        `medications.${medIdx}.medication`
                                                                                         ]
                                                                                     }
                                                                                     className="mt-2"
@@ -605,7 +604,7 @@ export default function Index({ res_med_info }) {
                                                                                 <InputError
                                                                                     message={
                                                                                         errors[
-                                                                                            `medications.${medIdx}.start_date`
+                                                                                        `medications.${medIdx}.start_date`
                                                                                         ]
                                                                                     }
                                                                                     className="mt-2"
@@ -635,7 +634,7 @@ export default function Index({ res_med_info }) {
                                                                                 <InputError
                                                                                     message={
                                                                                         errors[
-                                                                                            `medications.${medIdx}.end_date`
+                                                                                        `medications.${medIdx}.end_date`
                                                                                         ]
                                                                                     }
                                                                                     className="mt-2"
@@ -674,7 +673,7 @@ export default function Index({ res_med_info }) {
                                                             </button>
                                                         </>
                                                     ) : data.has_medication ==
-                                                      0 ? (
+                                                        0 ? (
                                                         <p className="text-sm text-gray-500 italic mt-2">
                                                             No medication
                                                             declared.
@@ -694,7 +693,7 @@ export default function Index({ res_med_info }) {
                                             <div className="grid md:grid-cols-1 gap-4 mx-4">
                                                 <div>
                                                     <RadioGroup
-                                                        label="Do you any Medical Conditions?"
+                                                        label="Do you have any Medical Conditions?"
                                                         name="has_medical_condition"
                                                         options={[
                                                             {
@@ -720,18 +719,18 @@ export default function Index({ res_med_info }) {
                                                 </div>
                                                 <div>
                                                     {data.has_medical_condition ==
-                                                    1 ? (
+                                                        1 ? (
                                                         <>
                                                             {data
                                                                 .medical_conditions
                                                                 .length ===
                                                                 0 && (
-                                                                <p className="text-sm text-gray-500 italic mt-2">
-                                                                    No medical
-                                                                    condition
-                                                                    added yet.
-                                                                </p>
-                                                            )}
+                                                                    <p className="text-sm text-gray-500 italic mt-2">
+                                                                        No medical
+                                                                        condition
+                                                                        added yet.
+                                                                    </p>
+                                                                )}
                                                             <div className="grid md:grid-cols-1 gap-4">
                                                                 {data.medical_conditions.map(
                                                                     (
@@ -767,7 +766,7 @@ export default function Index({ res_med_info }) {
                                                                                 <InputError
                                                                                     message={
                                                                                         errors[
-                                                                                            `medical_conditions.${conIdx}.condition`
+                                                                                        `medical_conditions.${conIdx}.condition`
                                                                                         ]
                                                                                     }
                                                                                     className="mt-2"
@@ -809,7 +808,7 @@ export default function Index({ res_med_info }) {
                                                                                 <InputError
                                                                                     message={
                                                                                         errors[
-                                                                                            `medical_conditions.${conIdx}.status`
+                                                                                        `medical_conditions.${conIdx}.status`
                                                                                         ]
                                                                                     }
                                                                                     className="mt-2"
@@ -838,7 +837,7 @@ export default function Index({ res_med_info }) {
                                                                                 <InputError
                                                                                     message={
                                                                                         errors[
-                                                                                            `medical_conditions.${conIdx}.diagnosed_date`
+                                                                                        `medical_conditions.${conIdx}.diagnosed_date`
                                                                                         ]
                                                                                     }
                                                                                     className="mt-2"
@@ -867,7 +866,7 @@ export default function Index({ res_med_info }) {
                                                                                 <InputError
                                                                                     message={
                                                                                         errors[
-                                                                                            `medical_conditions.${conIdx}.resolved_date`
+                                                                                        `medical_conditions.${conIdx}.resolved_date`
                                                                                         ]
                                                                                     }
                                                                                     className="mt-2"
@@ -907,7 +906,7 @@ export default function Index({ res_med_info }) {
                                                             </button>
                                                         </>
                                                     ) : data.has_medical_condition ==
-                                                      0 ? (
+                                                        0 ? (
                                                         <p className="text-sm text-gray-500 italic mt-2">
                                                             No medical condition
                                                             declared.
@@ -954,17 +953,17 @@ export default function Index({ res_med_info }) {
 
                                                 <div>
                                                     {data.has_vaccination ==
-                                                    1 ? (
+                                                        1 ? (
                                                         <>
                                                             {data.vaccinations
                                                                 .length ===
                                                                 0 && (
-                                                                <p className="text-sm text-gray-500 italic mt-2">
-                                                                    No
-                                                                    vaccinations
-                                                                    added yet.
-                                                                </p>
-                                                            )}
+                                                                    <p className="text-sm text-gray-500 italic mt-2">
+                                                                        No
+                                                                        vaccinations
+                                                                        added yet.
+                                                                    </p>
+                                                                )}
                                                             <div className="grid md:grid-cols-1 gap-4">
                                                                 {data.vaccinations.map(
                                                                     (
@@ -1000,7 +999,7 @@ export default function Index({ res_med_info }) {
                                                                                 <InputError
                                                                                     message={
                                                                                         errors[
-                                                                                            `vaccinations.${vacIdx}.vaccine`
+                                                                                        `vaccinations.${vacIdx}.vaccine`
                                                                                         ]
                                                                                     }
                                                                                     className="mt-2"
@@ -1029,7 +1028,7 @@ export default function Index({ res_med_info }) {
                                                                                 <InputError
                                                                                     message={
                                                                                         errors[
-                                                                                            `vaccinations.${vacIdx}.vaccination_date`
+                                                                                        `vaccinations.${vacIdx}.vaccination_date`
                                                                                         ]
                                                                                     }
                                                                                     className="mt-2"
@@ -1068,7 +1067,7 @@ export default function Index({ res_med_info }) {
                                                             </button>
                                                         </>
                                                     ) : data.has_medical_condition ==
-                                                      0 ? (
+                                                        0 ? (
                                                         <p className="text-sm text-gray-500 italic mt-2">
                                                             No vaccination
                                                             declared.

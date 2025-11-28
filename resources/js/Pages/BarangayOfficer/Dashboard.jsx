@@ -82,7 +82,7 @@ export default function Dashboard({
                             bg-gradient-to-r from-sky-50 via-white to-cyan-50"
             >
                 <h1 className="text-2xl font-extrabold text-gray-800">
-                    Barangay barangay{" "}
+                    Barangay{" "}
                     <span className="bg-blue-100 text-blue-800 rounded-sm px-1">
                         {barangayName}
                     </span>
