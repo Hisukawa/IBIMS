@@ -24,11 +24,9 @@ export default function Index({ barangay }) {
         founded_year: barangay.founded_year || "",
         barangay_code: barangay.barangay_code || "",
         barangay_type: barangay.barangay_type || "",
-        // keep old path
-        logo_path: barangay.logo_path || "",
 
-        // NEW FIELD for file upload
-        logo: null,
+        logo_path: null, // ← File for upload
+        preview_logo: barangay.logo_path || "", // ← old image path string
         _method: "PUT",
     });
 
