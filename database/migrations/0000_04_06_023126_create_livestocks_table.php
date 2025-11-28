@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('household_id')->constrained('households')->onDelete('cascade');
             $table->string('livestock_type', 55)->nullable();
-            $table->integer('quantity');
-            $table->enum('purpose', ['personal_consumption', 'commercial', 'both']);
+            $table->integer('quantity')->nullable();
+            $table->enum('purpose', ['personal_consumption', 'commercial', 'both'])->nullable();
             $table->timestamps();
         });
     }

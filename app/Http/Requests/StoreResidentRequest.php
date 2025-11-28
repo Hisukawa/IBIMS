@@ -63,10 +63,10 @@ class StoreResidentRequest extends FormRequest
             // SECTION 1.1: Vehicle Information
             'has_vehicle' => ['nullable', Rule::in([1, 0])],
             'vehicles' => ['nullable', 'array'],
-            'vehicles.*.vehicle_type' => ['required', 'string', 'max:55'],
-            'vehicles.*.vehicle_class' => ['required', 'string', 'max:55'],
-            'vehicles.*.usage_status' => ['required', 'string', 'max:55'],
-            'vehicles.*.is_registered' => ['required', Rule::in([1, 0])],
+            'vehicles.*.vehicle_type' => ['nullable', 'string', 'max:55'],
+            'vehicles.*.vehicle_class' => ['nullable', 'string', 'max:55'],
+            'vehicles.*.usage_status' => ['nullable', 'string', 'max:55'],
+            'vehicles.*.is_registered' => ['nullable', Rule::in([1, 0])],
 
 
             // SECTION 2: Educational Information

@@ -47,12 +47,10 @@ export default function BarangayProfileForm({
 
                                 <img
                                     src={
-                                        data.logo_path instanceof File
-                                            ? URL.createObjectURL(
-                                                  data.logo_path
-                                              )
+                                        data.logo
+                                            ? URL.createObjectURL(data.logo) // new uploaded file
                                             : data.logo_path
-                                            ? `/storage/${data.logo_path}`
+                                            ? `/storage/${data.logo_path}` // old image
                                             : "/images/default-avatar.jpg"
                                     }
                                     alt="Barangay Logo"

@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('resident_id')->constrained('residents')->onDelete('cascade');
             $table->string('vehicle_type', 55);
-            $table->enum('vehicle_class', ['private', 'public']);
-            $table->string('usage_status', 55);
-            $table->tinyInteger('is_registered')->default(0);
+            $table->enum('vehicle_class', ['private', 'public'])->nullable();
+            $table->string('usage_status', 55)->nullable();
+            $table->tinyInteger('is_registered')->default(0)->nullable();
             $table->timestamps();
         });
     }

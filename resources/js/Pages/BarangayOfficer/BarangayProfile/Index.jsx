@@ -24,7 +24,11 @@ export default function Index({ barangay }) {
         founded_year: barangay.founded_year || "",
         barangay_code: barangay.barangay_code || "",
         barangay_type: barangay.barangay_type || "",
-        logo_path: barangay.logo_path || null,
+        // keep old path
+        logo_path: barangay.logo_path || "",
+
+        // NEW FIELD for file upload
+        logo: null,
         _method: "PUT",
     });
 
@@ -33,6 +37,7 @@ export default function Index({ barangay }) {
         e.preventDefault();
 
         post(route("barangay_profile.update", barangay.id), {
+            forceFormData: true,
             onSuccess: () => {
                 toast.success("Barangay profile updated successfully!", {
                     description: "The changes have been saved.",
