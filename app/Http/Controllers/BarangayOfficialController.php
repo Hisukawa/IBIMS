@@ -11,6 +11,7 @@ use App\Models\Purok;
 use App\Models\Resident;
 use Carbon\Carbon;
 use DB;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Str;
 
@@ -318,5 +319,35 @@ class BarangayOfficialController extends Controller
         });
 
         return response()->json(['official' => $official]);
+    }
+
+    public function toggleStatus(BarangayOfficial $official, Request $request)
+    {
+        try {
+            // Validate incoming status
+            $validated = $request->validate([
+                'status' => 'required|in:active,inactive',
+            ]);
+
+            $official->status = $validated['status'];
+            $official->save();
+
+            // Build message with only name and position
+            $residentName = ucwords($official->resident->firstname . ' ' . $official->resident->lastname);
+            $position = ucwords(str_replace('_', ' ', $official->position));
+            $statusText = strtoupper($official->status);
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$residentName} ({$position}) status has been set to {$statusText}.",
+                'status' => $official->status,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to toggle official status.',
+                'error' => $e->getMessage(), // optional: remove in production
+            ], 500);
+        }
     }
 }

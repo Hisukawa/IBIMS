@@ -77,6 +77,7 @@ Route::get('/getCRA', [CRADataController::class, 'getCRA'])->name('getcra');
 Route::get('/getCRAList', [CRADataController::class, 'getCRAList'])->name('getcralist');
 Route::get('/craProgress', [CRAController::class, 'craProgress'])->name('craProgress');
 Route::patch('/user/{user}/toggle-account', [UserController::class, 'toggleAccount'])->name('user.toggle');
+Route::patch('/barangayofficial/{official}/toggle-status', [BarangayOfficialController::class, 'toggleStatus'])->name('official.toggle');
 
 // axios documents
 Route::get('/document/preview/{id}', [DocumentController::class, 'preview'])->name('document.preview');
