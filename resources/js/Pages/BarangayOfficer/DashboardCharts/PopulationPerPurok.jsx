@@ -42,7 +42,7 @@ function PopulationPerPurok({ populationPerPurok }) {
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                         data={data}
-                        margin={{ top: 20, right: -10, left: -40, bottom: 10 }}
+                        margin={{ top: 20, right: -10, left: -20, bottom: 10 }}
                     >
                         <defs>
                             <linearGradient id="whiteToBlue" x1="0" y1="1" x2="0" y2="0">

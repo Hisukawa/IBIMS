@@ -146,12 +146,12 @@ export default function BarangayInfrastucture({
             <span className="text-sm text-gray-500">
                 {row.created_at
                     ? new Date(row.created_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                      })
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    })
                     : "—"}
             </span>
         ),
@@ -160,12 +160,12 @@ export default function BarangayInfrastucture({
             <span className="text-sm text-gray-500">
                 {row.updated_at
                     ? new Date(row.updated_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                      })
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    })
                     : "—"}
             </span>
         ),
@@ -196,7 +196,7 @@ export default function BarangayInfrastucture({
             const street = response.data.data;
 
             setStreetDetails(street);
-            console.log(purok_numbers);
+            // console.log(purok_numbers);
             // Find the matching dropdown item
             const selectedPurok = purok_numbers.find(
                 (p) => p.value === street.purok_id.toString()
