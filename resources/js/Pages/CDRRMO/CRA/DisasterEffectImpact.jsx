@@ -180,7 +180,7 @@ export default function DisasterEffectImpacts({
                                     const disasterYear = effectRows[0].year;
 
                                     const totalValue = effectRows.reduce(
-                                        (sum, r) => sum + r.value,
+                                        (sum, r) => sum + Number(r.value || 0),
                                         0
                                     );
                                     const totalRow = {

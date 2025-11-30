@@ -81,9 +81,15 @@ export default function PopulationExposure({
                                             male: b.male ?? 0,
                                             female: b.female ?? 0,
                                             lgbtq: b.lgbtq ?? 0,
-                                            pwd: b.pwd ?? 0,
-                                            diseases: b.diseases ?? 0,
                                             pregnant: b.pregnant ?? 0,
+                                            pwd: {
+                                                male: b.pwd_male,
+                                                female: b.pwd_female,
+                                            } ?? { male: 0, female: 0 },
+                                            diseases: {
+                                                male: b.diseases_male,
+                                                female: b.diseases_female,
+                                            } ?? { male: 0, female: 0 },
                                             ...b.age_groups, // age_0_6, age_7m_2y, etc.
                                         }));
 
@@ -104,7 +110,10 @@ export default function PopulationExposure({
                                             { key: "male", label: "Male" },
                                             { key: "female", label: "Female" },
                                             { key: "lgbtq", label: "LGBTQ" },
-                                            { key: "pwd", label: "PWD" },
+                                            {
+                                                key: "pwd",
+                                                label: "PWD",
+                                            },
                                             {
                                                 key: "diseases",
                                                 label: "Diseases",
@@ -172,16 +181,48 @@ export default function PopulationExposure({
                                             lgbtq: (row) => (
                                                 <span>{row.lgbtq}</span>
                                             ),
-                                            pwd: (row) => (
-                                                <span>{row.pwd}</span>
-                                            ),
-                                            diseases: (row) => (
-                                                <span>{row.diseases}</span>
-                                            ),
                                             pregnant: (row) => (
                                                 <span>{row.pregnant}</span>
                                             ),
-
+                                            pwd: (row) => (
+                                                <div>
+                                                    <div>
+                                                        Male: {row.pwd.male}
+                                                    </div>
+                                                    <div>
+                                                        Female: {row.pwd.female}
+                                                    </div>
+                                                    <div className="font-semibold">
+                                                        Total:{" "}
+                                                        {Number(row.pwd.male) +
+                                                            Number(
+                                                                row.pwd.female
+                                                            )}
+                                                    </div>
+                                                </div>
+                                            ),
+                                            diseases: (row) => (
+                                                <div>
+                                                    <div>
+                                                        Male:{" "}
+                                                        {row.diseases.male}
+                                                    </div>
+                                                    <div>
+                                                        Female:{" "}
+                                                        {row.diseases.female}
+                                                    </div>
+                                                    <div className="font-semibold">
+                                                        Total:{" "}
+                                                        {Number(
+                                                            row.diseases.male
+                                                        ) +
+                                                            Number(
+                                                                row.diseases
+                                                                    .female
+                                                            )}
+                                                    </div>
+                                                </div>
+                                            ),
                                             // ✅ Age group renderers
                                             age_0_6: (row) => (
                                                 <div>

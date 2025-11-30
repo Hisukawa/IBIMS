@@ -220,7 +220,7 @@ class CRAStoreRequest extends FormRequest
 
             // Population Exposure
             'exposure'                            => ['nullable', 'array'],
-            'exposure.*.riskType'                 => ['nullable', 'string'],
+            'exposure.*.riskType'                 => ['required', 'string'],
             'exposure.*.purokData'                => ['nullable', 'array'],
             'exposure.*.purokData.*.purok'       => ['nullable', 'integer'],
             'exposure.*.purokData.*.families'    => ['nullable', 'integer', 'min:0'],
