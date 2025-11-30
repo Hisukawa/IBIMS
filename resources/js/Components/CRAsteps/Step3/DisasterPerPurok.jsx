@@ -1,8 +1,7 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { StepperContext } from "@/context/StepperContext";
 
-// 1. Default count is empty string "" (visual blank)
 const DEFAULT_ROWS = [
     { value: "Number of Informal Settler Families", count: "" },
     { value: "Number of Employed Individuals", count: "" },
@@ -27,7 +26,26 @@ const DEFAULT_ROWS = [
 const DisasterPerPurok = () => {
     const { craData, setCraData } = useContext(StepperContext);
 
-    const displayList = craData.disaster_per_purok || [];
+    const displayList = Array.isArray(craData.disaster_per_purok)
+        ? craData.disaster_per_purok
+        : [];
+
+    useEffect(() => {
+        setCraData(prev => {
+            if (prev.disaster_per_purok === undefined) {
+                return {
+                    ...prev,
+                    disaster_per_purok: [
+                        {
+                            purok: "",
+                            rowsValue: DEFAULT_ROWS.map(r => ({ ...r })),
+                        },
+                    ],
+                };
+            }
+            return prev;
+        });
+    }, []);
 
     const updatePurok = (purokIdx, key, value, rowIdx = null) => {
         setCraData((prev) => {
@@ -39,11 +57,7 @@ const DisasterPerPurok = () => {
                 const currentRows = p.rowsValue || DEFAULT_ROWS.map(r => ({ ...r }));
 
                 if (rowIdx !== null) {
-                    // Only allow numbers, but allow empty string
                     let cleanValue = value.replace(/\D/g, "");
-
-                    // Optional: If user types "05", turn it into "5".
-                    // If they just type "0", keep it "0".
                     if (cleanValue.length > 1 && cleanValue.startsWith("0")) {
                         cleanValue = cleanValue.substring(1);
                     }
@@ -56,7 +70,7 @@ const DisasterPerPurok = () => {
                     return { ...p, rowsValue };
                 }
 
-                return { ...p, [key]: value };
+                return { ...p, [key]: value, rowsValue: currentRows };
             });
 
             return { ...prev, disaster_per_purok: updated };
@@ -66,9 +80,10 @@ const DisasterPerPurok = () => {
     const addPurok = () => {
         setCraData((prev) => {
             const currentList = prev.disaster_per_purok || [];
-            const nextNum = currentList.length + 1;
+            const nextNum = currentList.length > 0
+                ? currentList.length + 1
+                : 1;
 
-            // 2. Purok name defaults to just the number (e.g. "1")
             const newPurok = {
                 purok: `${nextNum}`,
                 rowsValue: DEFAULT_ROWS.map((row) => ({ ...row })),
@@ -83,6 +98,11 @@ const DisasterPerPurok = () => {
     };
 
     const removePurok = (index) => {
+        if (index === 0) {
+            toast.error("Default Purok cannot be removed.");
+            return;
+        }
+
         setCraData((prev) => {
             const currentList = prev.disaster_per_purok || [];
             const updated = currentList.filter((_, i) => i !== index);
@@ -91,7 +111,6 @@ const DisasterPerPurok = () => {
         toast.error("Purok removed!");
     };
 
-    // 3. Calculate totals (Treat empty string as 0)
     const totals = DEFAULT_ROWS.map((_, idx) =>
         displayList.reduce(
             (sum, p) => sum + Number(p.rowsValue?.[idx]?.count || 0),
@@ -117,7 +136,6 @@ const DisasterPerPurok = () => {
                     </thead>
                     <tbody>
                         {displayList.map((purok, pIdx) => {
-                            // Fallback if rows are missing
                             const displayRows = (purok.rowsValue && purok.rowsValue.length > 0)
                                 ? purok.rowsValue
                                 : DEFAULT_ROWS.map(r => ({ ...r }));
@@ -126,9 +144,8 @@ const DisasterPerPurok = () => {
                                 <tr key={pIdx} className="hover:bg-gray-50">
                                     <td className="border p-1">
                                         <input
-                                            type="text"
+                                            type="number"
                                             value={purok.purok || ""}
-                                            placeholder={`${pIdx + 1}`}
                                             onChange={(e) =>
                                                 updatePurok(pIdx, "purok", e.target.value)
                                             }
@@ -139,7 +156,6 @@ const DisasterPerPurok = () => {
                                         <td key={rIdx} className="border p-1">
                                             <input
                                                 type="text"
-                                                // Renders empty string if no value
                                                 value={row.count || ""}
                                                 onChange={(e) =>
                                                     updatePurok(pIdx, "count", e.target.value, rIdx)
@@ -149,12 +165,14 @@ const DisasterPerPurok = () => {
                                         </td>
                                     ))}
                                     <td className="p-0.5 text-center !border-0">
-                                        <button
-                                            className="w-4 h-4 flex items-center justify-center rounded-full bg-gray-100 text-gray-300 hover:bg-gray-200 mx-auto"
-                                            onClick={() => removePurok(pIdx)}
-                                        >
-                                            ✕
-                                        </button>
+                                        {pIdx !== 0 && (
+                                            <button
+                                                className="w-4 h-4 flex items-center justify-center rounded-full bg-gray-100 text-gray-300 hover:bg-gray-200 mx-auto"
+                                                onClick={() => removePurok(pIdx)}
+                                            >
+                                                ✕
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             );
