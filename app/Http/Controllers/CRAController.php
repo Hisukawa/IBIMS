@@ -1625,14 +1625,13 @@ class CRAController extends Controller
             $purokNumber = $purokData['purok'] ?? null;
 
             foreach ($purokData['rowsValue'] ?? [] as $row) {
-                // Ensure valid structure
                 if (empty($row['value'])) continue;
 
                 $records[] = [
-                    'barangay_id'  => $brgy_id,
                     'cra_id'       => $cra->id,
+                    'barangay_id'  => $brgy_id,
                     'purok_number' => $purokNumber,
-                    'indicator'    => $row['value'] ?? '',
+                    'indicator'    => $row['value'],
                     'count'        => (int) ($row['count'] ?? 0),
                     'created_at'   => now(),
                     'updated_at'   => now(),
@@ -1643,8 +1642,8 @@ class CRAController extends Controller
         if (!empty($records)) {
             CRAFamilyAtRisk::upsert(
                 $records,
-                ['barangay_id', 'purok_number', 'indicator', 'cra_id'], // unique keys
-                ['count', 'updated_at'] // update fields if duplicate exists
+                ['cra_id', 'barangay_id', 'purok_number', 'indicator'], // unique keys
+                ['count', 'updated_at'] // fields to update if duplicate exists
             );
         }
     }
