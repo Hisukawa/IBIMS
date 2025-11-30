@@ -117,7 +117,6 @@ const DisasterPerPurok = () => {
 
     return (
         <div className="p-4">
-            <Toaster richColors />
             <div className="overflow-x-auto">
                 <table className="min-w-full border text-xs">
                     <thead>

@@ -2595,7 +2595,6 @@ class CRADataController extends Controller
                         }),
                     ];
                 });
-
             return Inertia::render('CDRRMO/CRA/FamilyAtRisk', [
                 'familyAtRiskData' => [],
                 'overallFamilyAtRiskData' => $overallData,
@@ -2645,7 +2644,6 @@ class CRADataController extends Controller
                 'total_count' => $rows->sum('count'), // ✅ total per indicator
             ];
         })->values();
-
         return Inertia::render('CDRRMO/CRA/FamilyAtRisk', [
             'familyAtRiskData' => [
                 [
