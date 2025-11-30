@@ -14,16 +14,16 @@ return new class extends Migration
         Schema::create('c_r_a_disaster_occurances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cra_id')->nullable()->constrained('community_risk_assessments')->onDelete('cascade');
-            $table->foreignId('barangay_id')
-                ->constrained('barangays')
-                ->onDelete('cascade');
+            $table->foreignId('barangay_id')->constrained('barangays')->onDelete('cascade');
 
             $table->string('disaster_name', 55)->nullable();
             $table->string('year', 35)->nullable();
             $table->timestamps();
+
+            // ❌ Removed year from unique
             $table->unique(
-                ['barangay_id', 'disaster_name', 'year', 'cra_id'],
-                'cra_disaster_unique' // <- short, under 64 chars
+                ['barangay_id', 'disaster_name', 'cra_id'],
+                'cra_disaster_unique'
             );
         });
     }
