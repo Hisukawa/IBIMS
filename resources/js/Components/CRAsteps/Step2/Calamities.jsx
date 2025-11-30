@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import React from "react";
 import { Plus, Minus } from "lucide-react";
 import Accordion from "@/Components/Accordion";
-import { toTitleCase } from '@/utils/stringFormat';
+import { toTitleCase } from "@/utils/stringFormat";
 // Fixed categories
 const populationCategories = [
     "With Disability",
@@ -154,17 +154,17 @@ const defaultCalamity = () => ({
         category: life.category || life.defaultDescriptions,
         descriptions: Array.isArray(life.defaultDescriptions)
             ? life.defaultDescriptions.map((desc) => ({
-                description: desc,
-                value: "",
-                source: "",
-            }))
+                  description: desc,
+                  value: "",
+                  source: "",
+              }))
             : [
-                {
-                    description: life.defaultDescriptions,
-                    value: "",
-                    source: "",
-                },
-            ],
+                  {
+                      description: life.defaultDescriptions,
+                      value: "",
+                      source: "",
+                  },
+              ],
     })),
 });
 
@@ -657,68 +657,68 @@ export default function Calamities() {
             ...prev,
             calamities: prev.calamities?.length
                 ? prev.calamities.map((cal) => ({
-                    ...cal,
-                    population: cal.population?.length
-                        ? cal.population
-                        : populationCategories.map((cat) => ({
-                            category: cat,
-                            value: "",
-                            source: "",
-                        })),
-                    impacts: cal.impacts?.length
-                        ? cal.impacts
-                        : disasterEffectImpact.map((effect) => ({
-                            effect_type: effect,
-                            value: "",
-                            source: "",
-                        })),
-                    property: cal.property?.length
-                        ? cal.property
-                        : propertyCategories.map((prop) => ({
-                            category: prop.category,
-                            descriptions: prop.defaultDescriptions.map(
-                                (desc) => ({
-                                    description: desc,
-                                    value: "",
-                                    source: "",
-                                })
-                            ),
-                        })),
-                    structure: cal.structure?.length
-                        ? cal.structure
-                        : defaultStructure.map((str) => ({
-                            category: str.category,
-                            descriptions: str.defaultDescriptions.map(
-                                (desc) => ({
-                                    description: desc,
-                                    value: "",
-                                    source: "",
-                                })
-                            ),
-                        })),
-                    agriculture: cal.agriculture?.length
-                        ? cal.agriculture
-                        : defaultAgriculture.map((agri) => ({
-                            description: agri,
-                            value: "",
-                            source: "",
-                        })),
-                    lifelines: cal.lifelines?.length
-                        ? cal.lifelines
-                        : defaultLifelines.map((life) => ({
-                            category: life.category || "General",
-                            descriptions: (Array.isArray(
-                                life.defaultDescriptions
-                            )
-                                ? life.defaultDescriptions
-                                : [life.defaultDescriptions]
-                            ).map((desc) => ({
-                                description: desc,
+                      ...cal,
+                      population: cal.population?.length
+                          ? cal.population
+                          : populationCategories.map((cat) => ({
+                                category: cat,
                                 value: "",
                                 source: "",
                             })),
-                        })),
-                }))
+                      impacts: cal.impacts?.length
+                          ? cal.impacts
+                          : disasterEffectImpact.map((effect) => ({
+                                effect_type: effect,
+                                value: "",
+                                source: "",
+                            })),
+                      property: cal.property?.length
+                          ? cal.property
+                          : propertyCategories.map((prop) => ({
+                                category: prop.category,
+                                descriptions: prop.defaultDescriptions.map(
+                                    (desc) => ({
+                                        description: desc,
+                                        value: "",
+                                        source: "",
+                                    })
+                                ),
+                            })),
+                      structure: cal.structure?.length
+                          ? cal.structure
+                          : defaultStructure.map((str) => ({
+                                category: str.category,
+                                descriptions: str.defaultDescriptions.map(
+                                    (desc) => ({
+                                        description: desc,
+                                        value: "",
+                                        source: "",
+                                    })
+                                ),
+                            })),
+                      agriculture: cal.agriculture?.length
+                          ? cal.agriculture
+                          : defaultAgriculture.map((agri) => ({
+                                description: agri,
+                                value: "",
+                                source: "",
+                            })),
+                      lifelines: cal.lifelines?.length
+                          ? cal.lifelines
+                          : defaultLifelines.map((life) => ({
+                                category: life.category || "General",
+                                descriptions: (Array.isArray(
+                                    life.defaultDescriptions
+                                )
+                                    ? life.defaultDescriptions
+                                    : [life.defaultDescriptions]
+                                ).map((desc) => ({
+                                    description: desc,
+                                    value: "",
+                                    source: "",
+                                })),
+                            })),
+                  }))
                 : [defaultCalamity()],
         }));
     }, [setCraData]);
@@ -771,17 +771,17 @@ export default function Calamities() {
                             [field]: updated[calIdx][field].map((cat, i) =>
                                 i === rowIdx
                                     ? {
-                                        ...cat,
-                                        descriptions: cat.descriptions.map(
-                                            (desc, j) =>
-                                                j === descIdx
-                                                    ? {
-                                                        ...desc,
-                                                        [subField]: value,
-                                                    }
-                                                    : desc
-                                        ),
-                                    }
+                                          ...cat,
+                                          descriptions: cat.descriptions.map(
+                                              (desc, j) =>
+                                                  j === descIdx
+                                                      ? {
+                                                            ...desc,
+                                                            [subField]: value,
+                                                        }
+                                                      : desc
+                                          ),
+                                      }
                                     : cat
                             ),
                         };
@@ -806,10 +806,14 @@ export default function Calamities() {
                     {/* Notes Section (Left Side) */}
                     <div className="flex flex-col text-xs text-gray-600 italic space-y-1">
                         <p>
-                            <strong>Note:</strong> Leave a cell blank if the value is zero.
+                            <strong>Note:</strong> Leave a cell blank if the
+                            value is zero.
                         </p>
                         <p>
-                            <strong>Note:</strong> Click <span className="font-bold">+</span> to add two columns, and <span className="font-bold">–</span> to remove two columns.
+                            <strong>Note:</strong> Click{" "}
+                            <span className="font-bold">+</span> to add two
+                            columns, and <span className="font-bold">–</span> to
+                            remove two columns.
                         </p>
                     </div>
 
@@ -849,7 +853,5 @@ export default function Calamities() {
                 </div>
             </Accordion>
         </div>
-
-
     );
 }
