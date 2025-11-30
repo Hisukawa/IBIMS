@@ -26,7 +26,26 @@ const DEFAULT_ROWS = [
 const DisasterPerPurok = () => {
     const { craData, setCraData } = useContext(StepperContext);
 
-    const displayList = craData.disaster_per_purok || [];
+    const displayList = Array.isArray(craData.disaster_per_purok)
+        ? craData.disaster_per_purok
+        : [];
+
+    useEffect(() => {
+        setCraData(prev => {
+            if (prev.disaster_per_purok === undefined) {
+                return {
+                    ...prev,
+                    disaster_per_purok: [
+                        {
+                            purok: "",
+                            rowsValue: DEFAULT_ROWS.map(r => ({ ...r })),
+                        },
+                    ],
+                };
+            }
+            return prev;
+        });
+    }, []);
 
     // Initialize the list with Purok 1 if it is empty on mount.
     useEffect(() => {
@@ -78,7 +97,9 @@ const DisasterPerPurok = () => {
     const addPurok = () => {
         setCraData((prev) => {
             const currentList = prev.disaster_per_purok || [];
-            const nextNum = currentList.length > 0 ? currentList.length + 1 : 1;
+            const nextNum = currentList.length > 0
+                ? currentList.length + 1
+                : 1;
 
             const newPurok = {
                 purok: `${nextNum}`,
@@ -94,7 +115,6 @@ const DisasterPerPurok = () => {
     };
 
     const removePurok = (index) => {
-        // 1. Guard Clause: Prevent removing the first item (Index 0)
         if (index === 0) {
             toast.error("Default Purok cannot be removed.");
             return;
@@ -135,18 +155,16 @@ const DisasterPerPurok = () => {
                     </thead>
                     <tbody>
                         {displayList.map((purok, pIdx) => {
-                            const displayRows =
-                                purok.rowsValue && purok.rowsValue.length > 0
-                                    ? purok.rowsValue
-                                    : DEFAULT_ROWS.map((r) => ({ ...r }));
+                            const displayRows = (purok.rowsValue && purok.rowsValue.length > 0)
+                                ? purok.rowsValue
+                                : DEFAULT_ROWS.map(r => ({ ...r }));
 
                             return (
                                 <tr key={pIdx} className="hover:bg-gray-50">
                                     <td className="border p-1">
                                         <input
-                                            type="text"
-                                            value={purok.purok || `${pIdx + 1}`}
-                                            placeholder={`${pIdx + 1}`}
+                                            type="number"
+                                            value={purok.purok || ""}
                                             onChange={(e) =>
                                                 updatePurok(
                                                     pIdx,
@@ -175,13 +193,10 @@ const DisasterPerPurok = () => {
                                         </td>
                                     ))}
                                     <td className="p-0.5 text-center !border-0">
-                                        {/* 2. UI Change: Only render button if index is NOT 0 */}
                                         {pIdx !== 0 && (
                                             <button
                                                 className="w-4 h-4 flex items-center justify-center rounded-full bg-gray-100 text-gray-300 hover:bg-gray-200 mx-auto"
-                                                onClick={() =>
-                                                    removePurok(pIdx)
-                                                }
+                                                onClick={() => removePurok(pIdx)}
                                             >
                                                 ✕
                                             </button>
