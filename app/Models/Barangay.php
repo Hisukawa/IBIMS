@@ -25,6 +25,11 @@ class Barangay extends Model
     ];
 
     public $timestamps = true;
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     public function generalPopulation()
     {
         return $this->hasOne(CRAGeneralPopulation::class);

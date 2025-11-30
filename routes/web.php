@@ -463,7 +463,7 @@ Route::middleware(['auth', 'role:resident|barangay_officer'])->group(function ()
 Route::middleware(['auth', 'role:resident|barangay_officer|super_admin|admin|cdrrmo_admin'])->group(function () {
     // Profile management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 

@@ -24,6 +24,8 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar";
 import { router } from "@inertiajs/react";
+import { toTitleCase } from "@/utils/stringFormat";
+
 export function NavUser({ user, auth }) {
     const { isMobile } = useSidebar();
     const handleLogout = () => {
@@ -66,7 +68,9 @@ export function NavUser({ user, auth }) {
                                     {user.username}
                                 </span>
                                 <span className="truncate text-xs">
-                                    {user.email}
+                                    {toTitleCase(
+                                        user.role.replaceAll("_", " ")
+                                    )}
                                 </span>
                             </div>
                             <ChevronsUpDown className="ml-auto size-4" />
@@ -98,7 +102,9 @@ export function NavUser({ user, auth }) {
                                         {user.username}
                                     </span>
                                     <span className="truncate text-xs">
-                                        {user.email}
+                                        {toTitleCase(
+                                            user.role.replaceAll("_", " ")
+                                        )}
                                     </span>
                                 </div>
                             </div>
@@ -107,7 +113,7 @@ export function NavUser({ user, auth }) {
                         <DropdownMenuGroup>
                             <DropdownMenuItem onClick={handleProfile}>
                                 <BadgeCheck />
-                                Profile
+                                Account Profile
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />

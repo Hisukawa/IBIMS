@@ -176,29 +176,30 @@ class ReportGenerationController extends Controller
             ->get();
 
         $grouped = [];
-        foreach ($exposures as $row) {
-            $barangay = $row->barangay_name;
-            $purok = $row->purok_number;
+    foreach ($exposures as $row) {
+        $barangay = $row->barangay_name;
+        $purok = $row->purok_number;
 
-            if (!isset($grouped[$barangay])) {
-                $grouped[$barangay] = [];
-                for ($i = 1; $i <= 7; $i++) {
-                    $grouped[$barangay][$i] = [
-                        'families' => 0,
-                        'male' => 0,
-                        'female' => 0,
-                        'lgbtq' => 0,
-                    ];
-                }
-            }
+        if (!isset($grouped[$barangay])) {
+            $grouped[$barangay] = [];
+        }
 
+        if (!isset($grouped[$barangay][$purok])) {
             $grouped[$barangay][$purok] = [
-                'families' => $row->families,
-                'male' => $row->male,
-                'female' => $row->female,
-                'lgbtq' => $row->lgbtq,
+                'families' => 0,
+                'male' => 0,
+                'female' => 0,
+                'lgbtq' => 0,
             ];
         }
+
+        $grouped[$barangay][$purok] = [
+            'families' => $row->families,
+            'male' => $row->male,
+            'female' => $row->female,
+            'lgbtq' => $row->lgbtq,
+        ];
+    }
         $pdf = Pdf::loadView('pdf.population_exposure_summary', [
             'year' => $cra->year,
             'hazardName' => $hazardName,

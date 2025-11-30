@@ -23,6 +23,7 @@ class BarangayProfileController extends Controller
     public function update(UpdateBarangayProfileRequest $request, Barangay $barangay)
     {
         $data = $request->validated();
+        $user = auth()->user();
 
         try {
             // Handle Barangay Logo Upload
@@ -64,6 +65,12 @@ class BarangayProfileController extends Controller
                 'barangay_code'   => $data['barangay_code'] ?? null,
                 'barangay_type'   => $data['barangay_type'],
             ]);
+
+            $user->update([
+                'email'    => $data['email'] ?? $user->email,
+            ]);
+
+
 
             return redirect()
                 ->route('barangay_profile.index')
