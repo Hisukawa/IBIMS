@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { Toaster, toast } from "sonner";
+import toast, { Toaster } from "react-hot-toast";
 import { StepperContext } from "@/context/StepperContext";
 
 const DEFAULT_ROWS = [
@@ -31,38 +31,20 @@ const DisasterPerPurok = () => {
         : [];
 
     useEffect(() => {
-        setCraData(prev => {
+        setCraData((prev) => {
             if (prev.disaster_per_purok === undefined) {
                 return {
                     ...prev,
                     disaster_per_purok: [
                         {
                             purok: "",
-                            rowsValue: DEFAULT_ROWS.map(r => ({ ...r })),
+                            rowsValue: DEFAULT_ROWS.map((r) => ({ ...r })),
                         },
                     ],
                 };
             }
             return prev;
         });
-    }, []);
-
-    // Initialize the list with Purok 1 if it is empty on mount.
-    useEffect(() => {
-        if (
-            !craData.disaster_per_purok ||
-            craData.disaster_per_purok.length === 0
-        ) {
-            setCraData((prev) => ({
-                ...prev,
-                disaster_per_purok: [
-                    {
-                        purok: "1",
-                        rowsValue: DEFAULT_ROWS.map((row) => ({ ...row })),
-                    },
-                ],
-            }));
-        }
     }, []);
 
     const updatePurok = (purokIdx, key, value, rowIdx = null) => {
@@ -97,9 +79,7 @@ const DisasterPerPurok = () => {
     const addPurok = () => {
         setCraData((prev) => {
             const currentList = prev.disaster_per_purok || [];
-            const nextNum = currentList.length > 0
-                ? currentList.length + 1
-                : 1;
+            const nextNum = currentList.length > 0 ? currentList.length + 1 : 1;
 
             const newPurok = {
                 purok: `${nextNum}`,
@@ -137,6 +117,7 @@ const DisasterPerPurok = () => {
 
     return (
         <div className="p-4">
+            <Toaster position="top-right" />
             <div className="overflow-x-auto">
                 <table className="min-w-full border text-xs">
                     <thead>
@@ -155,9 +136,10 @@ const DisasterPerPurok = () => {
                     </thead>
                     <tbody>
                         {displayList.map((purok, pIdx) => {
-                            const displayRows = (purok.rowsValue && purok.rowsValue.length > 0)
-                                ? purok.rowsValue
-                                : DEFAULT_ROWS.map(r => ({ ...r }));
+                            const displayRows =
+                                purok.rowsValue && purok.rowsValue.length > 0
+                                    ? purok.rowsValue
+                                    : DEFAULT_ROWS.map((r) => ({ ...r }));
 
                             return (
                                 <tr key={pIdx} className="hover:bg-gray-50">
@@ -196,7 +178,9 @@ const DisasterPerPurok = () => {
                                         {pIdx !== 0 && (
                                             <button
                                                 className="w-4 h-4 flex items-center justify-center rounded-full bg-gray-100 text-gray-300 hover:bg-gray-200 mx-auto"
-                                                onClick={() => removePurok(pIdx)}
+                                                onClick={() =>
+                                                    removePurok(pIdx)
+                                                }
                                             >
                                                 ✕
                                             </button>
