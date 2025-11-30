@@ -718,10 +718,10 @@ class CRAController extends Controller
             if (!empty($data['pwd'])) {
                 $this->savePWDStat($brgy_id, $data['pwd'], $cra);
             }
-            $disasterPerPurok = $data['disaster_per_purok'] ?? null;
+            $familyatrisk = $data['family_at_risk'] ?? null;
 
-            if (is_array($disasterPerPurok) && count($disasterPerPurok) > 0) {
-                $this->saveFamilyAtRisk($brgy_id, $disasterPerPurok, $cra);
+            if (is_array($familyatrisk) && count($familyatrisk) > 0) {
+                $this->saveFamilyAtRisk($brgy_id, $familyatrisk, $cra);
             }
             if (!empty($data['illnesses'])) {
                 $this->saveIllnesses($brgy_id, $data['illnesses'], $cra);
@@ -1040,6 +1040,9 @@ class CRAController extends Controller
         $insertData = [];
 
         foreach ($data as $buildingCategory) {
+            if (empty($buildingCategory['category'])) {
+                continue;
+            }
             $category = $buildingCategory['category'];
 
             foreach ($buildingCategory['rows'] as $row) {
@@ -1066,6 +1069,9 @@ class CRAController extends Controller
         $roadNetworks      = [];
 
         foreach ($data as $facilityCategory) {
+            if (empty($facilityCategory['category'])) {
+                continue;
+            }
             $category = $facilityCategory['category'];
 
             foreach ($facilityCategory['rows'] as $row) {
@@ -1129,6 +1135,9 @@ class CRAController extends Controller
         $institutions = [];
 
         foreach ($data as $inst) {
+            if (empty($inst['name'])) {
+                continue;
+            }
             $institutions[] = [
                 'barangay_id'       => $brgy_id,
                 'cra_id' => $cra->id,
@@ -1163,8 +1172,10 @@ class CRAController extends Controller
     {
         $humanResources = [];
         foreach ($data as $group) {
+            if (empty($group['category'])) {
+                continue;
+            }
             $category = $group['category'];
-
             foreach ($group['rows'] as $row) {
                 $humanResources[] = [
                     'barangay_id'               => $brgy_id,
@@ -1200,6 +1211,9 @@ class CRAController extends Controller
     {
         foreach ($data as $calamity) {
             // --- Disaster Occurrence
+            if (empty($calamity['disaster_name'])) {
+                continue;
+            }
             $disaster = CRADisasterOccurance::updateOrCreate(
                 [
                     'barangay_id'   => $brgy_id,
@@ -1345,18 +1359,27 @@ class CRAController extends Controller
 
         $getHazard = function ($hazardName) use (&$hazardCache) {
             if (!isset($hazardCache[$hazardName])) {
-                $hazardCache[$hazardName] = CRAHazard::updateOrCreate(
-                    ['hazard_name' => $hazardName],
-                    []
-                );
+                if (empty($hazardName)) {
+                    return null;
+                }else {
+                    $hazardCache[$hazardName] = CRAHazard::updateOrCreate(
+                        ['hazard_name' => $hazardName],
+                        []
+                    );
+                }
             }
             return $hazardCache[$hazardName];
         };
 
+        CRAHazardRisk::where('barangay_id', $brgy_id)
+            ->where('cra_id', $cra->id)
+            ->delete();
         // --- Save Hazards ---
         foreach ($data['hazards'] as $haz) {
+            if (empty($haz['hazard'])) {
+                continue;
+            }
             $hazard = $getHazard($haz['hazard']);
-
             $average = round(array_sum([
                 $haz['probability'] ?? 0,
                 $haz['effect'] ?? 0,
@@ -1380,8 +1403,14 @@ class CRAController extends Controller
         }
 
         // --- Reusable save function for Risk & Vulnerability ---
+        CRAAssessmentMatrix::where('barangay_id', $brgy_id)
+                ->where('cra_id', $cra->id)
+                ->delete();
         $saveMatrix = function ($items, $type, $cra) use ($brgy_id, $getHazard) {
             foreach ($items as $entry) {
+            if (empty($entry['hazard'])) {
+                continue;
+            }
                 $hazard = $getHazard($entry['hazard']);
 
                 CRAAssessmentMatrix::updateOrCreate(
@@ -1469,6 +1498,9 @@ class CRAController extends Controller
     {
         foreach ($data as $exposure) {
             // Find or create hazard by riskType
+            if (empty($exposure['riskType'])) {
+                continue;
+            }
             $hazard = CRAHazard::updateOrCreate(
                 ['hazard_name' => $exposure['riskType']],
                 []
@@ -1552,8 +1584,10 @@ class CRAController extends Controller
     private function savePWDStat($brgy_id, $data, $cra)
     {
         $upsertData = [];
-
         foreach ($data as $row) {
+            if (empty($row['type'])) {
+                continue;
+            }
             $upsertData[] = [
                 'barangay_id'       => $brgy_id,
                 'cra_id' => $cra->id,
@@ -1624,6 +1658,9 @@ class CRAController extends Controller
         // dd($data);
         foreach ($data as $purokData) {
             $purokNumber = $purokData['purok'] ?? null;
+            if (empty($purokNumber)) {
+                continue;
+            }
 
             foreach ($purokData['rowsValue'] ?? [] as $row) {
                 if (empty($row['value'])) continue;
@@ -1653,6 +1690,10 @@ class CRAController extends Controller
         $records = [];
 
         foreach ($data as $illness) {
+            if (empty($illness['illness'])) {
+                continue;
+            }
+
             $records[] = [
                 'barangay_id' => $brgy_id,
                 'cra_id' => $cra->id,
@@ -1676,6 +1717,10 @@ class CRAController extends Controller
     {
         // --- Evacuation Centers ---
         foreach ($data as $center) {
+            if (empty($center['name'])) {
+                continue;
+            }
+
             CRAEvacuationCenter::updateOrCreate(
                 [
                     'barangay_id' => $brgy_id,
@@ -1756,6 +1801,9 @@ class CRAController extends Controller
         // --- Affected Places ---
         foreach ($data as $area) {
             // 1. Ensure hazard exists
+            if (empty($area['name'])) {
+                continue;
+            }
             $hazard = CRAHazard::firstOrCreate(
                 ['hazard_name' => $area['name']],
                 ['created_at' => now(), 'updated_at' => now()]
@@ -1802,6 +1850,9 @@ class CRAController extends Controller
         $livelihoodRecords = [];
 
         foreach ($data as $row) {
+            if (empty($row['type'])) {
+                continue;
+            }
             $livelihoodRecords[] = [
                 'barangay_id'          => $brgy_id,
                 'cra_id' => $cra->id,
@@ -1831,6 +1882,9 @@ class CRAController extends Controller
     {
         // food inventory
         foreach ($data as $row) {
+            if (empty($row['item'])) {
+                continue;
+            }
             CRAPrepositionedInventory::updateOrCreate(
                 [
                     'barangay_id' => $brgy_id,
@@ -1850,6 +1904,9 @@ class CRAController extends Controller
         $reliefRecords = [];
 
         foreach ($data as $distribution) {
+            if (empty($distribution['evacuationCenter'])) {
+                continue;
+            }
             // Split multiline fields into arrays
             $goods      = preg_split('/\r\n|\r|\n/', trim($distribution['typeOfGoods']));
             $quantities = preg_split('/\r\n|\r|\n/', trim($distribution['quantity']));
@@ -1891,6 +1948,9 @@ class CRAController extends Controller
         $processRecords = [];
 
         foreach ($data as $index => $row) {
+            if (empty($row['process'])) {
+                continue;
+            }
             $processRecords[] = [
                 'barangay_id'          => $brgy_id,
                 'cra_id' => $cra->id,
@@ -1915,6 +1975,9 @@ class CRAController extends Controller
     {
         // BDRRMC Trainings
         $trainings = collect($data ?? [])->map(function ($row) use ($brgy_id, $cra) {
+            if (empty($row['title'])) {
+                return null; // Skip if title is empty
+            }
             return [
                 'barangay_id'            => $brgy_id,
                 'cra_id'                 => $cra->id,
@@ -1940,6 +2003,7 @@ class CRAController extends Controller
     {
         // BDRRMC Directory
         $directory = collect($data ?? [])->map(function ($row) use ($brgy_id, $cra) {
+
             return [
                 'barangay_id'      => $brgy_id,
                 'cra_id'           => $cra->id,
@@ -1962,6 +2026,9 @@ class CRAController extends Controller
     {
         // Equipment Inventory
         $equipment = collect($data ?? [])->map(function ($row) use ($brgy_id, $cra) {
+            if (empty($row['item'])) {
+                return null; // Skip if item is empty
+            }
             return [
                 'barangay_id'   => $brgy_id,
                 'cra_id'                 => $cra->id,
@@ -1985,6 +2052,9 @@ class CRAController extends Controller
     {
         // Evacuation Plan
         foreach ($data as $index => $row) {
+            if (empty($row['task'])) {
+                continue;
+            }
             CRAEvacuationPlan::updateOrCreate(
                 [
                     'barangay_id' => $brgy_id,

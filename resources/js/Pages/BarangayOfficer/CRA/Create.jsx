@@ -161,29 +161,28 @@ export default function Index({ progress, barangay_id }) {
 
     const [craData, setCraData] = useState(() => {
         try {
-            // UPDATED: Use storageKey with barangay_id
             const saved = localStorage.getItem(storageKey);
             return saved
                 ? JSON.parse(saved)
                 : {
-                    population: [],
-                    livelihood: (defaultLivelihoods ?? []).map((type) => ({
-                        type,
-                        male_no_dis: "",
-                        male_dis: "",
-                        female_no_dis: "",
-                        female_dis: "",
-                        lgbtq_no_dis: "",
-                        lgbtq_dis: "",
-                    })),
-                    infrastructure: defaultInfra ?? [],
-                    institutions: [],
-                    hazards: [],
-                    evacuation: [],
-                    buildings: JSON.parse(JSON.stringify(defaultBuildings)),
-                    facilities: JSON.parse(JSON.stringify(defaultFacilities)),
-                    year: yearFromUrl,
-                };
+                      population: [],
+                      livelihood: (defaultLivelihoods ?? []).map((type) => ({
+                          type,
+                          male_no_dis: "",
+                          male_dis: "",
+                          female_no_dis: "",
+                          female_dis: "",
+                          lgbtq_no_dis: "",
+                          lgbtq_dis: "",
+                      })),
+                      infrastructure: defaultInfra ?? [],
+                      institutions: [],
+                      hazards: [],
+                      evacuation: [],
+                      buildings: JSON.parse(JSON.stringify(defaultBuildings)),
+                      facilities: JSON.parse(JSON.stringify(defaultFacilities)),
+                      year: yearFromUrl,
+                  };
         } catch (err) {
             console.error("Error loading draft:", err);
             return {
@@ -266,7 +265,9 @@ export default function Index({ progress, barangay_id }) {
 
         try {
             // UPDATED: Load with barangay_id in the key
-            const saved = localStorage.getItem(`craDataDraft_${barangay_id}_${year}`);
+            const saved = localStorage.getItem(
+                `craDataDraft_${barangay_id}_${year}`
+            );
 
             if (saved) {
                 setCraData(JSON.parse(saved));
@@ -295,7 +296,6 @@ export default function Index({ progress, barangay_id }) {
             console.error("Error reloading draft:", error);
         }
     }, [year, barangay_id]);
-
 
     const [finalData, setFinalData] = useState([]);
     const [errors, setErrors] = useState({});
@@ -381,27 +381,33 @@ export default function Index({ progress, barangay_id }) {
 
         if (direction === "next") {
             if (currentStep === steps.length) {
-                router.post(route("cra.store"), { ...craData, barangay_id }, {
-                    onSuccess: () => {
-                        // Remove specific draft
-                        localStorage.removeItem(`craDataDraft_${barangay_id}_${year}`);
-                        toast.success("CRA submitted successfully!");
-                    },
-                    onError: (errors) => {
-                        setErrors(errors);
-                        console.error("Validation Errors:", errors);
+                router.post(
+                    route("cra.store"),
+                    { ...craData, barangay_id },
+                    {
+                        onSuccess: () => {
+                            // Remove specific draft
+                            localStorage.removeItem(
+                                `craDataDraft_${barangay_id}_${year}`
+                            );
+                            toast.success("CRA submitted successfully!");
+                        },
+                        onError: (errors) => {
+                            setErrors(errors);
+                            console.error("Validation Errors:", errors);
 
-                        // ✅ Rehydrate data from local storage (UPDATED KEY)
-                        const saved = localStorage.getItem(
-                            `craDataDraft_${barangay_id}_${year}`
-                        );
-                        if (saved) {
-                            setCraData(JSON.parse(saved));
-                        }
+                            // ✅ Rehydrate data from local storage (UPDATED KEY)
+                            const saved = localStorage.getItem(
+                                `craDataDraft_${barangay_id}_${year}`
+                            );
+                            if (saved) {
+                                setCraData(JSON.parse(saved));
+                            }
 
-                        // ... rest of error handling
-                    },
-                });
+                            // ... rest of error handling
+                        },
+                    }
+                );
                 return;
             }
             newStep++;

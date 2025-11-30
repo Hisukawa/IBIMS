@@ -19,8 +19,6 @@ return new class extends Migration
             $table->string('disaster_name', 55)->nullable();
             $table->string('year', 35)->nullable();
             $table->timestamps();
-
-            // ❌ Removed year from unique
             $table->unique(
                 ['barangay_id', 'disaster_name', 'cra_id'],
                 'cra_disaster_unique'

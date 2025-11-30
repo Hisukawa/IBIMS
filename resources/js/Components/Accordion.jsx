@@ -18,12 +18,13 @@ export default function Accordion({ title, children, defaultOpen = false }) {
                     <ChevronDown className="w-5 h-5 text-gray-600" />
                 )}
             </button>
-            <div
-                className={`p-4 bg-white border-t border-gray-200 transition-all duration-200 ${isOpen ? "block animate-fadeIn" : "hidden"
-                    }`}
-            >
-                {children}
-            </div>
+
+            {/* Content */}
+            {isOpen && (
+                <div className="p-4 bg-white border-t border-gray-200 animate-fadeIn">
+                    {children}
+                </div>
+            )}
         </div>
     );
 }

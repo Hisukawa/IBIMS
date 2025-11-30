@@ -276,6 +276,13 @@ class CRAStoreRequest extends FormRequest
             'disaster_per_purok.*.rowsValue.*.value' => ['nullable', 'string'],
             'disaster_per_purok.*.rowsValue.*.count' => ['nullable', 'numeric', 'min:0'],
 
+            // Validate the parent array
+            'family_at_risk'                       => ['nullable', 'array'],
+            'family_at_risk.*.purok'               => ['nullable', 'numeric', 'min:0'],
+            'family_at_risk.*.rowsValue'           => ['nullable', 'array'],
+            'family_at_risk.*.rowsValue.*.value'   => ['nullable', 'string'],
+            'family_at_risk.*.rowsValue.*.count'   => ['nullable', 'numeric', 'min:0'],
+
             // Illness Statistics
             'illnesses'                        => ['nullable', 'array', 'min:1'],
             'illnesses.*.illness'              => ['nullable', 'string'],
