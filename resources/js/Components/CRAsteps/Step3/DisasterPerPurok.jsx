@@ -29,23 +29,6 @@ const DisasterPerPurok = () => {
     const displayList = craData.disaster_per_purok || [];
 
     // Initialize the list with Purok 1 if it is empty on mount.
-    // useEffect(() => {
-    //     if (
-    //         !craData.disaster_per_purok ||
-    //         craData.disaster_per_purok.length === 0
-    //     ) {
-    //         setCraData((prev) => ({
-    //             ...prev,
-    //             disaster_per_purok: [
-    //                 {
-    //                     purok: "1",
-    //                     rowsValue: DEFAULT_ROWS.map((row) => ({ ...row })),
-    //                 },
-    //             ],
-    //         }));
-    //     }
-    // }, []);
-
     useEffect(() => {
         if (
             !craData.disaster_per_purok ||
@@ -59,19 +42,6 @@ const DisasterPerPurok = () => {
                         rowsValue: DEFAULT_ROWS.map((row) => ({ ...row })),
                     },
                 ],
-            }));
-        } else {
-            // Normalize existing data to include `purok` if missing
-            const normalized = craData.disaster_per_purok.map((p, idx) => ({
-                purok: p.purok || `${idx + 1}`,
-                rowsValue:
-                    p.rowsValue || DEFAULT_ROWS.map((row) => ({ ...row })),
-                ...p, // keep other properties like `type`, `rows`, etc.
-            }));
-
-            setCraData((prev) => ({
-                ...prev,
-                disaster_per_purok: normalized,
             }));
         }
     }, []);
@@ -175,7 +145,7 @@ const DisasterPerPurok = () => {
                                     <td className="border p-1">
                                         <input
                                             type="text"
-                                            value={purok.purok || ""}
+                                            value={purok.purok || `${pIdx + 1}`}
                                             placeholder={`${pIdx + 1}`}
                                             onChange={(e) =>
                                                 updatePurok(
