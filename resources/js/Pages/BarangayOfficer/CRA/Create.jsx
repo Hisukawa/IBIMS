@@ -161,7 +161,6 @@ export default function Index({ progress, barangay_id }) {
 
     const [craData, setCraData] = useState(() => {
         try {
-            // UPDATED: Use storageKey with barangay_id
             const saved = localStorage.getItem(storageKey);
             return saved
                 ? JSON.parse(saved)
