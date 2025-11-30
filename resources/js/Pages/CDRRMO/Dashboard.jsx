@@ -157,14 +157,13 @@ export default function Dashboard({
     // Hazards from your database
     const hazards = [
         "Flood",
-        "Pandemic/Emerging and Re-emerging Diseases",
+        "Pandemic / Emerging and Re-emerging Diseases",
         "Typhoon",
         "Rain-induced Landslide",
         "Fire",
         "Earthquake",
         "Drought",
         "Vehicular Incident",
-        "Pandemic/Emerging and Re-emerging Diseases", // remove duplicate if needed
     ];
 
     // Generate hazard cards

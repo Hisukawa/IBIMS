@@ -85,7 +85,7 @@ export default function FamilyAtRisk({
 
                                                 // ✅ Map indicator names to consistent keys
                                                 const indicatorKeyMap = {
-                                                    "Number of Families with Access to Information (radio/TV/ newspaper/ social media, etc.)":
+                                                    "Number of Families with Access to Information (radio/TV/newspaper/social media, etc.)":
                                                         "number_of_families_with_access_to_information",
                                                     "Number of Employed Individuals":
                                                         "number_of_employed_individuals",

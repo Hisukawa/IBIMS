@@ -26,54 +26,54 @@ class StoreMedicalInformationRequest extends FormRequest
             'resident_id' => ['required', 'exists:residents,id'],
 
             // SECTION 4: Health Information
-            'weight_kg' => ['required', 'numeric', 'min:0', 'max:300'],
-            'height_cm' => ['required', 'numeric', 'min:0', 'max:500'],
+            'weight_kg' => ['nullable', 'numeric', 'min:0', 'max:300'],
+            'height_cm' => ['nullable', 'numeric', 'min:0', 'max:500'],
             'bmi' => ['nullable', 'numeric'], // better to calculate in backend
-            'nutrition_status' => ['required', Rule::in([
+            'nutrition_status' => ['nullable', Rule::in([
                 'normal', 'underweight', 'severely_underweight', 'overweight', 'obese'
             ])],
 
-            'emergency_contact_number' => ['required', 'string', 'max:11'],
-            'emergency_contact_name' => ['required', 'string', 'max:255'],
-            'emergency_contact_relationship' => ['required', 'string', 'max:100'],
+            'emergency_contact_number' => ['nullable', 'string', 'max:11'],
+            'emergency_contact_name' => ['nullable', 'string', 'max:255'],
+            'emergency_contact_relationship' => ['nullable', 'string', 'max:100'],
             'blood_type' => ['nullable', Rule::in([
                 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'
             ])],
 
-            'has_philhealth' => ['required', Rule::in([0, 1])],
+            'has_philhealth' => ['nullable', Rule::in([0, 1])],
             'philhealth_id_number' => ['nullable', 'string', 'max:50'],
 
-            'is_alcohol_user' => ['required', Rule::in([0, 1])],
-            'is_smoker' => ['required', Rule::in([0, 1])],
+            'is_alcohol_user' => ['nullable', Rule::in([0, 1])],
+            'is_smoker' => ['nullable', Rule::in([0, 1])],
 
-            'is_pwd' => ['required', Rule::in([0, 1])],
-            'pwd_id_number' => ['required_if:is_pwd,1', 'string', 'max:15'],
+            'is_pwd' => ['nullable', Rule::in([0, 1])],
+            'pwd_id_number' => ['nullable', 'string', 'max:15'],
 
-            'disabilities' => ['required_if:is_pwd,1', 'array'],
-            'disabilities.*.disability_type' => ['required_with:disabilities', 'string', 'max:100'],
+            'disabilities' => ['nullable', 'array'],
+            'disabilities.*.disability_type' => ['nullable', 'string', 'max:100'],
 
             'has_allergies' => ['required', Rule::in([0, 1])],
             'allergies' => ['required_if:has_allergies,1', 'array'],
-            'allergies.*.allergy_name' => ['required_with:allergies', 'string', 'max:100'],
+            'allergies.*.allergy_name' => ['nullable', 'string', 'max:100'],
             'allergies.*.reaction_description' => ['nullable', 'string', 'max:1000'],
 
             'has_medication' => ['required', Rule::in([0, 1])],
             'medications' => ['required_if:has_medication,1', 'array'],
             'medications.*.medication' => ['required_with:medications', 'string', 'max:100'],
-            'medications.*.start_date' => ['nullable', 'date', 'before_or_equal:today'],
-            'medications.*.end_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'medications.*.start_date' => ['nullable', 'date'],
+            'medications.*.end_date' => ['nullable', 'date'],
 
             'has_medical_condition' => ['required', Rule::in([0, 1])],
             'medical_conditions' => ['required_if:has_medical_condition,1', 'array'],
             'medical_conditions.*.condition' => ['required_with:medical_conditions', 'string', 'max:100'],
             'medical_conditions.*.status' => ['required_with:medical_conditions', Rule::in(['active', 'resolved', 'chronic'])],
-            'medical_conditions.*.diagnosed_date' => ['nullable', 'date', 'before_or_equal:today'],
-            'medical_conditions.*.resolved_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'medical_conditions.*.diagnosed_date' => ['nullable', 'date'],
+            'medical_conditions.*.resolved_date' => ['nullable', 'date'],
 
             'has_vaccination' => ['required', Rule::in([0, 1])],
             'vaccinations' => ['required_if:has_vaccination,1', 'array'],
             'vaccinations.*.vaccine' => ['required_with:vaccinations', 'string', 'max:100'],
-            'vaccinations.*.vaccination_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'vaccinations.*.vaccination_date' => ['nullable', 'date'],
         ];
     }
 

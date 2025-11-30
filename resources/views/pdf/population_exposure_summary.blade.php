@@ -76,65 +76,70 @@
                 @endfor
             </tr>
         </thead>
-        <tbody>
-            @php
-                $grandTotalFamilies = 0;
-                $grandTotalIndividuals = 0;
-                $grandPuroks = [];
-                for ($i = 1; $i <= 7; $i++) {
-                    $grandPuroks[$i] = ['families'=>0,'male'=>0,'female'=>0,'lgbtq'=>0];
-                }
-            @endphp
+<tbody>
+    @php
+        $grandTotalFamilies = 0;
+        $grandTotalIndividuals = 0;
+        $grandPuroks = [];
+        for ($i = 1; $i <= 7; $i++) {
+            $grandPuroks[$i] = ['families'=>0,'male'=>0,'female'=>0,'lgbtq'=>0];
+        }
+    @endphp
 
-            @foreach ($grouped as $barangay => $puroks)
+    @foreach ($grouped as $barangay => $puroks)
+        @php
+            $barangayTotalFamilies = 0;
+            $barangayTotalIndividuals = 0;
+        @endphp
+        <tr>
+            <td>{{ $barangay }}</td>
+            @for ($i = 1; $i <= 7; $i++)
                 @php
-                    $barangayTotalFamilies = 0;
-                    $barangayTotalIndividuals = 0;
+                    $purok = $puroks[$i] ?? ['families'=>0,'male'=>0,'female'=>0,'lgbtq'=>0];
+                    $purokTotal = $purok['male'] + $purok['female'] + $purok['lgbtq'];
+                    $barangayTotalFamilies += $purok['families'];
+                    $barangayTotalIndividuals += $purokTotal;
+
+                    $grandPuroks[$i]['families'] += $purok['families'];
+                    $grandPuroks[$i]['male'] += $purok['male'];
+                    $grandPuroks[$i]['female'] += $purok['female'];
+                    $grandPuroks[$i]['lgbtq'] += $purok['lgbtq'];
                 @endphp
-                <tr>
-                    <td>{{ $barangay }}</td>
-                    @foreach ($puroks as $index => $purok)
-                        @php
-                            $purokTotal = $purok['male'] + $purok['female'] + $purok['lgbtq'];
-                            $barangayTotalFamilies += $purok['families'];
-                            $barangayTotalIndividuals += $purokTotal;
 
-                            $grandPuroks[$index]['families'] += $purok['families'];
-                            $grandPuroks[$index]['male'] += $purok['male'];
-                            $grandPuroks[$index]['female'] += $purok['female'];
-                            $grandPuroks[$index]['lgbtq'] += $purok['lgbtq'];
-                        @endphp
-                        <td class="purok-{{ $index }}">{{ $purok['families'] }}</td>
-                        <td class="purok-{{ $index }}">{{ $purok['male'] }}</td>
-                        <td class="purok-{{ $index }}">{{ $purok['female'] }}</td>
-                        <td class="purok-{{ $index }}">{{ $purok['lgbtq'] }}</td>
-                        <td class="purok-{{ $index }} totals">{{ $purokTotal }}</td>
-                    @endforeach
-                    <td class="totals">{{ $barangayTotalFamilies }}</td>
-                    <td class="totals">{{ $barangayTotalIndividuals }}</td>
+                <td class="purok-{{ $i }}">{{ $purok['families'] }}</td>
+                <td class="purok-{{ $i }}">{{ $purok['male'] }}</td>
+                <td class="purok-{{ $i }}">{{ $purok['female'] }}</td>
+                <td class="purok-{{ $i }}">{{ $purok['lgbtq'] }}</td>
+                <td class="purok-{{ $i }} totals">{{ $purokTotal }}</td>
+            @endfor
+            <td class="totals">{{ $barangayTotalFamilies }}</td>
+            <td class="totals">{{ $barangayTotalIndividuals }}</td>
 
-                    @php
-                        $grandTotalFamilies += $barangayTotalFamilies;
-                        $grandTotalIndividuals += $barangayTotalIndividuals;
-                    @endphp
-                </tr>
-            @endforeach
+            @php
+                $grandTotalFamilies += $barangayTotalFamilies;
+                $grandTotalIndividuals += $barangayTotalIndividuals;
+            @endphp
+        </tr>
+    @endforeach
 
-            <!-- Grand Total Row -->
-            <tr>
-                <td><strong>GRAND TOTAL</strong></td>
-                @for ($i = 1; $i <= 7; $i++)
-                    @php $totalPurok = $grandPuroks[$i]['male'] + $grandPuroks[$i]['female'] + $grandPuroks[$i]['lgbtq']; @endphp
-                    <td>{{ $grandPuroks[$i]['families'] }}</td>
-                    <td>{{ $grandPuroks[$i]['male'] }}</td>
-                    <td>{{ $grandPuroks[$i]['female'] }}</td>
-                    <td>{{ $grandPuroks[$i]['lgbtq'] }}</td>
-                    <td>{{ $totalPurok }}</td>
-                @endfor
-                <td>{{ $grandTotalFamilies }}</td>
-                <td>{{ $grandTotalIndividuals }}</td>
-            </tr>
-        </tbody>
+    <!-- Grand Total Row -->
+    <tr>
+        <td><strong>GRAND TOTAL</strong></td>
+        @for ($i = 1; $i <= 7; $i++)
+            @php
+                $purok = $grandPuroks[$i] ?? ['families'=>0,'male'=>0,'female'=>0,'lgbtq'=>0];
+                $totalPurok = $purok['male'] + $purok['female'] + $purok['lgbtq'];
+            @endphp
+            <td>{{ $purok['families'] }}</td>
+            <td>{{ $purok['male'] }}</td>
+            <td>{{ $purok['female'] }}</td>
+            <td>{{ $purok['lgbtq'] }}</td>
+            <td>{{ $totalPurok }}</td>
+        @endfor
+        <td>{{ $grandTotalFamilies }}</td>
+        <td>{{ $grandTotalIndividuals }}</td>
+    </tr>
+</tbody>
     </table>
     <br><br>
 

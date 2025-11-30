@@ -29,15 +29,33 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        try {
+            $user = $request->user();
+            $data = $request->validated();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+            $user->fill($data);
+
+            // Reset email verification if email changed
+            if ($user->isDirty('email')) {
+                $user->email_verified_at = null;
+            }
+            if ($user->hasRole('admin')) {
+                $user->barangay->update([
+                    'email' => $data['email'],
+                ]);
+            }
+            $user->save();
+
+            return redirect()->route('profile.edit')
+                ->with('success', 'Profile updated successfully.');
+
+        } catch (\Exception $e) {
+
+            return redirect()->route('profile.edit')
+                ->with('error', 'Failed to update profile. Please try again.');
+                // Optional for debugging:
+                // ->with('error', 'Failed to update profile: ' . $e->getMessage());
         }
-
-        $request->user()->save();
-
-        return Redirect::route('profile.edit');
     }
 
     /**

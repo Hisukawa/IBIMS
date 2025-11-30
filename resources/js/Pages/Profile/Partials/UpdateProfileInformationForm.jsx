@@ -12,16 +12,25 @@ export default function UpdateProfileInformation({
 }) {
     const user = usePage().props.auth.user;
 
-    const { data, setData, patch, errors, processing, recentlySuccessful } =
+    const { data, setData, post, errors, processing, recentlySuccessful } =
         useForm({
             username: user.username,
             email: user.email,
+            _method: "PUT",
         });
 
     const submit = (e) => {
         e.preventDefault();
 
-        patch(route("profile.update"));
+        post(route("profile.update"), {
+            onError: (errors) => {
+                toast.error("Please review the highlighted fields.", {
+                    duration: 3000,
+                    closeButton: true,
+                });
+                console.error("Validation errors:", errors);
+            },
+        });
     };
 
     return (
@@ -38,7 +47,7 @@ export default function UpdateProfileInformation({
 
             <form onSubmit={submit} className="mt-6 space-y-6">
                 <div>
-                    <InputLabel htmlFor="username" value="Name" />
+                    <InputLabel htmlFor="username" value="Account Name" />
 
                     <TextInput
                         id="username"
@@ -54,7 +63,7 @@ export default function UpdateProfileInformation({
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                    <InputLabel htmlFor="email" value="Account Email" />
 
                     <TextInput
                         id="email"

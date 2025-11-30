@@ -39,6 +39,7 @@ import {
     IoIosCloseCircleOutline,
 } from "react-icons/io";
 import ExportButton from "@/Components/ExportButton";
+import { Switch } from "@/Components/ui/switch";
 
 export default function Members({
     members,
@@ -65,6 +66,8 @@ export default function Members({
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalState, setModalState] = useState("");
     const [selectedResident, setSelectedResident] = useState(null);
+    const hasHead = members.some((m) => m.is_head === 1 || m.is_head === true);
+    const head = members.find((m) => m.is_head === 1 || m.is_head === true);
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
@@ -563,19 +566,82 @@ export default function Members({
                     <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
                         <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
                             <div className="mb-6">
-                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl shadow-sm">
-                                    <div className="p-2 bg-green-100 rounded-full">
-                                        <UsersRound className="w-6 h-6 text-green-600" />
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 bg-gray-50 rounded-xl shadow-sm">
+                                    {/* Left Side */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-green-100 rounded-full">
+                                            <UsersRound className="w-6 h-6 text-green-600" />
+                                        </div>
+                                        <div>
+                                            <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
+                                                {institution.name} Overview
+                                            </h1>
+                                            <p className="text-sm text-gray-500">
+                                                Review, filter, and manage
+                                                members of {institution.name}{" "}
+                                                efficiently.
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
-                                            {institution.name} Overview
-                                        </h1>
-                                        <p className="text-sm text-gray-500">
-                                            Review, filter, and manage members
-                                            of {institution.name} efficiently.
-                                        </p>
-                                    </div>
+
+                                    {/* Right Side — Head Info */}
+                                    {head && (
+                                        <div className="p-4 bg-white rounded-xl shadow-md border border-gray-100 w-64">
+                                            <h2 className="text-xs font-semibold text-gray-500 tracking-wide uppercase">
+                                                Head of Institution
+                                            </h2>
+
+                                            <div className="mt-2">
+                                                <p className="text-lg font-semibold text-gray-900">
+                                                    {`${
+                                                        (
+                                                            head.resident
+                                                                .firstname || ""
+                                                        )
+                                                            .charAt(0)
+                                                            .toUpperCase() +
+                                                        (
+                                                            head.resident
+                                                                .firstname || ""
+                                                        )
+                                                            .slice(1)
+                                                            .toLowerCase()
+                                                    } ${
+                                                        (
+                                                            head.resident
+                                                                .lastname || ""
+                                                        )
+                                                            .charAt(0)
+                                                            .toUpperCase() +
+                                                        (
+                                                            head.resident
+                                                                .lastname || ""
+                                                        )
+                                                            .slice(1)
+                                                            .toLowerCase()
+                                                    }`}
+                                                </p>
+
+                                                {head.resident
+                                                    .contact_number ? (
+                                                    <p className="text-sm text-gray-600 mt-1">
+                                                        <span className="font-medium text-gray-700">
+                                                            Contact:
+                                                        </span>{" "}
+                                                        {
+                                                            head.resident
+                                                                .contact_number
+                                                        }
+                                                    </p>
+                                                ) : (
+                                                    <p className="text-sm text-gray-400 italic mt-1">
+                                                        No contact number
+                                                        provided
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-start justify-between gap-2 w-full mb-0">
@@ -778,7 +844,7 @@ export default function Members({
                                                 </div>
 
                                                 {/* Membership Details */}
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
                                                     <div>
                                                         <InputLabel value="Member Since" />
                                                         <InputField
@@ -842,30 +908,37 @@ export default function Members({
                                                 </div>
 
                                                 {/* Is Head Checkbox */}
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`is_head_${index}`}
-                                                        checked={
-                                                            !!member.is_head
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleArrayValues(
-                                                                e,
-                                                                index,
-                                                                "is_head"
-                                                            )
-                                                        }
-                                                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                                    />
-                                                    <label
-                                                        htmlFor={`is_head_${index}`}
-                                                        className="text-sm text-gray-700"
-                                                    >
-                                                        Set as Head of
-                                                        Institution
-                                                    </label>
-                                                </div>
+                                                {(!hasHead ||
+                                                    member.is_head) && (
+                                                    <div className="flex items-center gap-3 mt-3">
+                                                        <Switch
+                                                            id={`is_head_${index}`}
+                                                            checked={
+                                                                !!member.is_head
+                                                            }
+                                                            onCheckedChange={(
+                                                                checked
+                                                            ) =>
+                                                                handleArrayValues(
+                                                                    {
+                                                                        target: {
+                                                                            value: checked,
+                                                                        },
+                                                                    },
+                                                                    index,
+                                                                    "is_head"
+                                                                )
+                                                            }
+                                                        />
+                                                        <label
+                                                            htmlFor={`is_head_${index}`}
+                                                            className="text-sm font-medium text-gray-700"
+                                                        >
+                                                            Set as Head of
+                                                            Institution
+                                                        </label>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 

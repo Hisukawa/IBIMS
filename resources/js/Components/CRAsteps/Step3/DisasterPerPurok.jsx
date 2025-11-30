@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "sonner";
 import { StepperContext } from "@/context/StepperContext";
 
 const DEFAULT_ROWS = [
@@ -47,6 +47,24 @@ const DisasterPerPurok = () => {
         });
     }, []);
 
+    // Initialize the list with Purok 1 if it is empty on mount.
+    useEffect(() => {
+        if (
+            !craData.disaster_per_purok ||
+            craData.disaster_per_purok.length === 0
+        ) {
+            setCraData((prev) => ({
+                ...prev,
+                disaster_per_purok: [
+                    {
+                        purok: "1",
+                        rowsValue: DEFAULT_ROWS.map((row) => ({ ...row })),
+                    },
+                ],
+            }));
+        }
+    }, []);
+
     const updatePurok = (purokIdx, key, value, rowIdx = null) => {
         setCraData((prev) => {
             const currentList = prev.disaster_per_purok || [];
@@ -54,7 +72,8 @@ const DisasterPerPurok = () => {
             const updated = currentList.map((p, i) => {
                 if (i !== purokIdx) return p;
 
-                const currentRows = p.rowsValue || DEFAULT_ROWS.map(r => ({ ...r }));
+                const currentRows =
+                    p.rowsValue || DEFAULT_ROWS.map((r) => ({ ...r }));
 
                 if (rowIdx !== null) {
                     let cleanValue = value.replace(/\D/g, "");
@@ -63,9 +82,7 @@ const DisasterPerPurok = () => {
                     }
 
                     const rowsValue = currentRows.map((row, rIdx) =>
-                        rIdx === rowIdx
-                            ? { ...row, count: cleanValue }
-                            : row
+                        rIdx === rowIdx ? { ...row, count: cleanValue } : row
                     );
                     return { ...p, rowsValue };
                 }
@@ -120,14 +137,16 @@ const DisasterPerPurok = () => {
 
     return (
         <div className="p-4">
-            <Toaster position="top-right" />
             <div className="overflow-x-auto">
                 <table className="min-w-full border text-xs">
                     <thead>
                         <tr className="bg-gray-100">
                             <th className="border p-1 text-center">Purok</th>
                             {DEFAULT_ROWS.map((row, idx) => (
-                                <th key={idx} className="border p-1 text-center">
+                                <th
+                                    key={idx}
+                                    className="border p-1 text-center"
+                                >
                                     {row.value}
                                 </th>
                             ))}
@@ -147,7 +166,11 @@ const DisasterPerPurok = () => {
                                             type="number"
                                             value={purok.purok || ""}
                                             onChange={(e) =>
-                                                updatePurok(pIdx, "purok", e.target.value)
+                                                updatePurok(
+                                                    pIdx,
+                                                    "purok",
+                                                    e.target.value
+                                                )
                                             }
                                             className="w-full text-center text-xs p-1 border rounded"
                                         />
@@ -158,7 +181,12 @@ const DisasterPerPurok = () => {
                                                 type="text"
                                                 value={row.count || ""}
                                                 onChange={(e) =>
-                                                    updatePurok(pIdx, "count", e.target.value, rIdx)
+                                                    updatePurok(
+                                                        pIdx,
+                                                        "count",
+                                                        e.target.value,
+                                                        rIdx
+                                                    )
                                                 }
                                                 className="w-full text-center text-xs p-1 border rounded"
                                             />
@@ -181,7 +209,10 @@ const DisasterPerPurok = () => {
                         <tr className="bg-gray-200 font-bold">
                             <td className="border p-1 text-center">Total</td>
                             {totals.map((total, idx) => (
-                                <td key={idx} className="border p-1 text-center">
+                                <td
+                                    key={idx}
+                                    className="border p-1 text-center"
+                                >
                                     {total}
                                 </td>
                             ))}

@@ -31,25 +31,61 @@ class InstitutionMemberController extends Controller
     public function store(StoreBarangayInstitutionMemberRequest $request)
     {
         $data = $request->validated();
+
         try {
-            if (!empty($data['members']) && is_array($data['members'])) {
-                foreach ($data['members'] as $member) {
-                    BarangayInstitutionMember::create([
-                        'institution_id' => $data['institution_id'] ?? null, // depends on your schema
-                        'resident_id'    => $member['resident_id'],
-                        'member_since'   => $member['member_since'] ?? null,
-                        'status'         => $member['status'],
-                        'is_head'        => $member['is_head'] ?? false,
-                    ]);
+
+            $members = $data['members'] ?? [];
+            $institutionId = $data['institution_id'];
+
+            // 🔍 Check if any incoming member is marked as head
+            $hasIncomingHead = collect($members)->contains(fn ($m) =>
+                !empty($m['is_head']) && $m['is_head'] == true
+            );
+
+            if ($hasIncomingHead) {
+                // 🔍 Check if institution already has a head
+                $existingHead = BarangayInstitutionMember::where('institution_id', $institutionId)
+                    ->where('is_head', true)
+                    ->first();
+
+                if ($existingHead) {
+                    return back()->with(
+                        'error',
+                        'This institution already has a head: ' .
+                        ucwords($existingHead->resident->firstname . ' ' . $existingHead->resident->lastname)
+                    );
                 }
             }
 
-            return back()->with('success','Member(s) saved successfully.');
+            // 🔍 Check for duplicate members (resident already belongs to the institution)
+            foreach ($members as $member) {
+                $alreadyMember = BarangayInstitutionMember::where('institution_id', $institutionId)
+                    ->where('resident_id', $member['resident_id'])
+                    ->exists();
+
+                if ($alreadyMember) {
+                    return back()->with(
+                        'error',
+                        'Resident is already a member of this institution.'
+                    );
+                }
+            }
+
+            // ✅ Save members
+            foreach ($members as $member) {
+                BarangayInstitutionMember::create([
+                    'institution_id' => $institutionId,
+                    'resident_id'    => $member['resident_id'],
+                    'member_since'   => $member['member_since'] ?? null,
+                    'status'         => $member['status'],
+                    'is_head'        => $member['is_head'] ?? false,
+                ]);
+            }
+
+            return back()->with('success', 'Member(s) saved successfully.');
+
         } catch (\Exception $e) {
-            return back()->with(
-                'error',
-                'Member(s) could not be saved: ' . $e->getMessage()
-            );
+            return back()->with('error', 'Member(s) could not be saved: ' . $e->getMessage());
         }
     }
 

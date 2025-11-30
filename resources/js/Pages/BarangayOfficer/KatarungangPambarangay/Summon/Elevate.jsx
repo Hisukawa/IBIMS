@@ -479,8 +479,8 @@ export default function Elevate({ residents, blotter_details }) {
                                                         value: "arbitration",
                                                     },
                                                     {
-                                                        label: "Medication",
-                                                        value: "medication",
+                                                        label: "Mediation",
+                                                        value: "mediation",
                                                     },
                                                     {
                                                         label: "Conciliation",
