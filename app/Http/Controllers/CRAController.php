@@ -1620,7 +1620,7 @@ class CRAController extends Controller
     private function saveFamilyAtRisk($brgy_id, $data, $cra)
     {
         $records = [];
-
+        dd($data);
         foreach ($data as $purokData) {
             $purokNumber = $purokData['purok'] ?? null;
 
