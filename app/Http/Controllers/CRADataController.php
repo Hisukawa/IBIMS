@@ -2257,7 +2257,7 @@ class CRADataController extends Controller
                 ];
             })
             ->values();
-
+            // dd($hazardWiseData);
             return Inertia::render('CDRRMO/CRA/PopulationExposure', [
                 'populationExposureData' => [],
                 'overallPopulationExposureData' => $hazardWiseData, // ✅ grouped by hazard, barangays summed by purok

@@ -1716,6 +1716,9 @@ class CRAController extends Controller
     private function saveEvacuationCenters($brgy_id, $data, $cra)
     {
         // --- Evacuation Centers ---
+        CRAEvacuationCenter::where('barangay_id', $brgy_id)
+            ->where('cra_id', $cra->id)
+            ->delete();
         foreach ($data as $center) {
             if (empty($center['name'])) {
                 continue;
@@ -1849,6 +1852,10 @@ class CRAController extends Controller
         // --- Evacuation Livelihood ---
         $livelihoodRecords = [];
 
+        CRALivelihoodEvacuationSite::where('barangay_id', $brgy_id)
+            ->where('cra_id', $cra->id)
+            ->delete();
+
         foreach ($data as $row) {
             if (empty($row['type'])) {
                 continue;
@@ -1881,6 +1888,10 @@ class CRAController extends Controller
     private function saveFoodInventory($brgy_id, $data, $cra)
     {
         // food inventory
+        CRAPrepositionedInventory::where('barangay_id', $brgy_id)
+            ->where('cra_id', $cra->id)
+            ->delete();
+
         foreach ($data as $row) {
             if (empty($row['item'])) {
                 continue;
@@ -1901,6 +1912,10 @@ class CRAController extends Controller
     private function saveReliefGoods($brgy_id, $data, $cra)
     {
         // --- Relief Goods Distribution ---
+        CRAReliefDistribution::where('barangay_id', $brgy_id)
+            ->where('cra_id', $cra->id)
+            ->delete();
+
         $reliefRecords = [];
 
         foreach ($data as $distribution) {
