@@ -1,10 +1,27 @@
+import { useEffect } from "react";
 import AdminLayout from "@/Layouts/AdminLayout";
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import DeleteUserForm from "./Partials/DeleteUserForm";
 import UpdatePasswordForm from "./Partials/UpdatePasswordForm";
 import UpdateProfileInformationForm from "./Partials/UpdateProfileInformationForm";
+import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
+import { Toaster, toast } from "sonner";
 
 export default function Edit({ mustVerifyEmail, status }) {
+    const breadcrumbs = [
+        { label: "iBIMS", showOnMobile: false },
+        { label: "Account Profile", showOnMobile: true },
+        { label: "Edit", showOnMobile: true },
+    ];
+    const props = usePage().props;
+    const success = props?.success ?? null;
+
+    useEffect(() => {
+        if (success) {
+            toast.success(success, { description: "Operation successful!" });
+        }
+    }, [success]);
+
     return (
         <AdminLayout
             header={
@@ -13,6 +30,8 @@ export default function Edit({ mustVerifyEmail, status }) {
                 </h2>
             }
         >
+            <BreadCrumbsHeader breadcrumbs={breadcrumbs} />
+            <Toaster richColors />
             <Head title="Profile" />
 
             <div className="py-12">
