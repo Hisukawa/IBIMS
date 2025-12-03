@@ -87,14 +87,33 @@ class SuperAdminController extends Controller
 
 
         $pwdDistributionData = [
-            'PWD' => (clone $residentBaseQuery)->whereHas('disabilities')->count(),
-            'nonPWD' => (clone $residentBaseQuery)->whereDoesntHave('disabilities')->count(),
+            1 => (clone $residentBaseQuery)
+                ->where('is_pwd', 1)
+                ->count(),
+            0 => (clone $residentBaseQuery)
+                ->where('is_pwd', 0)
+                ->count(),
         ];
 
+        // $voterDistributionData = [
+        //     1 => (clone $residentBaseQuery)
+        //         ->where('registered_voter', 1)
+        //         ->count(),
+        //     0 => (clone $residentBaseQuery)
+        //         ->where('registered_voter', 0)
+        //         ->count(),
+        // ];
 
         $voterDistributionData = [
-            'Registered Voters' => (clone $residentBaseQuery)->where('registered_voter', 1)->count(),
-            'Unregistered Voters' => (clone $residentBaseQuery)->where('registered_voter', 0)->count(),
+            1 => (clone $residentBaseQuery)
+                ->where('registered_voter', 1)
+                ->count(),
+            0 => (clone $residentBaseQuery)
+                ->where(function ($q) {
+                    $q->where('registered_voter', 0)
+                        ->orWhereNull('registered_voter');
+                })
+                ->count(),
         ];
 
 
@@ -198,27 +217,32 @@ class SuperAdminController extends Controller
                 $join->on('swp.resident_id', '=', 'r.id');
             });
 
-        // 4Ps Distribution
-        $fourPsDistributionData = (clone $swpBaseQuery)
-            ->select('swp.is_4ps_beneficiary', DB::raw('COUNT(*) as total'))
-            ->groupBy('swp.is_4ps_beneficiary')
-            ->pluck('total', 'swp.is_4ps_beneficiary');
+        $totalResidents = (clone $residentBaseQuery)->count();
 
-        $fourPsDistributionData = [
-            1 => $fourPsDistributionData[1] ?? 0,
-            0 => $fourPsDistributionData[0] ?? 0,
-        ];
+        $soloParentCount = (clone $swpBaseQuery)
+            ->where('swp.is_solo_parent', 1)
+            ->count();
 
-        // Solo Parent Distribution
-        $soloParentDistributionData = (clone $swpBaseQuery)
-            ->select('swp.is_solo_parent', DB::raw('COUNT(*) as total'))
-            ->groupBy('swp.is_solo_parent')
-            ->pluck('total', 'swp.is_solo_parent');
+        $nonSoloParentCount = $totalResidents - $soloParentCount;
 
         $soloParentDistributionData = [
-            1 => $soloParentDistributionData[1] ?? 0,
-            0 => $soloParentDistributionData[0] ?? 0,
+            1 => $soloParentCount,
+            0 => $nonSoloParentCount,
         ];
+
+        $totalResidents = (clone $residentBaseQuery)->count();
+
+        $fourPsBeneficiaries = (clone $swpBaseQuery)
+            ->where('swp.is_4ps_beneficiary', 1)
+            ->count();
+
+        $nonFourPsBeneficiaries = $totalResidents - $fourPsBeneficiaries;
+
+        $fourPsDistributionData = [
+            1 => $fourPsBeneficiaries,
+            0 => $nonFourPsBeneficiaries,
+        ];
+
 
         // Employment Status
         $employmentStatusData = (clone $residentBaseQuery)
@@ -228,7 +252,6 @@ class SuperAdminController extends Controller
 
         // Fetch all barangays for the dropdown
         $barangays = Barangay::select('id', 'barangay_name as name')->get();
-
         return Inertia::render('SuperAdmin/Dashboard', [
             // Simple Counts
             'residentCount' => $residentCount,
@@ -307,8 +330,8 @@ class SuperAdminController extends Controller
         $query = User::with([
             'barangay:id,barangay_name' // eager load barangay with only id and name
         ])
-        ->where('role', 'admin')
-        ->select('id', 'barangay_id', 'username', 'email', 'status', 'is_disabled', 'created_at', 'updated_at');
+            ->where('role', 'admin')
+            ->select('id', 'barangay_id', 'username', 'email', 'status', 'is_disabled', 'created_at', 'updated_at');
 
         // Filters on user fields
         if ($request->filled('session_status') && $request->session_status !== 'All') {
