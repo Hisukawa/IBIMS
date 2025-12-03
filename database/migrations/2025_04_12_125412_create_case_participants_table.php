@@ -16,12 +16,11 @@ return new class extends Migration
             $table->foreignId('blotter_id')->constrained('blotter_reports')->onDelete('cascade');
             $table->foreignId('resident_id')->nullable()->constrained('residents')->onDelete('set null');
             $table->string('name', 255)->nullable(); // fallback if not a resident
-            $table->enum('role_type', ['complainant', 'respondent', 'witness', 'other']);
+            $table->enum('role_type', ['complainant', 'respondent', 'witness']);
             $table->text('notes')->nullable();
             $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      */
