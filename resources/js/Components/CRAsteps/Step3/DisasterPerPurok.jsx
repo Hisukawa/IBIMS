@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { Toaster, toast } from "sonner";
+import toast, { Toaster } from "react-hot-toast";
 import { StepperContext } from "@/context/StepperContext";
 
 const DEFAULT_ROWS = [
