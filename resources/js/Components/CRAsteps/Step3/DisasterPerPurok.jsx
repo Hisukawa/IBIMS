@@ -14,6 +14,7 @@ const DEFAULT_ROWS = [
 const FamilyAtRiskTable = () => {
     const { craData, setCraData } = useContext(StepperContext);
 
+    console.log(craData);
     // Initialize family_at_risk if empty
     useEffect(() => {
         setCraData(prev => {

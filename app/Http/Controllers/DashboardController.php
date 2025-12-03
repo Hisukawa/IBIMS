@@ -107,6 +107,18 @@ class DashboardController extends Controller
             ->groupBy('employment_status')
             ->pluck('count', 'employment_status');
 
+        // $voterDistribution = [
+        //     1 => Resident::where('barangay_id', $brgy_id)
+        //         ->where('is_deceased', 0)
+        //         ->where('registered_voter', 1)
+        //         ->count(),
+
+        //     0 => Resident::where('barangay_id', $brgy_id)
+        //         ->where('is_deceased', 0)
+        //         ->where('registered_voter', 0)
+        //         ->count(),
+        // ];
+
         $voterDistribution = [
             1 => Resident::where('barangay_id', $brgy_id)
                 ->where('is_deceased', 0)
@@ -115,9 +127,13 @@ class DashboardController extends Controller
 
             0 => Resident::where('barangay_id', $brgy_id)
                 ->where('is_deceased', 0)
-                ->where('registered_voter', 0)
+                ->where(function ($q) {
+                    $q->where('registered_voter', 0)
+                        ->orWhereNull('registered_voter');
+                })
                 ->count(),
         ];
+
 
         $familyIncome = Family::where('barangay_id', $brgy_id)
             ->select('income_bracket', DB::raw('COUNT(*) as total'))

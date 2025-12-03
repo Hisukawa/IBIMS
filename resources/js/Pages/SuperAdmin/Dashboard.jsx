@@ -80,6 +80,7 @@ export default function Dashboard({
         router.get(route("super_admin.dashboard"), { barangay_id: barangayId });
     };
 
+    console.log(voterDistributionAllBrgy);
     const PopulationChartComponent = selectedBarangay
         ? (
             <PopulationPerPurok
@@ -181,9 +182,9 @@ export default function Dashboard({
 
                             {/* Family Income Bar Chart Card */}
                             <div className="col-span-2 mt-0 w-full">
-                                <CardHeader className="p-0 mb-4">
+                                {/* <CardHeader className="p-0 mb-4">
                                     <CardTitle className="font-bold text-gray-700">Family Income</CardTitle>
-                                </CardHeader>
+                                </CardHeader> */}
                                 <Card
                                     className="w-full px-4 py-2
                                     shadow-md transition-all duration-300 hover:-translate-y-0.5
