@@ -98,43 +98,50 @@ class ActivityLogsExport implements FromCollection, WithHeadings, ShouldAutoSize
                 $sheet->insertNewRowBefore(1, 4);
 
                 // Logos
-                $barangayLogoPath = $this->barangay->logo_path
+                $barangayLogoPath = ($this->barangay && $this->barangay->logo_path)
                     ? storage_path('app/public/' . ltrim($this->barangay->logo_path, '/'))
-                    : public_path('images/csa-logo.png');
+                    : ''; // leave blank if null
 
                 $cityLogoPath = public_path('images/city-of-ilagan.png');
 
-                if (!file_exists($barangayLogoPath)) {
+                // Fallback if files don’t exist
+                if ($barangayLogoPath && !file_exists($barangayLogoPath)) {
                     \Log::warning("Barangay logo not found at: {$barangayLogoPath}");
-                    $barangayLogoPath = public_path('images/csa-logo.png');
+                    $barangayLogoPath = ''; // leave blank
                 }
 
                 if (!file_exists($cityLogoPath)) {
                     \Log::warning("City logo not found at: {$cityLogoPath}");
-                    $cityLogoPath = public_path('images/default-logo.png');
+                    $cityLogoPath = ''; // leave blank
                 }
 
                 $barangayLogo = $barangayLogoPath;
-                $cityLogo = $cityLogoPath;
+                $cityLogo     = $cityLogoPath;
 
-                // Get barangay officials
-                $officials = BarangayOfficial::with('resident')
-                    ->whereHas('resident', fn($q) => $q->where('barangay_id', $this->barangay->id))
-                    ->get();
+                $captain = '';
+                $secretary = '';
 
-                $captain   = $officials->firstWhere('position', 'barangay_captain')?->resident?->fullname ?? 'N/A';
-                $secretary = $officials->firstWhere('position', 'barangay_secretary')?->resident?->fullname ?? 'N/A';
+                if ($this->barangay) {
+                    // Get barangay officials
+                    $officials = BarangayOfficial::with('resident')
+                        ->whereHas('resident', fn($q) => $q->where('barangay_id', $this->barangay->id))
+                        ->get();
 
-                // Left Logo
-                $logoLeft = new Drawing();
-                $logoLeft->setName('Barangay Logo');
-                $logoLeft->setDescription('Barangay Logo');
-                $logoLeft->setPath($barangayLogo);
-                $logoLeft->setHeight(80);
-                $logoLeft->setCoordinates('A1');
-                $logoLeft->setOffsetX(0);
-                $logoLeft->setOffsetY(5);
-                $logoLeft->setWorksheet($sheet);
+                    $captain   = $officials->firstWhere('position', 'barangay_captain')?->resident?->fullname ?? '';
+                    $secretary = $officials->firstWhere('position', 'barangay_secretary')?->resident?->fullname ?? '';
+                }
+
+                if ($barangayLogo) {
+                    $logoLeft = new Drawing();
+                    $logoLeft->setName('Barangay Logo');
+                    $logoLeft->setDescription('Barangay Logo');
+                    $logoLeft->setPath($barangayLogo);
+                    $logoLeft->setHeight(80);
+                    $logoLeft->setCoordinates('A1');
+                    $logoLeft->setOffsetX(0);
+                    $logoLeft->setOffsetY(5);
+                    $logoLeft->setWorksheet($sheet);
+                }
 
                 // Right Logo
                 $targetColumn = Coordinate::stringFromColumnIndex($lastColumnIndex + 1);
@@ -152,8 +159,13 @@ class ActivityLogsExport implements FromCollection, WithHeadings, ShouldAutoSize
 
                 // Titles
                 $sheet->setCellValue('A1', 'ACTIVITY LOGS REPORT');
-                $sheet->setCellValue('A2', 'Barangay: ' . $this->barangay->barangay_name);
-                $sheet->setCellValue('A3', 'Region II, Isabela, ' . $this->barangay->city);
+                if ($this->barangay && $this->barangay->barangay_name) {
+                    $sheet->setCellValue('A2', 'Barangay: ' . $this->barangay->barangay_name);
+                } else {
+                    // Optionally, leave it blank or skip setting
+                    $sheet->setCellValue('A2', ''); // blank cell
+                }
+                $sheet->setCellValue('A3', 'Region II, Isabela, City of Ilagan 3300');
                 $sheet->mergeCells("A1:{$lastColumn}1");
                 $sheet->mergeCells("A2:{$lastColumn}2");
                 $sheet->mergeCells("A3:{$lastColumn}3");
@@ -195,24 +207,29 @@ class ActivityLogsExport implements FromCollection, WithHeadings, ShouldAutoSize
                 $signatureStartRow = $lastRow + 3;
                 $halfColumn = floor($lastColumnIndex / 2);
 
-                $secretaryName = ucwords(strtolower($secretary));
-                $captainName = ucwords(strtolower($captain));
-
                 // Captain - left
-                $sheet->mergeCells("A{$signatureStartRow}:" . Coordinate::stringFromColumnIndex($halfColumn) . $signatureStartRow);
-                $sheet->setCellValue("A{$signatureStartRow}", "______________________________");
-                $sheet->mergeCells("A" . ($signatureStartRow + 1) . ":" . Coordinate::stringFromColumnIndex($halfColumn) . ($signatureStartRow + 1));
-                $sheet->setCellValue("A" . ($signatureStartRow + 1), "Hon. ".$captainName);
-                $sheet->getStyle("A{$signatureStartRow}:" . Coordinate::stringFromColumnIndex($halfColumn) . ($signatureStartRow + 1))
-                    ->getAlignment()->setHorizontal('center');
+                if (!empty($captain)) {
+                    $captainName = 'Hon. ' . ucwords(strtolower($captain));
+
+                    $sheet->mergeCells("A{$signatureStartRow}:" . Coordinate::stringFromColumnIndex($halfColumn) . $signatureStartRow);
+                    $sheet->setCellValue("A{$signatureStartRow}", "______________________________");
+                    $sheet->mergeCells("A" . ($signatureStartRow + 1) . ":" . Coordinate::stringFromColumnIndex($halfColumn) . ($signatureStartRow + 1));
+                    $sheet->setCellValue("A" . ($signatureStartRow + 1), $captainName);
+                    $sheet->getStyle("A{$signatureStartRow}:" . Coordinate::stringFromColumnIndex($halfColumn) . ($signatureStartRow + 1))
+                        ->getAlignment()->setHorizontal('center');
+                }
 
                 // Secretary - right
-                $sheet->mergeCells(Coordinate::stringFromColumnIndex($halfColumn + 1) . "{$signatureStartRow}:{$lastColumn}{$signatureStartRow}");
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($halfColumn + 1) . "{$signatureStartRow}", "______________________________");
-                $sheet->mergeCells(Coordinate::stringFromColumnIndex($halfColumn + 1) . ($signatureStartRow + 1) . ":{$lastColumn}" . ($signatureStartRow + 1));
-                $sheet->setCellValue(Coordinate::stringFromColumnIndex($halfColumn + 1) . ($signatureStartRow + 1), "Hon. ".$secretaryName);
-                $sheet->getStyle(Coordinate::stringFromColumnIndex($halfColumn + 1) . "{$signatureStartRow}:{$lastColumn}" . ($signatureStartRow + 1))
-                    ->getAlignment()->setHorizontal('center');
+                if (!empty($secretary)) {
+                    $secretaryName = 'Hon. ' . ucwords(strtolower($secretary));
+
+                    $sheet->mergeCells(Coordinate::stringFromColumnIndex($halfColumn + 1) . "{$signatureStartRow}:{$lastColumn}{$signatureStartRow}");
+                    $sheet->setCellValue(Coordinate::stringFromColumnIndex($halfColumn + 1) . "{$signatureStartRow}", "______________________________");
+                    $sheet->mergeCells(Coordinate::stringFromColumnIndex($halfColumn + 1) . ($signatureStartRow + 1) . ":{$lastColumn}" . ($signatureStartRow + 1));
+                    $sheet->setCellValue(Coordinate::stringFromColumnIndex($halfColumn + 1) . ($signatureStartRow + 1), $secretaryName);
+                    $sheet->getStyle(Coordinate::stringFromColumnIndex($halfColumn + 1) . "{$signatureStartRow}:{$lastColumn}" . ($signatureStartRow + 1))
+                        ->getAlignment()->setHorizontal('center');
+                }
 
                 // Freeze pane
                 $sheet->freezePane("A" . ($headerRow + 1));
