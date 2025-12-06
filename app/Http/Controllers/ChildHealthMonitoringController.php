@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\ChildHealthMonitoringRecord;
 use App\Http\Requests\StoreChildHealthMonitoringRecordRequest;
 use App\Http\Requests\UpdateChildHealthMonitoringRecordRequest;
@@ -169,6 +170,12 @@ class ChildHealthMonitoringController extends Controller
 
             \DB::commit();
 
+            ActivityLogHelper::log(
+                'Child Health Monitoring',
+                'create',
+                "Created Child Health Monitoring record for Resident ID: {$validated['resident_id']}"
+            );
+
             return redirect()
                 ->route('child_record.index')
                 ->with('success', 'Child health monitoring record saved successfully.');
@@ -284,6 +291,11 @@ class ChildHealthMonitoringController extends Controller
             }
 
             \DB::commit();
+            ActivityLogHelper::log(
+                'Child Health Monitoring',
+                'update',
+                "Updated Child Health Monitoring record for Resident ID: {$validated['resident_id']}"
+            );
 
             return redirect()
                 ->route('child_record.index')
@@ -315,6 +327,11 @@ class ChildHealthMonitoringController extends Controller
             $childHealthMonitoringRecord->delete();
 
             DB::commit();
+            ActivityLogHelper::log(
+                'Child Health Monitoring',
+                'delete',
+                "Deleted Child Health Monitoring record ID: {$id} for Resident ID: {$childHealthMonitoringRecord->resident_id}"
+            );
 
             return redirect()
                 ->route('child_record.index')

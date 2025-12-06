@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Document;
 use App\Models\Resident;
 use DB;
@@ -112,6 +113,13 @@ class DocumentController extends Controller
                 'description' => $data['description'] ?? null,
                 'specific_purpose' => $data['specific_purpose'] ?? null,
             ]);
+
+            ActivityLogHelper::log(
+                'Document',
+                'create',
+                'Stored document: ' . ($data['name'] ?? $originalName)
+            );
+
             return back()->with('success', "{$data['name']} Document uploaded.");
         } catch (\Exception $e) {
             // Show only user-friendly error on the frontend
@@ -176,6 +184,12 @@ class DocumentController extends Controller
             $document->delete();
 
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Document',
+                'delete',
+                'Deleted document: ' . $document->name ?? "No Name"
+            );
 
             return redirect()->route('document.index')
                 ->with('success', "Document '{$document->name}' deleted successfully!");

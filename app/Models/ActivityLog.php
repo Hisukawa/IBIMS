@@ -16,6 +16,8 @@ class ActivityLog extends Model
         'module',
         'action_type',
         'description',
+        'created_at',
+        'updated_at',
     ];
 
     /**

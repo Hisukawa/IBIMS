@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\MedicalCondition;
 use App\Models\Purok;
 use App\Models\ResidentMedicalCondition;
@@ -180,6 +181,12 @@ class ResidentMedicalConditionController extends Controller
             $residentMedicalCondition = ResidentMedicalCondition::findOrFail($id);
             $residentMedicalCondition->delete();
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Medical Information',
+                'delete',
+                "Deleted Medical Condition record ID: {$id} for Resident ID: {$residentMedicalCondition->resident_id}"
+            );
 
             return redirect()
                 ->route('medical_condition.index')

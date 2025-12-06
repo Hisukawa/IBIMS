@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Allergy;
 use App\Models\MedicalInformation;
 use App\Http\Requests\StoreMedicalInformationRequest;
@@ -207,7 +208,11 @@ class MedicalInformationController extends Controller
                     ]);
                 }
             }
-
+            ActivityLogHelper::log(
+                'Medical Information',
+                'create',
+                "Created Medical Information for Resident ID: {$data['resident_id']}"
+            );
             return redirect()
                 ->route('medical.index')
                 ->with('success', 'Medical Information saved successfully!');
@@ -330,6 +335,11 @@ class MedicalInformationController extends Controller
                     ]);
                 }
             }
+            ActivityLogHelper::log(
+                'Medical Information',
+                'update',
+                "Updated Medical Information for Resident ID: {$data['resident_id']}"
+            );
 
             return redirect()
                 ->route('medical.index')
@@ -358,6 +368,12 @@ class MedicalInformationController extends Controller
 
             // Delete the medical information itself
             $medicalInformation->delete();
+
+            ActivityLogHelper::log(
+                'Medical Information',
+                'delete',
+                "Deleted Medical Information for Resident ID: {$resident->id}"
+            );
 
             return redirect()
                 ->route('medical.index')

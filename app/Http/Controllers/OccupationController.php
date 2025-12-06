@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Family;
 use App\Models\Occupation;
 use App\Http\Requests\StoreOccupationRequest;
@@ -204,6 +205,12 @@ class OccupationController extends Controller
                         'created_at' => now(),
                         'updated_at' => now()
                     ];
+
+                    ActivityLogHelper::log(
+                        'Occupation',
+                        'update',
+                        "Updated Occupation record: {$occupationData['occupation']} for Resident ID: {$data['resident_id']}"
+                    );
                 }
 
                 // Save all new occupations in one go
@@ -367,7 +374,11 @@ class OccupationController extends Controller
                     'employment_status' => $data['employment_status']
                 ]);
             }
-
+            ActivityLogHelper::log(
+                'Occupation',
+                'update',
+                "Updated Occupation record ID: {$occupation->id} for Resident ID: {$data['resident_id']}"
+            );
             return redirect()->route('occupation.index')->with('success', 'Occupation(s) saved and family income updated.');
         } catch (\Exception $e) {
             dd($e->getMessage());
@@ -384,6 +395,11 @@ class OccupationController extends Controller
         try {
             $occupation->delete();
             DB::commit();
+            ActivityLogHelper::log(
+                'Occupation',
+                'delete',
+                "Deleted Occupation record ID: {$occupation->id} for Resident ID: {$occupation->resident_id}"
+            );
             return back()->with('success', "Occupation Record deleted successfully!");
         } catch (\Exception $e) {
             DB::rollBack();

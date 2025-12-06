@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\PregnancyRecords;
 use App\Http\Requests\StorePregnancyRecordsRequest;
 use App\Http\Requests\UpdatePregnancyRecordsRequest;
@@ -169,6 +170,12 @@ class PregnancyRecordController extends Controller
                 }
             }
 
+            ActivityLogHelper::log(
+                'Pregnancy',
+                'create',
+                "Added new Pregnancy record(s) for Resident ID: {$data['resident_id']}"
+            );
+
             return redirect()
                 ->route('pregnancy.index')
                 ->with([
@@ -214,6 +221,12 @@ class PregnancyRecordController extends Controller
                 'notes' => $recordData['notes'] ?? $pregnancyRecords->notes,
             ]);
 
+            ActivityLogHelper::log(
+                'Pregnancy',
+                'update',
+                "Updated Pregnancy record ID: {$pregnancyRecords->id} for Resident ID: {$pregnancyRecords->resident_id}"
+            );
+
             return redirect()
                 ->route('pregnancy.index')
                 ->with('success', 'Pregnancy record updated successfully.');
@@ -232,6 +245,12 @@ class PregnancyRecordController extends Controller
             $record = PregnancyRecords::findOrFail($id);
             $record->delete();
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Pregnancy',
+                'delete',
+                "Deleted Pregnancy Record ID: {$id} for Resident ID: {$record->resident_id}"
+            );
 
             return redirect()
                 ->route('pregnancy.index')

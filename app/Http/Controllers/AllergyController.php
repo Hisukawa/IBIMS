@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Allergy;
 use App\Http\Requests\StoreAllergyRequest;
 use App\Http\Requests\UpdateAllergyRequest;
@@ -203,6 +204,12 @@ class AllergyController extends Controller
             $residentAllergy = Allergy::findOrFail($id);
             $residentAllergy->delete();
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Medical Information',
+                'delete',
+                "Deleted Allergy record ID: {$id} for Resident ID: {$residentAllergy->resident_id}"
+            );
 
             return redirect()
                 ->route('allergy.index')

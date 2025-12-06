@@ -598,3 +598,23 @@ export const ACCOUNT_ROLE_TEXT = {
     barangay_officer: "Barangay Officer",
     resident: "Resident",
 };
+
+export const ACTION_TYPE_COLORS = {
+    // CRUD (lowercase + uppercase fallback)
+    create: "bg-green-100 text-green-800",
+    update: "bg-blue-100 text-blue-800",
+    delete: "bg-red-100 text-red-800",
+
+    // Other actions
+    generate: "bg-purple-100 text-purple-800",
+    issue: "bg-teal-100 text-teal-800",
+    deny: "bg-rose-100 text-rose-800",
+
+    // Authentication events
+    "logged in": "bg-indigo-100 text-indigo-800",
+    "logged out": "bg-gray-100 text-gray-800",
+    "access denied": "bg-red-50 text-red-700",
+
+    // Default fallback
+    default: "bg-gray-100 text-gray-800",
+};

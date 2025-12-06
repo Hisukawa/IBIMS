@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Http\Requests\UpdateBarangayProfileRequest;
 use App\Models\Barangay;
 use Illuminate\Http\Request;
@@ -70,7 +71,11 @@ class BarangayProfileController extends Controller
                 'email'    => $data['email'] ?? $user->email,
             ]);
 
-
+            ActivityLogHelper::log(
+                'Barangay Profile',
+                'update',
+                'Updated barangay profile: ' . $barangay->barangay_name
+            );
 
             return redirect()
                 ->route('barangay_profile.index')

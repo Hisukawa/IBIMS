@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Http\Requests\StoreResidentHouseholdRequest;
 use App\Http\Resources\ResidentResource;
 use App\Models\Barangay;
@@ -607,6 +608,12 @@ class ResidentController extends Controller
             }
             DB::commit();
             // Redirect back with success message
+            ActivityLogHelper::log(
+                'Resident',
+                'create',
+                'Created resident: ' . $resident->full_name
+            );
+
             return redirect()->route('resident.index')
                 ->with('success', 'Resident ' . ucwords($resident->full_name) . ' created successfully!');
         } catch (\Exception $e) {
@@ -1499,6 +1506,12 @@ class ResidentController extends Controller
                 ]);
             }
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Resident',
+                'update',
+                'Updated resident: ' . $resident->full_name
+            );
             return redirect()->route('resident.index')
                 ->with('success', 'Resident ' . ucwords($resident->full_name) . ' updated successfully!');
         } catch (\Exception $e) {
@@ -1586,6 +1599,11 @@ class ResidentController extends Controller
             $resident->delete();
 
             DB::commit();
+            ActivityLogHelper::log(
+                'Resident',
+                'delete',
+                'Deleted resident: ' . $resident->full_name
+            );
             return redirect()->route('resident.index')
                 ->with('success', "Resident {$residentName} deleted successfully!");
         } catch (\Exception $e) {

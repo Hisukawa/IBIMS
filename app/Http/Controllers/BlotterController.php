@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\BarangayOfficial;
 use App\Models\BlotterReport;
 use App\Http\Requests\StoreBlotterReportRequest;
@@ -142,6 +143,12 @@ class BlotterController extends Controller
 
             DB::commit();
 
+            ActivityLogHelper::log(
+                'Blotter',
+                'create',
+                "Created new Blotter report ID: {$blotter->id}"
+            );
+
             return redirect()
                 ->route('blotter_report.index')
                 ->with('success', 'Blotter report created successfully!');
@@ -267,6 +274,12 @@ class BlotterController extends Controller
 
             DB::commit();
 
+            ActivityLogHelper::log(
+                'Blotter',
+                'update',
+                "Updated Blotter report ID: {$blotterReport->id}"
+            );
+
             return redirect()
                 ->route('blotter_report.index')
                 ->with('success', 'Blotter report updated successfully!');
@@ -302,6 +315,12 @@ class BlotterController extends Controller
             $blotterReport->delete();
 
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Blotter',
+                'delete',
+                "Deleted Blotter report ID: {$blotterReport->id}"
+            );
 
             return redirect()
                 ->route('blotter_report.index')
@@ -567,6 +586,12 @@ class BlotterController extends Controller
             ]);
 
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Blotter',
+                'generate',
+                "Generated KP Form for Blotter ID: {$blotter->id}"
+            );
 
             // Return download
             return response()->download($finalPath, $docxFilename);

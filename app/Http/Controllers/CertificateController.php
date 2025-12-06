@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\BarangayOfficial;
 use App\Models\Certificate;
 use App\Models\Document;
@@ -410,7 +411,11 @@ class CertificateController extends Controller
             }
 
             // Generate file names
-            $baseName   = $this->generateBaseName($resident, $template->name, $data['resident_id_2'] ?? null);
+            $baseName = $this->generateBaseName(
+                $resident,
+                $template->name,
+                $data['resident_id_2'] ? Resident::find($data['resident_id_2']) : null
+            );
             $docxFilename = "{$baseName}.docx";
 
             // Temporary folder inside public/temp
@@ -436,8 +441,8 @@ class CertificateController extends Controller
             // Move file from temp to public/storage
             rename($tempDocx, $finalPath);
 
-            // Save DB record
-            $certificate = Certificate::create([
+            // Save certificate for the first resident
+            Certificate::create([
                 'resident_id'    => $resident->id,
                 'document_id'    => $template->id,
                 'barangay_id'    => $barangayId,
@@ -449,7 +454,28 @@ class CertificateController extends Controller
                 'control_number' => $values['ctrl_no'],
             ]);
 
+            // If there is a second resident, save another record
+            if (isset($resident2)) {
+                Certificate::create([
+                    'resident_id'    => $resident2->id,
+                    'document_id'    => $template->id,
+                    'barangay_id'    => $barangayId,
+                    'request_status' => 'issued',
+                    'purpose'        => $data['purpose'],
+                    'issued_at'      => now(),
+                    'issued_by'      => $officer?->id,
+                    'docx_path'      => $finalRelative,
+                    'control_number' => $values['ctrl_no'], // can generate separate control number if needed
+                ]);
+            }
+
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Certificate',
+                'create',
+                "Issued {$template->name} certificate for Resident ID: {$resident->id}"
+            );
 
             // Return download
             return response()->download($finalPath, $docxFilename);
@@ -548,8 +574,15 @@ class CertificateController extends Controller
     }
     protected function prepareSecondResidentValues(Resident $resident2, array $data): \Illuminate\Support\Collection
     {
-        $fullName2 = trim("{$resident2->firstname} {$resident2->middlename} {$resident2->lastname} {$resident2->suffix}");
-                // Format day with suffix
+        // Get middle initial
+        $middleInitial = $resident2->middlename ? strtoupper(substr($resident2->middlename, 0, 1)) . '.' : '';
+
+        // Build full name with middle initial
+        $fullName2 = trim("{$resident2->firstname} {$middleInitial} {$resident2->lastname} {$resident2->suffix}");
+        // Convert to title case
+        $fullName2 = Str::title(strtolower($fullName2));
+
+        // Format day with suffix
         $day = now()->day;
         $dayWithSuffix = $day . $this->getDaySuffix($day);
 
@@ -562,7 +595,7 @@ class CertificateController extends Controller
             'day_2'          => $dayWithSuffix,
             'month_2'        => now()->format('F'),
             'year_2'         => now()->format('Y'),
-            'issued_on'      =>now()->format('F') . " $dayWithSuffix, " . now()->format('Y'),
+            'issued_on'      => now()->format('F') . " $dayWithSuffix, " . now()->format('Y'),
         ]);
     }
 
@@ -774,6 +807,12 @@ class CertificateController extends Controller
             ]);
             $certificate->load('document');
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Certificate',
+                'issue',
+                "Issued {$template->name} certificate for Resident ID: {$resident->id}"
+            );
             // ✅ Send email notification that certificate is ready for pickup
             try {
                 app(EmailController::class)->sendCertificateReadyEmail(
@@ -807,6 +846,11 @@ class CertificateController extends Controller
         try {
             $certificate->delete();
             DB::commit();
+            ActivityLogHelper::log(
+                'Certificate',
+                'deny',
+                "Denied {$certificate->document->name} certificate request for Resident ID: {$resident->id}"
+            );
             try {
                 app(EmailController::class)->sendCertificateDeniedEmail(
     $resident->email,
@@ -831,6 +875,11 @@ class CertificateController extends Controller
         try {
             $certificate->delete();
             DB::commit();
+            ActivityLogHelper::log(
+                'Certificate',
+                'delete',
+                "Deleted {$certificate->document->name} certificate record for Resident ID: {$certificate->resident_id}"
+            );
             return  redirect()->route('certificate.index')->with('success', 'Certificate record deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();

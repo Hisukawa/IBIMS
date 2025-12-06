@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Barangay;
 use App\Models\BarangayOfficial;
 use App\Models\Family;
@@ -281,6 +282,13 @@ class HouseholdController extends Controller
 
                 }
             }
+
+            ActivityLogHelper::log(
+                'Household',
+                'create',
+                "Created new Household record: ID {$household->id}"
+            );
+
             return redirect()->route('household.index')->with('success', 'Household created successfully!');
         } catch (\Exception $e) {
             dd($e->getMessage());
@@ -619,7 +627,11 @@ class HouseholdController extends Controller
                 }
             }
 
-
+            ActivityLogHelper::log(
+                'Household',
+                'update',
+                "Updated Household record: ID {$household->id}"
+            );
 
             return redirect()->route('household.index')
                 ->with('success', 'Household updated successfully!');
@@ -648,6 +660,12 @@ class HouseholdController extends Controller
 
                 $household->delete();
             });
+
+            ActivityLogHelper::log(
+                'Household',
+                'delete',
+                "Deleted Household record: ID {$household->id}"
+            );
 
             return redirect()
                 ->route('household.index')

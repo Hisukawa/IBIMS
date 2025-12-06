@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Http\Requests\StoreUserAccountRequest;
 use App\Http\Requests\UpdateUserAccountRequest;
 use App\Models\Resident;
@@ -112,7 +113,11 @@ class UserController extends Controller
                 $user->assignRole($residentRole);
             }
 
-
+            ActivityLogHelper::log(
+                'Account',
+                'create',
+                'Created account: ' . $user->username ?? "No Username"
+            );
             return redirect()
                 ->route('user.index')
                 ->with('success', 'User account created successfully!');
@@ -152,6 +157,11 @@ class UserController extends Controller
                 'role' =>  $data['role'],
             ]);
 
+            ActivityLogHelper::log(
+                'Account',
+                'update',
+                'Updated account: ' . $user->username ?? "No Username"
+            );
             return redirect()->route('user.index')->with('success', 'User account updated successfully!');
         } catch (\Exception $e) {
             return back()->with('error', 'User account could not be updated: ' . $e->getMessage());
@@ -165,7 +175,11 @@ class UserController extends Controller
     {
         try {
             $user->delete(); // use soft delete if applicable
-
+            ActivityLogHelper::log(
+                'Account',
+                'delete',
+                'Deleted account: ' . $user->username ?? "No Username"
+            );
             return back()->with('success', 'User account deleted successfully!');
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to delete user account.');
@@ -215,12 +229,19 @@ class UserController extends Controller
             $user->is_disabled = $validated['is_disabled'];
             $user->save();
 
+            ActivityLogHelper::log(
+                'Account',
+                $user->is_disabled ? 'Disabled' : 'Enabled',
+                ($user->is_disabled ? 'Disabled' : 'Enabled') . ' account: ' . $user->username ?? "No Username"
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => $user->is_disabled
                     ? 'Account has been disabled.'
                     : 'Account has been enabled.',
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
