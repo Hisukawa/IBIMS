@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Barangay;
 use App\Models\BarangayInfrastructure;
 use App\Http\Requests\StoreBarangayInfrastructureRequest;
@@ -87,6 +88,7 @@ class BarangayInfrastructureController extends Controller
         $barangayName = Barangay::find($brgy_id)->barangay_name;
         $barangaySlug = Str::slug($barangayName);
         $data = $request->validated();
+
         try {
             if (!empty($data['infrastructures']) && is_array($data['infrastructures'])) {
                 foreach ($data['infrastructures'] as $infra) {
@@ -98,19 +100,29 @@ class BarangayInfrastructureController extends Controller
                         $imagePath = $imagePath->store($folder, 'public');
                     }
 
-                    BarangayInfrastructure::create([
+                    $infrastructure = BarangayInfrastructure::create([
                         'barangay_id'             => $brgy_id,
-                        'infrastructure_image'    => $imagePath, // either stored file or existing string
+                        'infrastructure_image'    => $imagePath, // stored file or existing string
                         'infrastructure_category' => $infra['infrastructure_category'],
                         'infrastructure_type'     => $infra['infrastructure_type'],
                         'quantity'                => $infra['quantity'] ?? 0,
                     ]);
+
+                    // Log each infrastructure added
+                    ActivityLogHelper::log(
+                        'Barangay Infrastructure',
+                        'create',
+                        'Added new infrastructure: ' . ($infra['infrastructure_category'] ?? 'Unknown')
+                        . ' - ' . ($infra['infrastructure_type'] ?? 'Unknown')
+                        . ' (Qty: ' . ($infra['quantity'] ?? 0) . ')'
+                    );
                 }
             }
 
             return redirect()
                 ->route('barangay_infrastructure.index')
-                ->with('success','Infrastructure(s) saved successfully.');
+                ->with('success', 'Infrastructure(s) saved successfully.');
+
         } catch (\Exception $e) {
             return back()->with(
                 'error',
@@ -118,6 +130,7 @@ class BarangayInfrastructureController extends Controller
             );
         }
     }
+
 
     /**
      * Display the specified resource.
@@ -186,6 +199,14 @@ class BarangayInfrastructureController extends Controller
                             'infrastructure_type'     => $infra['infrastructure_type'] ?? $existingInfra->infrastructure_type,
                             'quantity'                => $infra['quantity'] ?? $existingInfra->quantity,
                         ]);
+
+                        ActivityLogHelper::log(
+                            'Barangay Infrastructure',
+                            'update',
+                            'Updated infrastructure: ' . ($infra['infrastructure_category'] ?? 'Unknown')
+                            . ' - ' . ($infra['infrastructure_type'] ?? 'Unknown')
+                            . ' (Qty: ' . ($infra['quantity'] ?? $existingInfra->quantity) . ')'
+                        );
                     }
                 }
             }
@@ -217,6 +238,14 @@ class BarangayInfrastructureController extends Controller
                     Storage::disk('public')->deleteDirectory($folder);
                 }
             }
+
+            ActivityLogHelper::log(
+                'Barangay Infrastructure',
+                'delete',
+                'Deleted infrastructure: ' . ($barangayInfrastructure->infrastructure_category ?? 'Unknown')
+                . ' - ' . ($barangayInfrastructure->infrastructure_type ?? 'Unknown')
+                . ' (Qty: ' . ($barangayInfrastructure->quantity ?? 0) . ')'
+            );
 
             $barangayInfrastructure->delete();
 

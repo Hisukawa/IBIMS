@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Purok;
 use App\Models\Resident;
 use App\Models\Vehicle;
@@ -97,19 +98,35 @@ class VehicleController extends Controller
     public function store(StoreVehicleRequest $request)
     {
         $data = $request->validated();
+
         try {
+            // Fetch resident for better log message
+            $resident = Resident::find($data['resident_id']);
+            $residentName = $resident
+                ? "{$resident->first_name} {$resident->last_name}"
+                : "Resident ID {$data['resident_id']}";
+
             foreach ($data['vehicles'] as $vehicle) {
                 Vehicle::create([
-                    'resident_id'    => $data['resident_id'],
-                    'vehicle_type'   => $vehicle['vehicle_type'],
-                    'vehicle_class'  => $vehicle['vehicle_class'],
-                    'usage_status'   => $vehicle['usage_status'],
-                    'is_registered'       => $vehicle['is_registered'],
+                    'resident_id'   => $data['resident_id'],
+                    'vehicle_type'  => $vehicle['vehicle_type'],
+                    'vehicle_class' => $vehicle['vehicle_class'],
+                    'usage_status'  => $vehicle['usage_status'],
+                    'is_registered' => $vehicle['is_registered'],
                 ]);
             }
-            return redirect()->route('vehicle.index')->with('success', 'Vehicle addded successfully!');
+
+            $vehicleCount = count($data['vehicles']);
+
+            ActivityLogHelper::log(
+                'Vehicle',
+                'create',
+                "Added {$vehicleCount} new vehicle record(s) for {$residentName}."
+            );
+
+            return redirect()->route('vehicle.index')->with('success', 'Vehicle added successfully!');
         } catch (\Exception $e) {
-            return back()->with('error','Vehicle could not be added: ' . $e->getMessage());
+            return back()->with('error', 'Vehicle could not be added: ' . $e->getMessage());
         }
     }
 
@@ -137,13 +154,27 @@ class VehicleController extends Controller
         $data = $request->validated();
 
         try {
+            // Fetch resident for readable log
+            $resident = Resident::find($data['resident_id']);
+            $residentName = $resident
+                ? "{$resident->first_name} {$resident->last_name}"
+                : "Resident ID {$data['resident_id']}";
+
+            $updatedVehicle = $data['vehicles'][0];
+
             $vehicle->update([
                 'resident_id'   => $data['resident_id'],
-                'vehicle_type'  => $data['vehicles'][0]['vehicle_type'],
-                'vehicle_class' => $data['vehicles'][0]['vehicle_class'],
-                'usage_status'  => $data['vehicles'][0]['usage_status'],
-                'is_registered' => $data['vehicles'][0]['is_registered'],
+                'vehicle_type'  => $updatedVehicle['vehicle_type'],
+                'vehicle_class' => $updatedVehicle['vehicle_class'],
+                'usage_status'  => $updatedVehicle['usage_status'],
+                'is_registered' => $updatedVehicle['is_registered'],
             ]);
+
+            ActivityLogHelper::log(
+                'Vehicle',
+                'update',
+                "Updated vehicle (ID: {$vehicle->id}) for {$residentName}. Updated Type: {$updatedVehicle['vehicle_type']}."
+            );
 
             return redirect()->route('vehicle.index')->with('success', 'Vehicle updated successfully!');
         } catch (\Exception $e) {
@@ -158,8 +189,20 @@ class VehicleController extends Controller
     {
         DB::beginTransaction();
         try {
+            $resident = $vehicle->resident;
+            $residentName = $resident
+                ? "{$resident->first_name} {$resident->last_name}"
+                : "Resident ID {$vehicle->resident_id}";
+
+            $vehicleType = $vehicle->vehicle_type ?? 'Unknown Type';
             $vehicle->delete();
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Vehicle',
+                'delete',
+                "Deleted vehicle (ID: {$vehicle->id}, Type: {$vehicleType}) belonging to {$residentName}."
+            );
             return redirect()->route('vehicle.index')
                 ->with('success', "Vehicle Record deleted successfully!");
         } catch (\Exception $e) {

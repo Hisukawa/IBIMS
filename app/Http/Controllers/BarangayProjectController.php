@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Http\Requests\StoreBarangayProjectRequest;
 use App\Http\Requests\UpdateBarangayProjectRequest;
 use App\Models\Barangay;
@@ -115,7 +116,7 @@ class BarangayProjectController extends Controller
                         $imagePath = $imagePath->store($folder, 'public');
                     }
 
-                    BarangayProject::create([
+                    $created = BarangayProject::create([
                         'barangay_id'             => $brgy_id,
                         'project_image'           => $imagePath, // stored file or null
                         'title'                   => $project['title'],
@@ -128,6 +129,13 @@ class BarangayProjectController extends Controller
                         'start_date'              => $project['start_date'],
                         'end_date'                => $project['end_date'] ?? null,
                     ]);
+
+                    ActivityLogHelper::log(
+                        'Barangay Project',
+                        'create',
+                        'Created project: ' . ($created->title ?? $project['title']),
+                        $brgy_id
+                    );
                 }
             }
 
@@ -208,6 +216,13 @@ class BarangayProjectController extends Controller
                         'start_date'              => $proj['start_date'] ?? $barangayProject->start_date,
                         'end_date'                => $proj['end_date'] ?? $barangayProject->end_date,
                     ]);
+
+                    ActivityLogHelper::log(
+                        'Barangay Project',
+                        'update',
+                        'Updated project: ' . ($barangayProject->title ?? $proj['title']),
+                        $brgy_id
+                    );
                 }
             }
 
@@ -245,6 +260,13 @@ class BarangayProjectController extends Controller
             $barangayProject->delete();
 
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Barangay Project',
+                'delete',
+                'Deleted project: ' . $barangayProject->title,
+                $barangayProject->barangay_id
+            );
 
             return redirect()
                 ->route('barangay_project.index')

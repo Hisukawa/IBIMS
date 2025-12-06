@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\BarangayOfficial;
 use App\Models\BlotterReport;
 use App\Models\CaseParticipant;
@@ -210,6 +211,12 @@ class SummonController extends Controller
 
             DB::commit();
 
+            ActivityLogHelper::log(
+                'Summon',
+                'create',
+                "Summon has been created or updated for Blotter Report ID #{$blotter->id}"
+            );
+
             return redirect()
                 ->route('summon.index')
                 ->with('success', 'Summon saved successfully!');
@@ -273,6 +280,12 @@ class SummonController extends Controller
 
             DB::commit();
 
+            ActivityLogHelper::log(
+                'Summon',
+                'delete',
+                "Summon ID #{$id} associated with Blotter report ID #{$summon->blotter_id} has been deleted"
+            );
+
             return redirect()
                 ->route('summon.index') // ✅ adjust if needed
                 ->with('success', 'Summon and its related records deleted successfully!');
@@ -284,30 +297,50 @@ class SummonController extends Controller
 
     public function elevate($id)
     {
-        $brgy_id = auth()->user()->barangay_id;
+        DB::beginTransaction();
 
-        // Fetch blotter report with complainants, recorder, and summons with their takes
-        $blotter_details = BlotterReport::with([
-            'participants.resident:id,firstname,lastname,middlename,suffix,resident_picture_path,sex,birthdate,purok_number,contact_number,email',
-            'recordedBy.resident:id,firstname,lastname,middlename,suffix',
-            'summons.takes'
-        ])
-        ->where('id', $id)
-        ->firstOrFail();
+        try {
+            $brgy_id = auth()->user()->barangay_id;
 
-        // Get residents of the same barangay for participant selection
-        $residents = Resident::where('barangay_id', $brgy_id)
-            ->select(
-                'id', 'firstname', 'lastname', 'middlename', 'suffix',
-                'resident_picture_path', 'sex', 'birthdate',
-                'purok_number', 'contact_number', 'email'
-            )
-            ->get();
+            // Fetch blotter report with relations
+            $blotter_details = BlotterReport::with([
+                'participants.resident:id,firstname,lastname,middlename,suffix,resident_picture_path,sex,birthdate,purok_number,contact_number,email',
+                'recordedBy.resident:id,firstname,lastname,middlename,suffix',
+                'summons.takes'
+            ])
+            ->where('id', $id)
+            ->firstOrFail();
 
-        return Inertia::render("BarangayOfficer/KatarungangPambarangay/Summon/Elevate", [
-            'residents' => $residents,
-            'blotter_details' => $blotter_details
-        ]);
+            // Get residents of the same barangay
+            $residents = Resident::where('barangay_id', $brgy_id)
+                ->select(
+                    'id', 'firstname', 'lastname', 'middlename', 'suffix',
+                    'resident_picture_path', 'sex', 'birthdate',
+                    'purok_number', 'contact_number', 'email'
+                )
+                ->get();
+
+            // 🟦 Activity Log
+            ActivityLogHelper::log(
+                'Blotter / Summon',
+                'elevate',
+                "Blotter report #{$id} has been elevated to KP Summon level"
+            );
+
+            DB::commit();
+
+            return Inertia::render("BarangayOfficer/KatarungangPambarangay/Summon/Elevate", [
+                'residents' => $residents,
+                'blotter_details' => $blotter_details
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->route('blotter.index')
+                ->with('error', 'Failed to load elevation data: ' . $e->getMessage());
+        }
     }
 
     // public function generateForm($id)
@@ -506,6 +539,12 @@ class SummonController extends Controller
                     'message' => 'Generated DOCX is empty or invalid.'
                 ], 500);
             }
+
+            ActivityLogHelper::log(
+                'Summon',
+                'generate',
+                "Generated KP Form document for Summon #{$blotter->id}"
+            );
 
             // Return file for download
             return response()->download($docxPath, $docxFilename);
@@ -721,6 +760,12 @@ class SummonController extends Controller
                 ], 500);
             }
 
+            ActivityLogHelper::log(
+                'Summon',
+                'generate',
+                "Generated Certificate to File Action for Summon #{$blotter->id} (Blotter Case #{$blotter->blotter_id})"
+            );
+
             // Return file for download
             return response()->download($docxPath, $docxFilename);
 
@@ -766,6 +811,12 @@ class SummonController extends Controller
                 'session_remarks' => $validated['session_remarks'] ?? $summon->session_remarks,
             ]);
 
+            ActivityLogHelper::log(
+                'Summon',
+                'update',
+                "Updated summon session #{$summon->id} for blotter case {$summon->blotter_id}"
+            );
+
             return redirect()
                 ->route('summon.index') // adjust to your route
                 ->with('success', 'Summon session updated successfully!');
@@ -783,6 +834,12 @@ class SummonController extends Controller
         try {
             $summon = SummonTake::findOrFail($id);
             $summon->delete();
+
+            ActivityLogHelper::log(
+                'Summon',
+                'delete',
+                "Summon session with ID {$id} has been deleted."
+            );
 
             return redirect()
                 ->route('summon.index') // adjust to your route

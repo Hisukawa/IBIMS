@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Purok;
 use App\Models\ResidentVaccination;
 use App\Http\Requests\StoreResidentVaccinationRequest;
@@ -184,6 +185,12 @@ class ResidentVaccinationController extends Controller
             $residentVaccination = ResidentVaccination::findOrFail($id);
             $residentVaccination->delete();
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Medical Information',
+                'delete',
+                "Deleted Vaccination record ID: {$id} for Resident ID: {$residentVaccination->resident_id}"
+            );
 
             return redirect()
                 ->route('vaccination.index')

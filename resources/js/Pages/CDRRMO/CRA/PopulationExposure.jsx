@@ -71,25 +71,25 @@ export default function PopulationExposure({
                                         const tableRows = (
                                             hazard.barangays || []
                                         ).map((b, index) => ({
-                                            number: b.no ?? index + 1,
+                                            number: b.no || index + 1,
                                             barangay_name:
-                                                b.barangay_name ?? "-",
+                                                b.barangay_name || "-",
                                             total_families:
-                                                b.total_families ?? 0,
+                                                b.total_families || 0,
                                             total_individuals:
-                                                b.total_individuals ?? 0,
-                                            male: b.male ?? 0,
-                                            female: b.female ?? 0,
-                                            lgbtq: b.lgbtq ?? 0,
-                                            pregnant: b.pregnant ?? 0,
+                                                b.total_individuals || 0,
+                                            male: b.male || 0,
+                                            female: b.female || 0,
+                                            lgbtq: b.lgbtq || 0,
+                                            pregnant: b.pregnant || 0,
                                             pwd: {
                                                 male: b.pwd_male,
                                                 female: b.pwd_female,
-                                            } ?? { male: 0, female: 0 },
+                                            } || { male: 0, female: 0 },
                                             diseases: {
                                                 male: b.diseases_male,
                                                 female: b.diseases_female,
-                                            } ?? { male: 0, female: 0 },
+                                            } || { male: 0, female: 0 },
                                             ...b.age_groups, // age_0_6, age_7m_2y, etc.
                                         }));
 
@@ -413,75 +413,75 @@ export default function PopulationExposure({
                                                 hazard.puroks || []
                                             ).map((purok, index) => ({
                                                 purok_number:
-                                                    purok.purok_number ?? "-",
+                                                    purok.purok_number || "-",
                                                 total_families:
-                                                    purok.total_families ?? 0,
+                                                    purok.total_families || 0,
                                                 total_individuals:
-                                                    purok.total_individuals ??
+                                                    purok.total_individuals ||
                                                     0,
-                                                male: purok.male ?? 0,
-                                                female: purok.female ?? 0,
-                                                lgbtq: purok.lgbtq ?? 0,
-                                                pwd_male: purok.pwd_male ?? 0,
+                                                male: purok.male || 0,
+                                                female: purok.female || 0,
+                                                lgbtq: purok.lgbtq || 0,
+                                                pwd_male: purok.pwd_male || 0,
                                                 pwd_female:
-                                                    purok.pwd_female ?? 0,
+                                                    purok.pwd_female || 0,
                                                 diseases_male:
-                                                    purok.diseases_male ?? 0,
+                                                    purok.diseases_male || 0,
                                                 diseases_female:
-                                                    purok.diseases_female ?? 0,
-                                                pregnant: purok.pregnant ?? 0,
+                                                    purok.diseases_female || 0,
+                                                pregnant: purok.pregnant || 0,
                                                 age_0_6: {
                                                     male:
-                                                        purok.age_0_6_male ?? 0,
+                                                        purok.age_0_6_male || 0,
                                                     female:
-                                                        purok.age_0_6_female ??
+                                                        purok.age_0_6_female ||
                                                         0,
                                                 },
                                                 age_7m_2y: {
                                                     male:
-                                                        purok.age_7m_2y_male ??
+                                                        purok.age_7m_2y_male ||
                                                         0,
                                                     female:
-                                                        purok.age_7m_2y_female ??
+                                                        purok.age_7m_2y_female ||
                                                         0,
                                                 },
                                                 age_3_5: {
                                                     male:
-                                                        purok.age_3_5_male ?? 0,
+                                                        purok.age_3_5_male || 0,
                                                     female:
-                                                        purok.age_3_5_female ??
+                                                        purok.age_3_5_female ||
                                                         0,
                                                 },
                                                 age_6_12: {
                                                     male:
-                                                        purok.age_6_12_male ??
+                                                        purok.age_6_12_male ||
                                                         0,
                                                     female:
-                                                        purok.age_6_12_female ??
+                                                        purok.age_6_12_female ||
                                                         0,
                                                 },
                                                 age_13_17: {
                                                     male:
-                                                        purok.age_13_17_male ??
+                                                        purok.age_13_17_male ||
                                                         0,
                                                     female:
-                                                        purok.age_13_17_female ??
+                                                        purok.age_13_17_female ||
                                                         0,
                                                 },
                                                 age_18_59: {
                                                     male:
-                                                        purok.age_18_59_male ??
+                                                        purok.age_18_59_male ||
                                                         0,
                                                     female:
-                                                        purok.age_18_59_female ??
+                                                        purok.age_18_59_female ||
                                                         0,
                                                 },
                                                 age_60_up: {
                                                     male:
-                                                        purok.age_60_up_male ??
+                                                        purok.age_60_up_male ||
                                                         0,
                                                     female:
-                                                        purok.age_60_up_female ??
+                                                        purok.age_60_up_female ||
                                                         0,
                                                 },
                                             }));

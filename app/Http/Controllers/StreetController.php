@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Purok;
 use App\Models\Street;
 use Illuminate\Http\Request;
@@ -66,6 +67,12 @@ class StreetController extends Controller
                 'purok_id'    => $validated['purok_id'],
             ]);
 
+            ActivityLogHelper::log(
+                'Street',
+                'create',
+                "Added new street: {$validated['street_name']}"
+            );
+
             return back()->with('success', 'Street added successfully!');
 
         } catch (\Exception $e) {
@@ -97,24 +104,31 @@ class StreetController extends Controller
     public function update(Request $request, Street $street)
     {
         try {
+            $oldName = $street->street_name ?? 'N/A';
+
             $validated = $request->validate([
                 'street_name' => ['required', 'string', 'max:255'],
-                'purok_id' => ['required', 'exists:puroks,id'],
+                'purok_id'    => ['required', 'exists:puroks,id'],
             ]);
 
             $street->update([
                 'street_name' => $validated['street_name'],
-                'purok_id' => $validated['purok_id'],
+                'purok_id'    => $validated['purok_id'],
             ]);
+
+            // Friendlier and more descriptive log
+            ActivityLogHelper::log(
+                'Street',
+                'update',
+                "Street name changed from '{$oldName}' to '{$validated['street_name']}'"
+            );
 
             return back()->with('success', 'Street updated successfully!');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // For Inertia/Axios, return validation errors
             return back()
                 ->withErrors($e->errors())
                 ->with('error', 'Please check the form and try again.');
         } catch (\Exception $e) {
-            // For unexpected errors
             return back()
                 ->with('error', 'Something went wrong while updating the street.');
         }
@@ -126,8 +140,13 @@ class StreetController extends Controller
     public function destroy(Street $street)
     {
         try {
+            $streetName = $street->street_name;
             $street->delete();
-
+            ActivityLogHelper::log(
+                'Street',
+                'delete',
+                "Deleted street: {$streetName}"
+            );
             return back()->with('success', 'Street deleted successfully!');
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to delete street. Please try again.');

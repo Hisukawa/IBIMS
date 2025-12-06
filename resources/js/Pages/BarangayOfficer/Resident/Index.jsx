@@ -276,11 +276,6 @@ export default function Index({
         () => () => {
             if (residentToDelete) {
                 router.delete(route("resident.destroy", residentToDelete), {
-                    onSuccess: () => {
-                        toast.success("Resident deleted successfully!");
-                        setIsDeleteModalOpen(false);
-                        setResidentToDelete(null);
-                    },
                     onError: (err) => {
                         toast.error("Failed to delete resident.", {
                             description: err.message,

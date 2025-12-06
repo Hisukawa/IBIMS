@@ -1,6 +1,7 @@
 <?php
 
 use App\Exports\ResidentsExport;
+use App\Http\Controllers\ActivityLogsController;
 use App\Http\Controllers\AllergyController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\BarangayController;
@@ -205,6 +206,8 @@ Route::middleware(['auth', 'role:barangay_officer|cdrrmo_admin|super_admin|admin
         ->name('report.summon');
     Route::get('report/export-medical-excel', [ReportGenerationController::class, 'exportMedical'])
         ->name('report.medical');
+    Route::get('report/export-activity-logs-excel', [ReportGenerationController::class, 'exportActivityLogs'])
+        ->name('report.activitylogs');
 
     // reports 2.0
     Route::get('report/export-resident-pdf', [ReportGenerationController::class, 'exportResidentInfoPdf'])
@@ -292,6 +295,7 @@ Route::middleware(['auth', 'role:barangay_officer|cdrrmo_admin|super_admin|admin
     ->name('household.export.rbi');
 
     // residents
+    Route::resource('activity_log', ActivityLogsController::class);
     Route::resource('resident', ResidentController::class);
     Route::resource('document', DocumentController::class);
     Route::resource('household', HouseholdController::class);

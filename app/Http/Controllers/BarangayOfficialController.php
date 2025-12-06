@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\BarangayOfficial;
 use App\Http\Requests\StoreBarangayOfficialRequest;
 use App\Http\Requests\UpdateBarangayOfficialRequest;
@@ -145,6 +146,13 @@ class BarangayOfficialController extends Controller
                     'status'      => 'active',
                 ]);
 
+                ActivityLogHelper::log(
+                    'Barangay Official Term',
+                    'create',
+                    'Created term: ' . ($term->term_start ?? '') . ' - ' . ($term->term_end ?? ''),
+                    $userBrgyId
+                );
+
                 $data['term'] = $term->id; // use the newly created term ID
             }
 
@@ -160,6 +168,13 @@ class BarangayOfficialController extends Controller
                 'remarks'           => $data['remarks']  ?? null,
             ]);
 
+            ActivityLogHelper::log(
+                'Barangay Official',
+                'create',
+                'Added official: position=' . ($official->position ?? 'n/a') . ' resident_id=' . ($official->resident_id ?? 'n/a'),
+                $userBrgyId
+            );
+
             // Store designations for kagawad positions
             if (in_array($data['position'], ['barangay_kagawad', 'sk_kagawad']) && !empty($data['designations'])) {
                 foreach ($data['designations'] as $designation) {
@@ -168,12 +183,20 @@ class BarangayOfficialController extends Controller
                         ->value('id');
 
                     if ($purok_id) {
-                        Designation::create([
+                        $createdDesignation = Designation::create([
                             'official_id' => $official->id,
                             'purok_id'    => $purok_id,
                             'started_at'  => $designation['term_start'] ?? now()->year,
                             'ended_at'    => $designation['term_end'] ?? null,
                         ]);
+
+                        // Log designation creation
+                        ActivityLogHelper::log(
+                            'Designation',
+                            'create',
+                            'Assigned designation (purok_id=' . $createdDesignation->purok_id . ') to official_id=' . $official->id,
+                            $userBrgyId
+                        );
                     }
                 }
             }
@@ -227,6 +250,14 @@ class BarangayOfficialController extends Controller
                     'status'      => 'active',
                 ]);
 
+                // Log term creation
+                ActivityLogHelper::log(
+                    'Barangay Official Term',
+                    'create',
+                    'Created term: ' . ($term->term_start ?? '') . ' - ' . ($term->term_end ?? ''),
+                    $userBrgyId
+                );
+
                 $data['term'] = $term->id; // use newly created term
             }
 
@@ -247,16 +278,39 @@ class BarangayOfficialController extends Controller
                 'remarks'            => $data['remarks'] ?? null,
             ]);
 
+            // Log official update
+            ActivityLogHelper::log(
+                'Barangay Official',
+                'update',
+                'Updated official: id=' . $barangayOfficial->id . ' position=' . ($barangayOfficial->position ?? 'n/a'),
+                $userBrgyId
+            );
+
             // Update designations if provided
             if (!empty($data['designations'])) {
+                // Log clearance of old designations
                 $barangayOfficial->designation()->delete();
+                ActivityLogHelper::log(
+                    'Designation',
+                    'delete',
+                    'Cleared designations for official_id=' . $barangayOfficial->id,
+                    $userBrgyId
+                );
 
                 foreach ($data['designations'] as $des) {
-                    $barangayOfficial->designation()->create([
+                    $createdDesignation = $barangayOfficial->designation()->create([
                         'purok_id'   => $des['designation'],
                         'started_at' => $des['term_start'] ?? now()->year,
                         'ended_at'   => $des['term_end'] ?? null,
                     ]);
+
+                    // Log new designation
+                    ActivityLogHelper::log(
+                        'Designation',
+                        'create',
+                        'Assigned designation (purok_id=' . ($createdDesignation->purok_id ?? 'n/a') . ') to official_id=' . $barangayOfficial->id,
+                        $userBrgyId
+                    );
                 }
             }
 
@@ -285,6 +339,12 @@ class BarangayOfficialController extends Controller
             $barangayOfficial->delete();
 
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Barangay Official',
+                'delete',
+                'Deleted barangay official: id=' . $barangayOfficial->id . ' position=' . ($barangayOfficial->position ?? 'n/a'),
+            );
 
             return redirect()
                 ->route('barangay_official.index')

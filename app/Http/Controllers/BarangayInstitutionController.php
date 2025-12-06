@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\BarangayInstitution;
 use App\Http\Requests\StoreBarangayInstitutionRequest;
 use App\Http\Requests\UpdateBarangayInstitutionRequest;
@@ -80,7 +81,14 @@ class BarangayInstitutionController extends Controller
                         'status'             => $insti['status'],
                         'description'        => $insti['description'] ?? null,
                     ]);
+
                 }
+                ActivityLogHelper::log(
+                    'Barangay Institution',
+                    'create',
+                    'Added new institution: ' . ($insti['name'] ?? 'Unknown')
+                    . ' (' . ($insti['type'] ?? 'Unknown') . ')'
+                );
             }
 
             return redirect()
@@ -216,6 +224,12 @@ class BarangayInstitutionController extends Controller
                 }
             }
 
+            ActivityLogHelper::log(
+                'Barangay Institution',
+                'update',
+                'Updated institution: ' . ($insti['name'] ?? 'Unknown')
+            );
+
             return redirect()
                 ->route('barangay_institution.index')
                 ->with('success', 'Institution updated successfully!');
@@ -234,11 +248,24 @@ class BarangayInstitutionController extends Controller
     {
         DB::beginTransaction();
         try {
+            $name = $barangayInstitution->name;
+            $type = $barangayInstitution->type;
+
             $barangayInstitution->delete();
+
+            // Log the deletion
+            ActivityLogHelper::log(
+                'Barangay Institution',
+                'delete',
+                "Deleted institution: {$name} ({$type})"
+            );
+
             DB::commit();
+
             return redirect()
                 ->route('barangay_institution.index')
                 ->with('success', 'Institution deleted successfully!');
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Institution could not be deleted: ' . $e->getMessage());

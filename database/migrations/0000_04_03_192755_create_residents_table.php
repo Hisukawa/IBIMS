@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('firstname', 55);
             $table->string('middlename', 55)->nullable();
             $table->string('lastname', 55);
-            $table->string('maiden_name', 155)->nullable();
+            $table->string('maiden_name', 55)->nullable();
             $table->enum('suffix', ['Jr.', 'Sr.', 'I', 'II', 'III', 'IV', 'V'])->nullable();
             $table->enum('sex', ['male', 'female']);
             $table->string('gender', 55);

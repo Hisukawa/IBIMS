@@ -13,19 +13,15 @@ return new class extends Migration
     {
         Schema::create('summon_participant_attendances', function (Blueprint $table) {
             $table->id();
-
             $table->foreignId('take_id')
                 ->constrained('summon_takes')
                 ->cascadeOnDelete();
-
             // Link to case participant (complainant/respondent/witness)
             $table->foreignId('participant_id')
                 ->constrained('case_participants')
                 ->cascadeOnDelete();
-
             $table->enum('attendance_status', ['pending', 'attended', 'missed', 'rescheduled'])
                 ->default('pending');
-
             $table->timestamps();
         });
     }

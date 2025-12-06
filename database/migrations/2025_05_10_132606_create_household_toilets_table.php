@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('household_id')->constrained('households')->onDelete('cascade');
             $table->string('toilet_type', 55)->nullable();
             $table->timestamps();
-
         });
     }
 

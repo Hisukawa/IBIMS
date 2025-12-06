@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Purok;
 use App\Models\Resident;
 use App\Models\SeniorCitizen;
@@ -149,16 +150,28 @@ class SeniorCitizenController extends Controller
     {
         $data = $request->validated();
         try {
+            $oldData = $seniorCitizen->only(['is_pensioner', 'living_alone', 'osca_id_number', 'pension_type']);
+
             $seniorCitizen->update([
-                'resident_id' => $data['resident_id'],
-                'is_pensioner' => $data['is_pensioner'],
-                'living_alone' => $data['living_alone'],
-                'osca_id_number' => $data['is_pensioner'] === 'yes' ? $data['osca_id_number'] : null,
-                'pension_type' => $data['is_pensioner'] === 'yes' ? $data['pension_type'] : null,
+                'resident_id'   => $data['resident_id'],
+                'is_pensioner'  => $data['is_pensioner'],
+                'living_alone'  => $data['living_alone'],
+                'osca_id_number'=> $data['is_pensioner'] === 'yes' ? $data['osca_id_number'] : null,
+                'pension_type'  => $data['is_pensioner'] === 'yes' ? $data['pension_type'] : null,
             ]);
-            return redirect()->route('senior_citizen.index')->with('success', 'Resident Senior Citizen details updated successfully!');
+
+            // Improved, more descriptive log
+            $residentName = $seniorCitizen->resident?->fullname ?? "Resident ID {$data['resident_id']}";
+            ActivityLogHelper::log(
+                'Senior Citizen',
+                'update',
+                "Updated Senior Citizen record for {$residentName}. Pensioner: {$oldData['is_pensioner']} → {$data['is_pensioner']}, Living Alone: {$oldData['living_alone']} → {$data['living_alone']}"
+            );
+
+            return redirect()->route('senior_citizen.index')
+                ->with('success', 'Resident Senior Citizen details updated successfully!');
         } catch (\Exception $e) {
-            return back()->with('error', 'Resident Deatils could not be updated: ' . $e->getMessage());
+            return back()->with('error', 'Resident details could not be updated: ' . $e->getMessage());
         }
     }
 
@@ -171,6 +184,13 @@ class SeniorCitizenController extends Controller
         try {
             $seniorCitizen->delete();
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Senior Citizen',
+                'delete',
+                "Deleted Senior Citizen record for " . ($seniorCitizen->resident?->fullname ?? "Resident ID {$seniorCitizen->resident_id}")
+            );
+
             return redirect()->route('senior_citizen.index')
                 ->with('success', "Record deleted successfully!");
         } catch (\Exception $e) {

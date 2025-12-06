@@ -52,8 +52,10 @@ class AuthenticatedSessionController extends Controller
             'barangay_id' => $user->barangay_id ?? null,
             'role' => $user->getRoleNames()->first(),
             'module' => 'authentication',
-            'action_type' => 'login',
+            'action_type' => 'Logged In',
             'description' => "{$user->username} logged in to the system.",
+            'created_at' => now('Asia/Manila'),
+            'updated_at' => now('Asia/Manila'),
         ]);
 
         // 🧭 Role-based redirect
@@ -96,8 +98,10 @@ class AuthenticatedSessionController extends Controller
                 'barangay_id' => $user->barangay_id ?? null,
                 'role' => $user->getRoleNames()->first(),
                 'module' => 'authentication',
-                'action_type' => 'logout',
+                'action_type' => 'Logged Out',
                 'description' => "{$user->username} logged out of the system.",
+                'created_at' => now('Asia/Manila'),
+                'updated_at' => now('Asia/Manila'),
             ]);
 
             // ✅ Clear CRA year if user is cdrrmo_admin

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Inventory;
 use App\Http\Requests\StoreInventoryRequest;
 use App\Http\Requests\UpdateInventoryRequest;
@@ -85,7 +86,7 @@ class InventoryController extends Controller
         try {
             if (!empty($data['inventory_items']) && is_array($data['inventory_items'])) {
                 foreach ($data['inventory_items'] as $item) {
-                    Inventory::create([
+                    $created = Inventory::create([
                         'barangay_id'   => $brgy_id,
                         'item_name'     => $item['item_name'],
                         'item_category' => $item['item_category'],
@@ -95,6 +96,14 @@ class InventoryController extends Controller
                         'supplier'      => $item['supplier'] ?? null,
                         'status'        => $item['status'],
                     ]);
+
+                    // Log activity
+                    ActivityLogHelper::log(
+                        'inventory',
+                        'create',
+                        'Created inventory item: ' . ($created->item_name ?? $item['item_name']),
+                        $brgy_id
+                    );
                 }
             }
 
@@ -144,6 +153,12 @@ class InventoryController extends Controller
                         'supplier'      => $item['supplier'] ?? null,
                         'status'        => $item['status'],
                     ]);
+
+                    ActivityLogHelper::log(
+                        'inventory',
+                        'update',
+                        'Updated inventory item: ' . ($inventory->item_name ?? $item['item_name'])
+                    );
                 }
             }
 
@@ -167,6 +182,13 @@ class InventoryController extends Controller
         try {
             $inventory->delete();
             DB::commit();
+
+            ActivityLogHelper::log(
+                'inventory',
+                'delete',
+                'Deleted inventory item: ' . $inventory->item_name
+            );
+
             return redirect()
                 ->route('inventory.index')
                 ->with('success','Inventory item deleted successfully.');

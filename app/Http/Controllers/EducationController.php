@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\EducationalHistory;
 use App\Http\Requests\StoreEducationalHistoryRequest;
 use App\Http\Requests\UpdateEducationalHistoryRequest;
@@ -138,6 +139,11 @@ class EducationController extends Controller
                     'program' => $history['program'] ?? null,
                 ]);
             }
+            ActivityLogHelper::log(
+                'Education',
+                'create',
+                "Added new Educational History for Resident ID: {$data['resident_id']}"
+            );
             return redirect()->route('education.index')->with('success', 'Educational history added successfully!');
         } catch (\Exception $e) {
             return back()->with('error' ,'Educational history could not be added: ' . $e->getMessage());
@@ -184,6 +190,11 @@ class EducationController extends Controller
                 ]
             );
         }
+            ActivityLogHelper::log(
+                'Education',
+                'update',
+                "Updated Educational History for Resident ID: {$data['resident_id']}"
+            );
             return redirect()->route('education.index')->with('success', 'Education History details updated successfully!');
         } catch (\Exception $e) {
             return back()->with('error','Education History could not be updated: ' . $e->getMessage());
@@ -199,6 +210,11 @@ class EducationController extends Controller
         try {
             $education->delete();
             DB::commit();
+            ActivityLogHelper::log(
+                'Education',
+                'delete',
+                "Deleted Educational History ID: {$education->id} for Resident ID: {$education->resident_id}"
+            );
             return redirect()->route('education.index')
                 ->with('success', "Education Record deleted successfully!");
         } catch (\Exception $e) {

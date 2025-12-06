@@ -32,6 +32,7 @@ import ActionMenu from "@/Components/ActionMenu";
 import SidebarModal from "@/Components/SidebarModal";
 import ExportButton from "@/Components/ExportButton";
 import DeleteConfirmationModal from "@/Components/DeleteConfirmationModal";
+import { toTitleCase } from "@/utils/stringFormat";
 
 export default function Index({
     documents,
@@ -411,7 +412,7 @@ export default function Index({
             } ${r.suffix ?? ""}`.trim();
             return (
                 <span className="text-sm font-medium text-gray-800">
-                    {fullName || "—"}
+                    {toTitleCase(fullName) || "—"}
                 </span>
             );
         },

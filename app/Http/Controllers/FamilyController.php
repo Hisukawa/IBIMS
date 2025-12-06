@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Http\Resources\ResidentResource;
 use App\Models\Family;
 use App\Http\Requests\StoreFamilyRequest;
@@ -208,6 +209,12 @@ class FamilyController extends Controller
             ]);
 
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Family',
+                'create',
+                "Created new Family record: {$family->family_name} (ID: {$family->id})"
+            );
 
             return redirect()->route('family.index')->with('success', 'Family added successfully!');
         } catch (\Exception $e) {
@@ -452,6 +459,11 @@ class FamilyController extends Controller
                 ]);
             });
 
+            ActivityLogHelper::log(
+                'Family',
+                'update',
+                "Updated Family record: {$family->family_name} (ID: {$family->id})"
+            );
             return redirect()->route('family.index')->with('success', 'Family updated successfully!');
         } catch (\Exception $e) {
             report($e);
@@ -473,6 +485,13 @@ class FamilyController extends Controller
             }
             $family->delete();
             DB::commit();
+
+
+            ActivityLogHelper::log(
+                'Family',
+                'delete',
+                "Deleted Family record: {$family->family_name} (ID: {$family->id})"
+            );
 
             return redirect()
                 ->route('family.index')

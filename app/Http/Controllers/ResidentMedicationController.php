@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Purok;
 use App\Models\ResidentMedication;
 use App\Http\Requests\StoreResidentMedicationRequest;
@@ -188,6 +189,12 @@ class ResidentMedicationController extends Controller
             $residentMedication = ResidentMedication::findOrFail($id);
             $residentMedication->delete();
             DB::commit();
+
+            ActivityLogHelper::log(
+                'Medical Information',
+                'delete',
+                "Deleted Medication record ID: {$id} for Resident ID: {$residentMedication->resident_id}"
+            );
 
             return redirect()
                 ->route('medication.index')

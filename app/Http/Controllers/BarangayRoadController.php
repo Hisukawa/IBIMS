@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Barangay;
 use App\Models\BarangayRoad;
 use App\Http\Requests\StoreBarangayRoadRequest;
@@ -98,7 +99,7 @@ class BarangayRoadController extends Controller
                         $imagePath = $imagePath->store($folder, 'public');
                     }
 
-                    BarangayRoad::create([
+                    $created = BarangayRoad::create([
                         'barangay_id'   => $brgy_id,
                         'road_type'     => $road['road_type'],
                         'road_image'    => $imagePath,
@@ -107,6 +108,13 @@ class BarangayRoadController extends Controller
                         'status'        => $road['status'],
                         'maintained_by' => $road['maintained_by'] ?? null,
                     ]);
+
+                    // Activity log
+                    ActivityLogHelper::log(
+                        'barangay_road',
+                        'create',
+                        'Created road: ' . ($created->road_type ?? $road['road_type'])
+                    );
                 }
             }
 
@@ -182,6 +190,9 @@ class BarangayRoadController extends Controller
                         'status'        => $road['status'] ?? $barangayRoad->status,
                         'maintained_by' => $road['maintained_by'] ?? $barangayRoad->maintained_by,
                     ]);
+
+                    // Activity log
+
                 }
             }
 

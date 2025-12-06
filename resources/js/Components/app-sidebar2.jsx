@@ -53,6 +53,8 @@ import {
     SignpostBig,
     TableOfContents,
     Bolt,
+    Logs,
+    ListCheck,
 } from "lucide-react";
 import {
     Sidebar,
@@ -292,6 +294,12 @@ export function AppSidebar({ auth }) {
                     title: "Profile",
                     url: "/barangay_profile",
                     icon: UserPen,
+                    roles: ["admin"],
+                },
+                {
+                    title: "Activity Logs",
+                    url: "/activity_log",
+                    icon: Logs,
                     roles: ["admin"],
                 },
             ],
@@ -832,6 +840,12 @@ export function AppSidebar({ auth }) {
             title: "Employment Summary",
             url: "/super_admin/statistics/employment-summary",
             icon: Users,
+            roles: ["super_admin"],
+        },
+        {
+            title: "Activity Logs",
+            url: "/activity_log",
+            icon: ListCheck,
             roles: ["super_admin"],
         },
         // {

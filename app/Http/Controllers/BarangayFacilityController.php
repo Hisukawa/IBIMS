@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Models\Barangay;
 use App\Models\BarangayFacility;
 use App\Http\Requests\StoreBarangayFacilityRequest;
@@ -87,13 +88,22 @@ class BarangayFacilityController extends Controller
                         $imagePath = $imagePath->store($folder, 'public');
                     }
 
-                    BarangayFacility::create([
+                    $facilityRecord = BarangayFacility::create([
                         'barangay_id'    => $brgy_id,
-                        'facility_image' => $imagePath, // stored file or existing string
+                        'facility_image' => $imagePath,
                         'name'           => $facility['name'],
                         'facility_type'  => $facility['facility_type'],
                         'quantity'       => $facility['quantity'] ?? 1,
+                        'created_at'     => now('Asia/Manila'),
+                        'updated_at'     => now('Asia/Manila'),
                     ]);
+
+                    // Log the creation
+                    ActivityLogHelper::log(
+                        'Barangay Facility',
+                        'create',
+                        "Added new facility: {$facility['name']} ({$facility['facility_type']})"
+                    );
                 }
             }
 
@@ -183,6 +193,13 @@ class BarangayFacilityController extends Controller
                             'facility_type'  => $facility['facility_type'] ?? $existingFacility->facility_type,
                             'quantity'       => $facility['quantity'] ?? $existingFacility->quantity,
                         ]);
+
+                        ActivityLogHelper::log(
+                            'Barangay Facility',
+                            'update',
+                            'Updated facility: ' . ($facility['name'] ?? 'Unknown')
+                            . ' (' . ($facility['facility_type'] ?? 'Unknown') . ')'
+                        );
                     }
                 }
             }
@@ -220,6 +237,13 @@ class BarangayFacilityController extends Controller
 
             // Delete the facility record
             $barangayFacility->delete();
+
+            ActivityLogHelper::log(
+                'Barangay Facility',
+                'delete',
+                'Deleted facility: ' . ($barangayFacility->name ?? 'Unknown')
+                . ' (' . ($barangayFacility->facility_type ?? 'Unknown') . ')'
+            );
 
             DB::commit();
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ActivityLogsExport;
 use App\Exports\BlotterReportExport;
 use App\Exports\CertificateExport;
 use App\Exports\EducationalHistoryExport;
@@ -138,6 +139,12 @@ class ReportGenerationController extends Controller
     {
         $fileName = $this->setfilename("Resident_Medical_Information_Report");
         return Excel::download(new MedicalInformationExport(), $fileName);
+    }
+
+    public function exportActivityLogs()
+    {
+        $fileName = $this->setfilename("Activity_Logs_Report");
+        return Excel::download(new ActivityLogsExport(), $fileName);
     }
 
     //** ========================================= DOM PDF ========================================== **//

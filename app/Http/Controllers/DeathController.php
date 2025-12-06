@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ActivityLogHelper;
 use App\Http\Requests\StoreDeceasedRequest;
 use App\Http\Requests\UpdateDeceasedRequest;
 use App\Models\Deceased;
@@ -125,6 +126,12 @@ class DeathController extends Controller
             // ✅ Mark resident as deceased
             $resident->update(['is_deceased' => true]);
 
+            ActivityLogHelper::log(
+                'Death',
+                'create',
+                "Added Death record for Resident ID: {$resident->id}"
+            );
+
             return redirect()
                 ->route('death.index')
                 ->with('success', 'Death record saved successfully.');
@@ -156,7 +163,11 @@ class DeathController extends Controller
                     'remarks'                  => $data['remarks'] ?? null,
                 ]
             );
-
+            ActivityLogHelper::log(
+                'Death',
+                'update',
+                "Updated Death record for Resident ID: {$resident->id}"
+            );
             return redirect()
                 ->route('death.index')
                 ->with('success', 'Death Record updated successfully.');
@@ -216,6 +227,12 @@ class DeathController extends Controller
             $resident->update([
                 'is_deceased' => false,
             ]);
+
+            ActivityLogHelper::log(
+                'Death',
+                'delete',
+                "Deleted Death record for Resident ID: {$resident->id}"
+            );
 
             return redirect()
                 ->route('death.index')
