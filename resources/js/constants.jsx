@@ -592,6 +592,7 @@ export const SPECIFIC_PURPOSE_TEXT = {
     certification: "Certification",
     blotter: "Blotter Report Generation",
     summon: "Summon Report Generation",
+    file_action: "Certificate to File Action",
 };
 
 export const ACCOUNT_ROLE_TEXT = {

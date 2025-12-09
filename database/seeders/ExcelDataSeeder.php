@@ -101,7 +101,7 @@ class ExcelDataSeeder extends Seeder
             $isIP            = !empty($row[28]) && $row[28] == 1 ? 1 : 0;
             $philsys        = trim($row[29]) ?? null;
 
-
+            $registeredVoter = 0;
 
 
             /** ✅ Get or Create Purok */
@@ -145,6 +145,27 @@ class ExcelDataSeeder extends Seeder
                 'created_at'        => now(),
                 'updated_at'        => now(),
             ]);
+
+            if (!empty($birthdate)) {
+                $age = Carbon::parse($birthdate)->age;
+
+                if ($age >= 18) {
+                    $registeredVoter = 1;
+
+                    // Insert voter information
+                    DB::table('resident_voter_information')->insert([
+                        'resident_id' => $residentId,
+                        'registered_barangay_id' => $barangayId,
+                        'voter_id_number' => null,
+                        'voting_status' => 'active',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    DB::table('residents')
+                        ->where('id', $residentId)
+                        ->update(['registered_voter' => $registeredVoter]);
+                }
+            }
 
             /** ✅ Insert Household Resident */
             DB::table('household_residents')->insert([
