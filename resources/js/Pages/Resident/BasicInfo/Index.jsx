@@ -11,24 +11,19 @@ import SelectField from "@/Components/SelectField";
 import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 
+const FormItem = ({ label, value, onChange, error, helper, ...rest }) => (
+    <div>
+        <InputField label={label} value={value} onChange={onChange} {...rest} />
+        <InputError message={error} />
+        <p className="text-xs text-gray-500 mt-1">{helper}</p>
+    </div>
+);
+
 export default function BasicInformation({ details, puroks, streets }) {
     const breadcrumbs = [{ label: "Basic Information", showOnMobile: true }];
     const props = usePage().props;
     const success = props?.success ?? null;
     const error = props?.error ?? null;
-
-    const FormItem = ({ label, value, onChange, error, helper, ...rest }) => (
-        <div>
-            <InputField
-                label={label}
-                value={value}
-                onChange={onChange}
-                {...rest}
-            />
-            <InputError message={error} />
-            <p className="text-xs text-gray-500 mt-1">{helper}</p>
-        </div>
-    );
 
     const { data, setData, post, errors, processing } = useForm({
         resident_id: details.id || null,
@@ -37,7 +32,7 @@ export default function BasicInformation({ details, puroks, streets }) {
         lastname: details.lastname || "",
         maiden_name: details.maiden_name || "",
         suffix: details.suffix || "",
-        birthdate: details.birthdate || "",
+        birthdate: details.birthdate || null,
         birthplace: details.birthplace || "",
         sex: details.sex || "",
         civil_status: details.civil_status || "",
@@ -256,10 +251,10 @@ export default function BasicInformation({ details, puroks, streets }) {
                                 />
 
                                 {/* Sex */}
-                                <DropdownInputField
+                                <SelectField
                                     label="Sex"
                                     value={data.sex}
-                                    options={[
+                                    items={[
                                         { value: "male", label: "Male" },
                                         { value: "female", label: "Female" },
                                     ]}
@@ -268,10 +263,10 @@ export default function BasicInformation({ details, puroks, streets }) {
                                 <InputError message={errors.sex} />
 
                                 {/* Civil Status */}
-                                <DropdownInputField
+                                <SelectField
                                     label="Civil Status"
                                     value={data.civil_status}
-                                    options={[
+                                    items={[
                                         { value: "single", label: "Single" },
                                         { value: "married", label: "Married" },
                                         { value: "widowed", label: "Widowed" },
@@ -337,10 +332,10 @@ export default function BasicInformation({ details, puroks, streets }) {
                                     }
                                 />
 
-                                <DropdownInputField
+                                <SelectField
                                     label="Residency Type"
                                     value={data.residency_type}
-                                    options={[
+                                    items={[
                                         {
                                             value: "permanent",
                                             label: "Permanent",
