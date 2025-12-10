@@ -387,8 +387,9 @@ class CertificateController extends Controller
             $values = $this->prepareValues($resident, $data);
 
             // Handle optional second resident
-            if (isset($data['resident_id_2'])) {
-                $resident2 = Resident::findOrFail($data['resident_id_2']);
+            $residentId2 = $data['resident_id_2'] ?? null;
+            if ($residentId2) {
+                $resident2 = Resident::findOrFail($residentId2);
                 $values = $values->merge($this->prepareSecondResidentValues($resident2, $data));
             } else {
                 $val = collect([
@@ -414,7 +415,7 @@ class CertificateController extends Controller
             $baseName = $this->generateBaseName(
                 $resident,
                 $template->name,
-                $data['resident_id_2'] ? Resident::find($data['resident_id_2']) : null
+                $residentId2 ? Resident::find($residentId2) : null
             );
             $docxFilename = "{$baseName}.docx";
 
@@ -461,7 +462,7 @@ class CertificateController extends Controller
                     'document_id'    => $template->id,
                     'barangay_id'    => $barangayId,
                     'request_status' => 'issued',
-                    'purpose'        => $data['purpose'],
+                    'purpose'        => $data['purpose_2'] ?? '',
                     'issued_at'      => now(),
                     'issued_by'      => $officer?->id,
                     'docx_path'      => $finalRelative,
