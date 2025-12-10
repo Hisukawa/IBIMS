@@ -131,7 +131,9 @@ const Request = ({
                             .map((placeholder, i) => (
                                 <div key={i}>
                                     <InputField
-                                        label={toTitleCase(placeholder)}
+                                        label={toTitleCase(
+                                            placeholder.replace(/_/g, " ")
+                                        )}
                                         value={data[placeholder] || ""}
                                         onChange={(e) => {
                                             const val = toTitleCase(
