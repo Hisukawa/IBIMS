@@ -152,12 +152,12 @@ class DatabaseSeeder extends Seeder
 
         // Call lookup/fix seeders
         $this->call([
-            BarangayDataSeeder::class,
+            //BarangayDataSeeder::class,
             ExcelDataSeeder::class,
             OccupationTypeSeeder::class,
             //FixHouseholdResidentSeeder::class,
             // FamilyRelationSeeder::class,
-            BarangayInformationSeeder::class,
+            // BarangayInformationSeeder::class,
         ]);
         // $this->call([
         //     CRADataseeder::class,
