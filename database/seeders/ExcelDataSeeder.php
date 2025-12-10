@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Family;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
@@ -15,7 +16,7 @@ class ExcelDataSeeder extends Seeder
 {
     public function run(): void
     {
-        $rows = Excel::toArray([], database_path('seeders/data/residents.xlsx'))[0];
+        $rows = Excel::toArray([], database_path('seeders/data/residents2.xlsx'))[0];
 
         foreach ($rows as $i => $row) {
             if ($i === 0) continue; // Skip header
@@ -115,7 +116,41 @@ class ExcelDataSeeder extends Seeder
                 'barangay_id' => $barangayId,
                 'purok_id'    => $purok->id,
                 'house_number'=> $houseNumberFromFile,
+                'created_at'        => now('Asia/Manila'),
+                'updated_at'        => now('Asia/Manila'),
             ]);
+
+            $familyIdFromFile = isset($row[30]) ? intval($row[30]) : null;
+
+            if ($familyIdFromFile) {
+
+                // Try finding by ID first
+                $family = Family::find($familyIdFromFile);
+
+                if (!$family) {
+                    // Create new family WITH the exact ID from Excel
+                    $family = Family::create([
+                        'id'           => $familyIdFromFile,
+                        'barangay_id'  => $barangayId,
+                        'household_id' => $household->id,
+                        'family_name'  => $lastname,
+                        'created_at'   => now('Asia/Manila'),
+                        'updated_at'   => now('Asia/Manila'),
+                    ]);
+                }
+
+            } else {
+
+                // No excel family_id → auto create normally
+                $family = Family::create([
+                    'barangay_id'  => $barangayId,
+                    'household_id' => $household->id,
+                    'family_name'  => $lastname,
+                    'created_at'   => now('Asia/Manila'),
+                    'updated_at'   => now('Asia/Manila'),
+                ]);
+
+            }
 
             /** ✅ Insert Resident */
             $residentId = DB::table('residents')->insertGetId([
@@ -141,9 +176,15 @@ class ExcelDataSeeder extends Seeder
                 'household_id'      => $household->id,
                 'is_household_head' => $isHead,
                 'is_family_head'    => $isFamilyHead,
+                'family_id'         => $family->id,
                 'verified'          => true,
-                'created_at'        => now(),
-                'updated_at'        => now(),
+                'created_at'        => now('Asia/Manila'),
+                'updated_at'        => now('Asia/Manila'),
+            ]);
+
+            $family->update([
+                'family_name' => $lastname,
+                'updated_at'  => now('Asia/Manila'),
             ]);
 
             if (!empty($birthdate)) {
@@ -158,8 +199,8 @@ class ExcelDataSeeder extends Seeder
                         'registered_barangay_id' => $barangayId,
                         'voter_id_number' => null,
                         'voting_status' => 'active',
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'created_at' => now('Asia/Manila'),
+                        'updated_at' => now('Asia/Manila'),
                     ]);
                     DB::table('residents')
                         ->where('id', $residentId)
@@ -173,8 +214,8 @@ class ExcelDataSeeder extends Seeder
                 'household_id'       => $household->id,
                 'is_household_head'  => $isHead,
                 'relationship_to_head'=> $isHead ? 'self' : null,
-                'created_at'         => now(),
-                'updated_at'         => now(),
+                'created_at'         => now('Asia/Manila'),
+                'updated_at'         => now('Asia/Manila'),
             ]);
 
             /** ✅ Insert Occupation */
@@ -184,8 +225,8 @@ class ExcelDataSeeder extends Seeder
                     'occupation'  => $occupation,
                     'is_ofw'      => $isOFW,
                     'is_main_livelihood' => 0,
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
+                    'created_at'  => now('Asia/Manila'),
+                    'updated_at'  => now('Asia/Manila'),
                 ]);
             }
 
@@ -195,8 +236,8 @@ class ExcelDataSeeder extends Seeder
                     'resident_id'            => $residentId,
                     'educational_attainment' => $educationAtt,
                     'education_status'       => $educationStatus,
-                    'created_at'             => now(),
-                    'updated_at'             => now(),
+                    'created_at'             => now('Asia/Manila'),
+                    'updated_at'             => now('Asia/Manila'),
                 ]);
             }
             if (!empty($philsys) || $isSoloParent || $isOSY || $isOSC) {
@@ -209,16 +250,16 @@ class ExcelDataSeeder extends Seeder
                     'is_out_of_school_children'   => $isOSC ?? false,
                     'solo_parent_id_number'       => $soloParentIdNumber ?? null,
                     'philsys_card_no'             => $philsys ?? null,
-                    'created_at'                  => now(),
-                    'updated_at'                  => now(),
+                    'created_at'                  => now('Asia/Manila'),
+                    'updated_at'                  => now('Asia/Manila'),
                 ]);
             }
 
             if ($isDeceased  === 1) {
                 DB::table('deceaseds')->insert([
                     'resident_id'            => $residentId,
-                    'created_at'             => now(),
-                    'updated_at'             => now(),
+                    'created_at'             => now('Asia/Manila'),
+                    'updated_at'             => now('Asia/Manila'),
                 ]);
             }
         }
