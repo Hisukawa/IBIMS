@@ -138,7 +138,7 @@ class BarangayDataSeeder extends Seeder
             /**
              * HOUSEHOLDS & FAMILIES
              */
-            Household::factory(500)
+            Household::factory(100)
                 ->for($barangay)
                 ->has(Livestock::factory()->count(rand(0, 5)), 'livestocks')
                 ->has(HouseholdToilet::factory()->count(rand(1, 2)), 'toilets')
@@ -152,7 +152,7 @@ class BarangayDataSeeder extends Seeder
             /**
              * RESIDENTS + RELATED DATA
              */
-            $residents = Resident::factory(3200)->create(['barangay_id' => $barangay->id]);
+            $residents = Resident::factory(1200)->create(['barangay_id' => $barangay->id]);
 
             foreach ($residents as $res) {
                 Occupation::factory(rand(1, 3))->create(['resident_id' => $res->id]);
