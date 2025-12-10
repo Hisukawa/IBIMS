@@ -147,12 +147,12 @@ class BarangayDataSeeder extends Seeder
                 ->has(HouseholdWaterSource::factory()->count(rand(1, 3)), 'waterSourceTypes')
                 ->create();
 
-            Family::factory(10)->create(['barangay_id' => $barangay->id]);
+            Family::factory(5)->create(['barangay_id' => $barangay->id]);
 
             /**
              * RESIDENTS + RELATED DATA
              */
-            $residents = Resident::factory(1200)->create(['barangay_id' => $barangay->id]);
+            $residents = Resident::factory(700)->create(['barangay_id' => $barangay->id]);
 
             foreach ($residents as $res) {
                 Occupation::factory(rand(1, 3))->create(['resident_id' => $res->id]);
