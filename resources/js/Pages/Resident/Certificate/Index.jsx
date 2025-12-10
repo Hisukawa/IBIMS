@@ -81,6 +81,7 @@ export default function Index({
         "year",
         "ctrl_no",
         "civil_status",
+        "age",
         "civil_status_2",
         "purpose",
         "purpose_2",
