@@ -339,33 +339,33 @@ export default function Index({
                 <BreadCrumbsHeader breadcrumbs={breadcrumbs} />
                 <div className="p-2 md:p-4">
                     <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
-                        {/* <pre>{JSON.stringify(certificates, undefined, 3)}</pre> */}
-                        <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
+                        <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4">
+                            {/* HEADER */}
                             <div className="mb-6">
-                                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl shadow-sm">
-                                    <div className="p-2 bg-blue-100 rounded-full">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-blue-50 rounded-xl shadow-sm">
+                                    <div className="p-2 bg-blue-100 rounded-full self-start sm:self-center">
                                         <FileText className="w-6 h-6 text-blue-600" />
                                     </div>
-                                    <div>
+                                    <div className="flex-1">
                                         <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
                                             My Certificates
                                         </h1>
-                                        <p className="text-sm text-gray-500">
+                                        <p className="text-sm text-gray-500 leading-relaxed">
                                             View and request{" "}
                                             <span className="font-medium">
                                                 official certificates
-                                            </span>{" "}
-                                            from your barangay. You can check
-                                            your records, request new
-                                            certificates, or download available
-                                            documents below.
+                                            </span>
+                                            from your barangay. Check your
+                                            records or download documents below.
                                         </p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap items-start justify-between gap-2 w-full mb-0">
-                                <div className="flex items-start gap-2 flex-wrap">
+                            {/* CONTROLS SECTION */}
+                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4 w-full">
+                                {/* LEFT CONTROLS */}
+                                <div className="flex flex-wrap items-center gap-3">
                                     <DynamicTableControls
                                         allColumns={allColumns}
                                         visibleColumns={visibleColumns}
@@ -377,10 +377,13 @@ export default function Index({
                                         }
                                     />
                                 </div>
-                                <div className="flex items-center gap-2 flex-wrap justify-end">
+
+                                {/* RIGHT CONTROLS */}
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+                                    {/* SEARCH BAR */}
                                     <form
                                         onSubmit={handleSubmit}
-                                        className="flex w-[300px] max-w-lg items-center space-x-1"
+                                        className="flex items-center gap-2 w-full sm:w-[330px]"
                                     >
                                         <Input
                                             type="text"
@@ -394,33 +397,30 @@ export default function Index({
                                             }
                                             className="w-full"
                                         />
-                                        <div className="relative group z-50">
-                                            <Button
-                                                type="submit"
-                                                className="border active:bg-blue-900 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white flex items-center gap-2 bg-transparent"
-                                                variant="outline"
-                                            >
-                                                <Search />
-                                            </Button>
-                                            <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                                Search
-                                            </div>
-                                        </div>
-                                    </form>
-                                    <div className="relative group z-50">
                                         <Button
+                                            type="submit"
+                                            className="border active:bg-blue-900 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
                                             variant="outline"
-                                            className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
-                                            onClick={handleAddCertificate}
                                         >
-                                            <FileInput className="w-4 h-4" />
+                                            <Search className="w-4 h-4" />
                                         </Button>
-                                        <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                                    </form>
+
+                                    {/* REQUEST BUTTON */}
+                                    <Button
+                                        variant="outline"
+                                        className="flex items-center justify-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white w-full sm:w-auto"
+                                        onClick={handleAddCertificate}
+                                    >
+                                        <FileInput className="w-4 h-4" />
+                                        <span className="hidden sm:block">
                                             Request Certificate
-                                        </div>
-                                    </div>
+                                        </span>
+                                    </Button>
                                 </div>
                             </div>
+
+                            {/* FILTERS */}
                             {showFilters && (
                                 <FilterToggle
                                     queryParams={queryParams}
@@ -438,6 +438,8 @@ export default function Index({
                                     clearRouteParams={{}}
                                 />
                             )}
+
+                            {/* TABLE */}
                             <DynamicTable
                                 passedData={certificates}
                                 allColumns={allColumns}
@@ -451,6 +453,7 @@ export default function Index({
                             />
                         </div>
                     </div>
+
                     <SidebarModal
                         isOpen={isModalOpen}
                         onClose={handleModalClose}
