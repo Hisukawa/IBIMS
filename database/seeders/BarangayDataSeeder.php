@@ -97,8 +97,8 @@ class BarangayDataSeeder extends Seeder
         ];
 
         // Seed ONLY one barangay for testing
-        $barangays = Barangay::take(5)->get();
-        //$barangays = Barangay::all();
+        //$barangays = Barangay::take(5)->get();
+        $barangays = Barangay::all();
         foreach ($barangays as $barangay) {
             /**
              * ADMIN USERS
@@ -138,7 +138,7 @@ class BarangayDataSeeder extends Seeder
             /**
              * HOUSEHOLDS & FAMILIES
              */
-            Household::factory(100)
+            Household::factory(50)
                 ->for($barangay)
                 ->has(Livestock::factory()->count(rand(0, 5)), 'livestocks')
                 ->has(HouseholdToilet::factory()->count(rand(1, 2)), 'toilets')
@@ -152,7 +152,7 @@ class BarangayDataSeeder extends Seeder
             /**
              * RESIDENTS + RELATED DATA
              */
-            $residents = Resident::factory(700)->create(['barangay_id' => $barangay->id]);
+            $residents = Resident::factory(100)->create(['barangay_id' => $barangay->id]);
 
             foreach ($residents as $res) {
                 Occupation::factory(rand(1, 3))->create(['resident_id' => $res->id]);

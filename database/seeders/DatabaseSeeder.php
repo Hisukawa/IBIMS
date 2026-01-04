@@ -157,7 +157,7 @@ class DatabaseSeeder extends Seeder
             OccupationTypeSeeder::class,
             //FixHouseholdResidentSeeder::class,
             // FamilyRelationSeeder::class,
-            // BarangayInformationSeeder::class,
+            //BarangayInformationSeeder::class,
         ]);
         // $this->call([
         //     CRADataseeder::class,
