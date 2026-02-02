@@ -370,7 +370,7 @@ class SuperAdminController extends Controller
         $data = $request->validated(); // validated data from request
 
         // Check if a barangay account already exists
-        $existingUser = User::where('barangay_id', $data['barangay_id'])->first();
+        $existingUser = User::where('barangay_id', $data['barangay_id'])->where('role', 'admin')->first();
         if ($existingUser) {
             return back()
                 ->withInput()
@@ -436,15 +436,15 @@ class SuperAdminController extends Controller
             $user = User::findOrFail($id);
 
             // Check if another user already has this barangay_id
-            $existingUser = User::where('barangay_id', $data['barangay_id'])
-                ->where('id', '!=', $id)
-                ->first();
+            // $existingUser = User::where('barangay_id', $data['barangay_id'])
+            //     ->where('id', '!=', $id)
+            //     ->first();
 
-            if ($existingUser) {
-                return back()
-                    ->withInput()
-                    ->with('error', 'Another account for this barangay already exists.');
-            }
+            // if ($existingUser) {
+            //     return back()
+            //         ->withInput()
+            //         ->with('error', 'Another account for this barangay already exists.');
+            // }
 
             $user->update([
                 'username'    => $data['username'],

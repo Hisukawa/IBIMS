@@ -558,7 +558,7 @@ const FilterToggle = ({
                                 <SelectItem key={key} value={key}>
                                     {label}
                                 </SelectItem>
-                            )
+                            ),
                         )}
                     </SelectContent>
                 </Select>
@@ -707,7 +707,7 @@ const FilterToggle = ({
                                             onCheckedChange={(checked) =>
                                                 searchFieldName(
                                                     "pwd",
-                                                    checked ? "1" : "0"
+                                                    checked ? "1" : "0",
                                                 )
                                             }
                                         />
@@ -722,7 +722,7 @@ const FilterToggle = ({
                                             onCheckedChange={(checked) =>
                                                 searchFieldName(
                                                     "fourps",
-                                                    checked ? "1" : "0"
+                                                    checked ? "1" : "0",
                                                 )
                                             }
                                         />
@@ -739,7 +739,7 @@ const FilterToggle = ({
                                             onCheckedChange={(checked) =>
                                                 searchFieldName(
                                                     "solo_parent",
-                                                    checked ? "1" : "0"
+                                                    checked ? "1" : "0",
                                                 )
                                             }
                                         />
@@ -1094,7 +1094,7 @@ const FilterToggle = ({
                                 <SelectItem key={value} value={value}>
                                     {label}
                                 </SelectItem>
-                            )
+                            ),
                         )}
                     </SelectContent>
                 </Select>
@@ -1114,7 +1114,7 @@ const FilterToggle = ({
                                 <SelectItem key={value} value={value}>
                                     {label}
                                 </SelectItem>
-                            )
+                            ),
                         )}
                     </SelectContent>
                 </Select>
@@ -1406,7 +1406,7 @@ const FilterToggle = ({
                         }}
                         dateFormat="yyyy-MM-dd"
                         className="border border-gray-300 rounded-md shadow-sm px-2 py-1 w-[180px]"
-                        placeholderText="Date Issued"
+                        placeholderText="Date Started"
                         popperContainer={({ children }) => (
                             <div className="z-[9999]">{children}</div>
                         )}
@@ -1429,7 +1429,7 @@ const FilterToggle = ({
                         }}
                         dateFormat="yyyy-MM-dd"
                         className="border border-gray-300 rounded-md shadow-sm px-2 py-1 w-[180px]"
-                        placeholderText="Date Issued"
+                        placeholderText="Date Ended"
                         popperContainer={({ children }) => (
                             <div className="z-[9999]">{children}</div>
                         )}

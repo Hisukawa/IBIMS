@@ -38,7 +38,7 @@ import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
 const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
     const breadcrumbs = [
         { label: "Barangay Resources", showOnMobile: false },
-        { label: "Infrastructures", showOnMobile: true },
+        { label: "Roads", showOnMobile: true },
     ];
     const APP_URL = useAppUrl();
     queryParams = queryParams || {};
@@ -81,7 +81,7 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
                 "road_condition",
             ].includes(key) &&
             value &&
-            value !== ""
+            value !== "",
     );
 
     const [showFilters, setShowFilters] = useState(hasActiveFilter);
@@ -93,7 +93,7 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
     useEffect(() => {
         localStorage.setItem(
             "roads_visible_columns",
-            JSON.stringify(visibleColumns)
+            JSON.stringify(visibleColumns),
         );
     }, [visibleColumns]);
     const handleSubmit = (e) => {
@@ -310,7 +310,7 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
 
         try {
             const response = await axios.get(
-                `${APP_URL}/barangay_road/details/${id}`
+                `${APP_URL}/barangay_road/details/${id}`,
             );
             const road = response.data.road;
             // console.log(road);
@@ -397,7 +397,7 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
     }, [error]);
     return (
         <AdminLayout>
-            <Head title="Barangay Infrastructure" />
+            <Head title="Barangay Roads" />
             <BreadCrumbsHeader breadcrumbs={breadcrumbs} />
             <Toaster richColors />
             <div className="pt-4 mb-10">
@@ -450,7 +450,7 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
                                             onKeyDown={(e) =>
                                                 onKeyPressed(
                                                     "name",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="ml-4"
@@ -565,7 +565,7 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
                                                             handleRoadFieldChange(
                                                                 file,
                                                                 roadIdx,
-                                                                "road_image"
+                                                                "road_image",
                                                             );
                                                         }
                                                     }}
@@ -598,7 +598,7 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
                                                             handleRoadFieldChange(
                                                                 e.target.value,
                                                                 roadIdx,
-                                                                "road_type"
+                                                                "road_type",
                                                             )
                                                         }
                                                         placeholder="Select road type"
@@ -645,7 +645,7 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
                                                             handleRoadFieldChange(
                                                                 e.target.value,
                                                                 roadIdx,
-                                                                "length"
+                                                                "length",
                                                             )
                                                         }
                                                         placeholder="e.g. 2.50"
@@ -671,7 +671,7 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
                                                         handleRoadFieldChange(
                                                             e.target.value,
                                                             roadIdx,
-                                                            "condition"
+                                                            "condition",
                                                         )
                                                     }
                                                     placeholder="Select condition"
@@ -718,7 +718,7 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
                                                         handleRoadFieldChange(
                                                             e.target.value,
                                                             roadIdx,
-                                                            "status"
+                                                            "status",
                                                         )
                                                     }
                                                     items={[
@@ -754,7 +754,7 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
                                                         handleRoadFieldChange(
                                                             e.target.value,
                                                             roadIdx,
-                                                            "maintained_by"
+                                                            "maintained_by",
                                                         )
                                                     }
                                                     placeholder="e.g. Barangay Government"

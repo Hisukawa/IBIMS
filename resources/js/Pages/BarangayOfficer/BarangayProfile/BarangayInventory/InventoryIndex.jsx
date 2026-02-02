@@ -78,17 +78,17 @@ const InventoryIndex = ({
     useEffect(() => {
         localStorage.setItem(
             "inventory_visible_columns",
-            JSON.stringify(visibleColumns)
+            JSON.stringify(visibleColumns),
         );
     }, [visibleColumns]);
 
     const hasActiveFilter = Object.entries(queryParams || {}).some(
         ([key, value]) =>
             ["inventory_status", "item_category", "date_recieved"].includes(
-                key
+                key,
             ) &&
             value &&
-            value !== ""
+            value !== "",
     );
     useEffect(() => {
         if (hasActiveFilter) {
@@ -272,7 +272,7 @@ const InventoryIndex = ({
 
         try {
             const response = await axios.get(
-                `${APP_URL}/inventory/details/${id}`
+                `${APP_URL}/inventory/details/${id}`,
             );
 
             const inventory = response.data.item;
@@ -366,7 +366,7 @@ const InventoryIndex = ({
     }, [error]);
     return (
         <AdminLayout>
-            <Head title="Barangay Infrastructure" />
+            <Head title="Barangay Inventories" />
             <BreadCrumbsHeader breadcrumbs={breadcrumbs} />
             <Toaster richColors />
             <div className="pt-4 mb-10">
@@ -420,7 +420,7 @@ const InventoryIndex = ({
                                             onKeyDown={(e) =>
                                                 onKeyPressed(
                                                     "name",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="ml-4"
@@ -446,7 +446,7 @@ const InventoryIndex = ({
                                             <ListPlus className="w-4 h-4" />
                                         </Button>
                                         <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                            Add an Institution
+                                            Add an Item
                                         </div>
                                     </div>
                                 </div>
@@ -520,7 +520,7 @@ const InventoryIndex = ({
                                                     handleInventoryFieldChange(
                                                         e.target.value,
                                                         invIdx,
-                                                        "item_name"
+                                                        "item_name",
                                                     )
                                                 }
                                                 placeholder="e.g. Rice, Medicine, Generator"
@@ -548,7 +548,7 @@ const InventoryIndex = ({
                                                     handleInventoryFieldChange(
                                                         e.target.value,
                                                         invIdx,
-                                                        "item_category"
+                                                        "item_category",
                                                     )
                                                 }
                                                 placeholder="Select category"
@@ -596,7 +596,7 @@ const InventoryIndex = ({
                                                     handleInventoryFieldChange(
                                                         e.target.value,
                                                         invIdx,
-                                                        "quantity"
+                                                        "quantity",
                                                     )
                                                 }
                                                 placeholder="Enter quantity"
@@ -621,7 +621,7 @@ const InventoryIndex = ({
                                                     handleInventoryFieldChange(
                                                         e.target.value,
                                                         invIdx,
-                                                        "unit"
+                                                        "unit",
                                                     )
                                                 }
                                                 placeholder="e.g. kg, pcs, box"
@@ -646,7 +646,7 @@ const InventoryIndex = ({
                                                     handleInventoryFieldChange(
                                                         e.target.value,
                                                         invIdx,
-                                                        "status"
+                                                        "status",
                                                     )
                                                 }
                                                 items={[
@@ -688,7 +688,7 @@ const InventoryIndex = ({
                                                     handleInventoryFieldChange(
                                                         e.target.value,
                                                         invIdx,
-                                                        "received_date"
+                                                        "received_date",
                                                     )
                                                 }
                                             />
@@ -712,7 +712,7 @@ const InventoryIndex = ({
                                                     handleInventoryFieldChange(
                                                         e.target.value,
                                                         invIdx,
-                                                        "supplier"
+                                                        "supplier",
                                                     )
                                                 }
                                                 placeholder="e.g. Local Distributor, DOH"

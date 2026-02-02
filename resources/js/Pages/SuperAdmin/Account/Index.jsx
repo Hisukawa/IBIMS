@@ -93,7 +93,7 @@ export default function Index({ accounts, queryParams, barangays }) {
         ([key, value]) =>
             ["session_status", "account_status"].includes(key) &&
             value &&
-            value !== ""
+            value !== "",
     );
     useEffect(() => {
         if (hasActiveFilter) {
@@ -109,7 +109,7 @@ export default function Index({ accounts, queryParams, barangays }) {
         accounts.data.reduce((acc, a) => {
             acc[a.id] = !a.is_disabled; // initial state
             return acc;
-        }, {})
+        }, {}),
     );
 
     const columnRenderers = {
@@ -195,7 +195,7 @@ export default function Index({ accounts, queryParams, barangays }) {
                                 {
                                     duration: 3000,
                                     closeButton: true,
-                                }
+                                },
                             );
                         }
                     })
@@ -286,7 +286,7 @@ export default function Index({ accounts, queryParams, barangays }) {
     useEffect(() => {
         localStorage.setItem(
             "accounts_visible_columns",
-            JSON.stringify(visibleColumns)
+            JSON.stringify(visibleColumns),
         );
     }, [visibleColumns]);
     const barangaysList = barangays.map((b) => ({
@@ -295,7 +295,7 @@ export default function Index({ accounts, queryParams, barangays }) {
     }));
     const handleBarangayChange = (value) => {
         const selectedBarangay = barangaysList.find(
-            (b) => b.value.toString() == value.target.value
+            (b) => b.value.toString() == value.target.value,
         );
 
         if (selectedBarangay) {
@@ -327,7 +327,7 @@ export default function Index({ accounts, queryParams, barangays }) {
     const handleEdit = async (accountId) => {
         try {
             const res = await axios.get(
-                `${APP_URL}/super_admin/details/${accountId}`
+                `${APP_URL}/super_admin/details/${accountId}`,
             );
             console.log(res);
             const account = res.data;
@@ -361,7 +361,7 @@ export default function Index({ accounts, queryParams, barangays }) {
         post(route("super_admin.account.update", data.account_id), {
             onError: (errors) => {
                 const errorList = Object.values(errors).map(
-                    (msg, i) => `<div key=${i}>${msg}</div>`
+                    (msg, i) => `<div key=${i}>${msg}</div>`,
                 );
 
                 toast.error("Validation Error", {
@@ -482,7 +482,7 @@ export default function Index({ accounts, queryParams, barangays }) {
                                             onKeyDown={(e) =>
                                                 onKeyPressed(
                                                     "name",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="w-full"
@@ -627,7 +627,7 @@ export default function Index({ accounts, queryParams, barangays }) {
                                             onChange={(e) =>
                                                 setData(
                                                     "username",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                         />
@@ -666,7 +666,7 @@ export default function Index({ accounts, queryParams, barangays }) {
                                                     onChange={(e) =>
                                                         setData(
                                                             "password",
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                 />
@@ -681,7 +681,7 @@ export default function Index({ accounts, queryParams, barangays }) {
                                                     onChange={(e) =>
                                                         setData(
                                                             "password_confirmation",
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                 />

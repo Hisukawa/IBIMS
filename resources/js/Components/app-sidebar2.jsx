@@ -262,7 +262,7 @@ export function AppSidebar({ auth }) {
             roles: ["cdrrmo_admin"],
         },
         {
-            title: "Super Admin Dashboard",
+            title: "City Admin Dashboard",
             url: "/super_admin/dashboard",
             icon: LayoutDashboard,
             roles: ["super_admin"],
