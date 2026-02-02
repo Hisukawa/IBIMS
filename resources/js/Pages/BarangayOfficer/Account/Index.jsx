@@ -108,7 +108,7 @@ export default function Index({ accounts, queryParams, residents }) {
         ([key, value]) =>
             ["session_status", "account_status"].includes(key) &&
             value &&
-            value !== ""
+            value !== "",
     );
     useEffect(() => {
         if (hasActiveFilter) {
@@ -124,7 +124,7 @@ export default function Index({ accounts, queryParams, residents }) {
         accounts.data.reduce((acc, a) => {
             acc[a.id] = !a.is_disabled; // initial state
             return acc;
-        }, {})
+        }, {}),
     );
 
     const columnRenderers = {
@@ -161,8 +161,8 @@ export default function Index({ accounts, queryParams, residents }) {
                     row.role === "barangay_officer"
                         ? "text-indigo-600"
                         : row.role === "resident"
-                        ? "text-green-600"
-                        : "text-gray-400"
+                          ? "text-green-600"
+                          : "text-gray-400"
                 }`}
             >
                 {ACCOUNT_ROLE_TEXT[row.role] ?? "—"}
@@ -228,7 +228,7 @@ export default function Index({ accounts, queryParams, residents }) {
                                 {
                                     duration: 3000,
                                     closeButton: true,
-                                }
+                                },
                             );
                         }
                     })
@@ -325,7 +325,7 @@ export default function Index({ accounts, queryParams, residents }) {
     useEffect(() => {
         localStorage.setItem(
             "accounts_visible_columns",
-            JSON.stringify(visibleColumns)
+            JSON.stringify(visibleColumns),
         );
     }, [visibleColumns]);
 
@@ -355,7 +355,7 @@ export default function Index({ accounts, queryParams, residents }) {
             },
             onError: (errors) => {
                 const errorList = Object.values(errors).map(
-                    (msg, i) => `<div key=${i}> ${msg}</div>`
+                    (msg, i) => `<div key=${i}> ${msg}</div>`,
                 );
 
                 toast.error("Validation Error", {
@@ -425,7 +425,7 @@ export default function Index({ accounts, queryParams, residents }) {
             },
             onError: (errors) => {
                 const errorList = Object.values(errors).map(
-                    (msg, i) => `<div key=${i}>${msg}</div>`
+                    (msg, i) => `<div key=${i}>${msg}</div>`,
                 );
 
                 toast.error("Validation Error", {
@@ -450,6 +450,15 @@ export default function Index({ accounts, queryParams, residents }) {
     const confirmDelete = () => {
         router.delete(route("user.destroy", recordToDelete));
         setIsDeleteModalOpen(false);
+        if (success) {
+            handleModalClose();
+            toast.success(success, {
+                description: "Operation successful!",
+                duration: 3000,
+                closeButton: true,
+            });
+        }
+        props.success = null;
     };
     const handlePrint = () => {
         window.print();
@@ -520,7 +529,7 @@ export default function Index({ accounts, queryParams, residents }) {
                                             onKeyDown={(e) =>
                                                 onKeyPressed(
                                                     "name",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="w-full"
@@ -726,7 +735,7 @@ export default function Index({ accounts, queryParams, residents }) {
                                                 onChange={(e) =>
                                                     setData(
                                                         "username",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                             />
@@ -762,7 +771,7 @@ export default function Index({ accounts, queryParams, residents }) {
                                                 onChange={(e) =>
                                                     setData(
                                                         "role",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 items={[
@@ -797,7 +806,7 @@ export default function Index({ accounts, queryParams, residents }) {
                                                     onChange={(e) =>
                                                         setData(
                                                             "password",
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                 />
@@ -820,7 +829,7 @@ export default function Index({ accounts, queryParams, residents }) {
                                                     onChange={(e) =>
                                                         setData(
                                                             "password_confirmation",
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                 />

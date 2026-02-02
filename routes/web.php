@@ -348,7 +348,7 @@ Route::middleware(['auth', 'role:barangay_officer'])->group(function () {
         ->name('barangay_officer.dashboard');
 });
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:admin|super_admin'])->group(function () {
     Route::get('/admin', function () {
         return redirect()->route('admin.dashboard');
     });
