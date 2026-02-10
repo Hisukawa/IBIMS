@@ -80,7 +80,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
     useEffect(() => {
         localStorage.setItem(
             "projects_visible_columns",
-            JSON.stringify(visibleColumns)
+            JSON.stringify(visibleColumns),
         );
     }, [visibleColumns]);
 
@@ -94,7 +94,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                 "end_date",
             ].includes(key) &&
             value &&
-            value !== ""
+            value !== "",
     );
     useEffect(() => {
         if (hasActiveFilter) {
@@ -307,7 +307,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
 
         try {
             const response = await axios.get(
-                `${APP_URL}/barangay_project/details/${id}`
+                `${APP_URL}/barangay_project/details/${id}`,
             );
 
             const project = response.data.project;
@@ -461,7 +461,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                             onKeyDown={(e) =>
                                                 onKeyPressed(
                                                     "name",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="ml-4"
@@ -554,8 +554,8 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                         {/* Title */}
                                         <div className="md:col-span-2 flex flex-col items-center space-y-2">
                                             <InputLabel
-                                                htmlFor={`facility_image_${projIdx}`}
-                                                value="Facility Photo"
+                                                htmlFor={`project_image_${projIdx}`}
+                                                value="Project Photo"
                                             />
 
                                             <img
@@ -568,7 +568,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                             />
 
                                             <input
-                                                id={`facility_image_${projIdx}`}
+                                                id={`project_image_${projIdx}`}
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={(e) => {
@@ -578,7 +578,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                                         handleProjectFieldChange(
                                                             file,
                                                             projIdx,
-                                                            "project_image"
+                                                            "project_image",
                                                         );
                                                     }
                                                 }}
@@ -608,7 +608,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                                         handleProjectFieldChange(
                                                             e.target.value,
                                                             projIdx,
-                                                            "title"
+                                                            "title",
                                                         )
                                                     }
                                                     placeholder="e.g. Barangay Health Center Construction"
@@ -635,7 +635,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                                         handleProjectFieldChange(
                                                             e.target.value,
                                                             projIdx,
-                                                            "category"
+                                                            "category",
                                                         )
                                                     }
                                                     placeholder="Select category"
@@ -684,7 +684,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                                     handleProjectFieldChange(
                                                         e.target.value,
                                                         projIdx,
-                                                        "description"
+                                                        "description",
                                                     )
                                                 }
                                                 className={"text-gray-600"}
@@ -709,7 +709,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                                     handleProjectFieldChange(
                                                         e.target.value,
                                                         projIdx,
-                                                        "status"
+                                                        "status",
                                                     )
                                                 }
                                                 items={[
@@ -754,7 +754,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                                     handleProjectFieldChange(
                                                         e.target.value,
                                                         projIdx,
-                                                        "responsible_institution"
+                                                        "responsible_institution",
                                                     )
                                                 }
                                                 placeholder="Enter institution"
@@ -781,7 +781,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                                     handleProjectFieldChange(
                                                         e.target.value,
                                                         projIdx,
-                                                        "budget"
+                                                        "budget",
                                                     )
                                                 }
                                                 placeholder="e.g. 500000"
@@ -808,7 +808,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                                     handleProjectFieldChange(
                                                         e.target.value,
                                                         projIdx,
-                                                        "funding_source"
+                                                        "funding_source",
                                                     )
                                                 }
                                                 placeholder="e.g. LGU, NGO, National Government"
@@ -834,7 +834,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                                     handleProjectFieldChange(
                                                         e.target.value,
                                                         projIdx,
-                                                        "start_date"
+                                                        "start_date",
                                                     )
                                                 }
                                             />
@@ -859,7 +859,7 @@ const ProjectIndex = ({ projects, institutions, categories, queryParams }) => {
                                                     handleProjectFieldChange(
                                                         e.target.value,
                                                         projIdx,
-                                                        "end_date"
+                                                        "end_date",
                                                     )
                                                 }
                                             />
