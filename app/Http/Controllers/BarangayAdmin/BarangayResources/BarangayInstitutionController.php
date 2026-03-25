@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\BarangayAdmin\BarangayResources;
 
 use App\Helpers\ActivityLogHelper;
+use App\Http\Controllers\Controller;
 use App\Models\BarangayInstitution;
 use App\Http\Requests\StoreBarangayInstitutionRequest;
 use App\Http\Requests\UpdateBarangayInstitutionRequest;
-use App\Models\BarangayInstitutionMember;
 use App\Models\Purok;
 use App\Models\Resident;
 use Illuminate\Support\Facades\DB;

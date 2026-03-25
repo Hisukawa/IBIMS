@@ -3,37 +3,30 @@ import DynamicTable from "@/Components/DynamicTable";
 import DynamicTableControls from "@/Components/FilterButtons/DynamicTableControls";
 import { Head, Link, router, useForm, usePage } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import axios from "axios";
 import useAppUrl from "@/hooks/useAppUrl";
-import { useQuery } from "@tanstack/react-query";
-import { Skeleton } from "@/Components/ui/skeleton";
 import {
     Home,
     ListPlus,
-    RotateCcw,
-    Search,
+    CalendarDays,
+    Map,
+    Route,
+    Ruler,
+    ShieldCheck,
     SquarePen,
     Trash2,
+    Wrench,
 } from "lucide-react";
 import ActionMenu from "@/Components/ActionMenu";
 import FilterToggle from "@/Components/FilterButtons/FillterToggle";
 import { ROAD_TYPE_TEXT } from "@/constants";
-import DropdownInputField from "@/Components/DropdownInputField";
-import InputError from "@/Components/InputError";
-import InputField from "@/Components/InputField";
-import SelectField from "@/Components/SelectField";
-import {
-    IoIosAddCircleOutline,
-    IoIosArrowForward,
-    IoIosCloseCircleOutline,
-} from "react-icons/io";
-import SidebarModal from "@/Components/SidebarModal";
 import { Toaster, toast } from "sonner";
 import DeleteConfirmationModal from "@/Components/DeleteConfirmationModal";
-import InputLabel from "@/Components/InputLabel";
 import AdminLayout from "@/Layouts/AdminLayout";
 import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
+import RoadSidebarModal from "./Partials/RoadSidebarModal";
+import PageHeader from "@/Components/PageHeader";
+import TableSearchBar from "@/Components/TableSearchBar";
 
 const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
     const breadcrumbs = [
@@ -96,10 +89,6 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
             JSON.stringify(visibleColumns),
         );
     }, [visibleColumns]);
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        searchFieldName("name", query);
-    };
     const searchFieldName = (field, value) => {
         if (value && value.trim() !== "") {
             queryParams[field] = value;
@@ -112,125 +101,162 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
         }
         router.get(route("barangay_road.index", queryParams));
     };
-    const onKeyPressed = (field, e) => {
-        if (e.key === "Enter") {
-            searchFieldName(field, e.target.value);
-        }
+
+    const formatDateTime = (value) => {
+        if (!value) return "—";
+
+        return new Date(value).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
+
+    const conditionStyles = {
+        good: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        fair: "bg-amber-50 text-amber-700 border-amber-200",
+        poor: "bg-red-50 text-red-700 border-red-200",
+        under_construction: "bg-blue-50 text-blue-700 border-blue-200",
+        impassable: "bg-slate-100 text-slate-700 border-slate-200",
+    };
+
+    const statusStyles = {
+        active: "bg-blue-50 text-blue-700 border-blue-200",
+        under_maintenance: "bg-orange-50 text-orange-700 border-orange-200",
+        closed: "bg-slate-100 text-slate-700 border-slate-200",
+        inactive: "bg-slate-100 text-slate-700 border-slate-200",
+    };
+
+    const formatLabel = (value) => {
+        if (!value) return "—";
+
+        return value
+            .toString()
+            .replaceAll("_", " ")
+            .replace(/\b\w/g, (char) => char.toUpperCase());
     };
 
     const columnRenderers = {
-        id: (row) => row.id,
+        id: (row) => (
+            <div className="flex items-center">
+                <span className="inline-flex min-w-[42px] items-center justify-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                    #{row.id}
+                </span>
+            </div>
+        ),
+
         image: (row) => (
-            <img
-                src={
-                    row.road_image
-                        ? `/storage/${row.road_image}`
-                        : "/images/default-avatar.jpg"
-                }
-                onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "/images/default-avatar.jpg";
-                }}
-                alt="Resident"
-                className="w-16 h-16 min-w-16 min-h-16 object-cover rounded-sm border"
-            />
+            <div className="flex items-center justify-center py-1">
+                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                    <img
+                        src={
+                            row.road_image
+                                ? `/storage/${row.road_image}`
+                                : "/images/default-avatar.jpg"
+                        }
+                        onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "/images/default-avatar.jpg";
+                        }}
+                        alt={row.road_type || "Road"}
+                        className="h-full w-full object-cover"
+                    />
+                </div>
+            </div>
         ),
 
         road_type: (row) => (
-            <span className="font-medium text-gray-900">
-                {ROAD_TYPE_TEXT[row.road_type] || "—"}
-            </span>
+            <div className="min-w-0 space-y-1">
+                <div className="truncate text-sm font-semibold text-slate-900">
+                    {ROAD_TYPE_TEXT[row.road_type] || "—"}
+                </div>
+            </div>
         ),
 
         maintained_by: (row) => (
-            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md text-xs font-medium capitalize">
-                {row.maintained_by || "—"}
-            </span>
+            <div className="min-w-0 space-y-1">
+                <div className="truncate text-sm font-medium text-slate-800">
+                    {row.maintained_by || "—"}
+                </div>
+            </div>
         ),
 
         length: (row) => (
-            <span className="text-sm text-gray-700">
-                {row.length != null ? `${row.length} Km` : "—"}
+            <div className="flex items-center">
+                <div className="inline-flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1.5">
+                    <Ruler className="h-4 w-4 text-slate-500" />
+                    <span className="text-sm font-semibold text-slate-800">
+                        {row.length != null ? `${row.length} Km` : "—"}
+                    </span>
+                </div>
+            </div>
+        ),
+
+        condition: (row) => (
+            <span
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${
+                    conditionStyles[row.condition] ||
+                    "bg-slate-50 text-slate-700 border-slate-200"
+                }`}
+            >
+                <Map className="h-3.5 w-3.5" />
+                {formatLabel(row.condition)}
             </span>
         ),
-        condition: (row) => {
-            const colorMap = {
-                good: "bg-green-100 text-green-800",
-                fair: "bg-yellow-100 text-yellow-800",
-                poor: "bg-red-100 text-red-800",
-            };
 
-            return (
-                <span
-                    className={`px-2 py-0.5 rounded-md text-xs font-medium capitalize ${
-                        colorMap[row.condition] || "bg-gray-100 text-gray-600"
-                    }`}
-                >
-                    {row.condition || "—"}
-                </span>
-            );
-        },
-
-        status: (row) => {
-            const colorMap = {
-                active: "bg-blue-100 text-blue-800",
-                under_maintenance: "bg-orange-100 text-orange-800",
-                closed: "bg-gray-200 text-gray-700",
-            };
-
-            return (
-                <span
-                    className={`px-2 py-0.5 rounded-md text-xs font-medium capitalize ${
-                        colorMap[row.status] || "bg-gray-100 text-gray-600"
-                    }`}
-                >
-                    {row.status || "—"}
-                </span>
-            );
-        },
-        created_at: (row) => (
-            <span className="text-sm text-gray-500">
-                {row.created_at
-                    ? new Date(row.created_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                      })
-                    : "—"}
+        status: (row) => (
+            <span
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${
+                    statusStyles[row.status] ||
+                    "bg-slate-50 text-slate-700 border-slate-200"
+                }`}
+            >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                {formatLabel(row.status)}
             </span>
+        ),
+
+        created_at: (row) => (
+            <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                    <CalendarDays className="h-4 w-4 text-slate-400" />
+                    <span>{formatDateTime(row.created_at)}</span>
+                </div>
+                <div className="pl-5 text-xs text-slate-500">Created</div>
+            </div>
         ),
 
         updated_at: (row) => (
-            <span className="text-sm text-gray-500">
-                {row.updated_at
-                    ? new Date(row.updated_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                      })
-                    : "—"}
-            </span>
+            <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                    <CalendarDays className="h-4 w-4 text-slate-400" />
+                    <span>{formatDateTime(row.updated_at)}</span>
+                </div>
+                <div className="pl-5 text-xs text-slate-500">Last Updated</div>
+            </div>
         ),
 
         actions: (row) => (
-            <ActionMenu
-                actions={[
-                    {
-                        label: "Edit",
-                        icon: <SquarePen className="w-4 h-4 text-green-500" />,
-                        onClick: () => handleEdit(row.id),
-                    },
-                    {
-                        label: "Delete",
-                        icon: <Trash2 className="w-4 h-4 text-red-600" />,
-                        onClick: () => handleDeleteClick(row.id),
-                    },
-                ]}
-            />
+            <div className="flex items-center justify-center">
+                <ActionMenu
+                    actions={[
+                        {
+                            label: "Edit",
+                            icon: (
+                                <SquarePen className="h-4 w-4 text-emerald-500" />
+                            ),
+                            onClick: () => handleEdit(row.id),
+                        },
+                        {
+                            label: "Delete",
+                            icon: <Trash2 className="h-4 w-4 text-red-500" />,
+                            onClick: () => handleDeleteClick(row.id),
+                        },
+                    ]}
+                />
+            </div>
         ),
     };
 
@@ -403,26 +429,26 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
             <div className="pt-4 mb-10">
                 <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
                     <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
+                        {/* Header */}
+                        <PageHeader
+                            title="Barangay Roads Overview"
+                            description="Review, filter, and manage existing barangay roads efficiently. Keep track of road types, conditions, and maintenance details."
+                            icon={Home}
+                            iconWrapperClassName="bg-indigo-100 text-indigo-600 rounded-full"
+                            containerClassName="bg-gray-50 border-transparent shadow-sm"
+                            titleClassName="text-gray-900"
+                            descriptionClassName="text-gray-500"
+                            actions={
+                                <Button
+                                    onClick={handleAddRoad}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                >
+                                    <ListPlus className="mr-2 h-4 w-4" />
+                                    Add Road
+                                </Button>
+                            }
+                        />
                         <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
-                            {/* Header */}
-                            <div className="mb-6">
-                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl shadow-sm">
-                                    <div className="p-2 bg-indigo-100 rounded-full">
-                                        <Home className="w-6 h-6 text-indigo-600" />
-                                    </div>
-                                    <div>
-                                        <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
-                                            Barangay Roads Overview
-                                        </h1>
-                                        <p className="text-sm text-gray-500">
-                                            Review, filter, and manage existing
-                                            barangay roads efficiently. Keep
-                                            track of road types, conditions, and
-                                            maintenance details.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
                             <div className="flex flex-wrap items-start justify-between gap-2 w-full mb-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                     <DynamicTableControls
@@ -436,49 +462,13 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
                                     />
                                 </div>
                                 <div className="flex items-center gap-2 flex-wrap justify-end">
-                                    <form
-                                        onSubmit={handleSubmit}
-                                        className="flex w-[300px] max-w-lg items-center space-x-1"
-                                    >
-                                        <Input
-                                            type="text"
-                                            placeholder="Search road lengths"
-                                            value={query}
-                                            onChange={(e) =>
-                                                setQuery(e.target.value)
-                                            }
-                                            onKeyDown={(e) =>
-                                                onKeyPressed(
-                                                    "name",
-                                                    e.target.value,
-                                                )
-                                            }
-                                            className="ml-4"
-                                        />
-                                        <Button
-                                            type="submit"
-                                            className="border active:bg-blue-900 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white flex items-center gap-2 bg-transparent"
-                                            variant="outline"
-                                        >
-                                            <Search />
-                                        </Button>
-                                        <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                            Search
-                                        </div>
-                                    </form>
-
-                                    <div className="relative group z-50">
-                                        <Button
-                                            variant="outline"
-                                            className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
-                                            onClick={handleAddRoad}
-                                        >
-                                            <ListPlus className="w-4 h-4" />
-                                        </Button>
-                                        <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                            Add a Road
-                                        </div>
-                                    </div>
+                                    <TableSearchBar
+                                        url="barangay_road.index"
+                                        queryParams={queryParams}
+                                        field="name"
+                                        label="Search Roads"
+                                        placeholder="Search road lengths"
+                                    />
                                 </div>
                             </div>
                             {showFilters && (
@@ -509,317 +499,20 @@ const BarangayRoads = ({ roads, types, maintains, queryParams }) => {
                             />
                         </div>
                     </div>
-                    <SidebarModal
+                    <RoadSidebarModal
                         isOpen={isModalOpen}
-                        onClose={() => {
-                            handleModalClose();
-                        }}
-                        title={modalState == "add" ? "Add Road" : "Edit Road"}
-                    >
-                        <form
-                            className="bg-gray-50 p-4 rounded-lg"
-                            onSubmit={
-                                roadDetails
-                                    ? handleUpdateRoad
-                                    : handleSubmitRoad
-                            }
-                        >
-                            <h3 className="text-2xl font-medium text-gray-700">
-                                Barangay Roads
-                            </h3>
-                            <p className="text-sm text-gray-500 mb-8">
-                                Please provide details about roads within the
-                                barangay.
-                            </p>
-
-                            {Array.isArray(data.roads) &&
-                                data.roads.map((road, roadIdx) => (
-                                    <div
-                                        key={roadIdx}
-                                        className="border p-4 mb-4 rounded-md relative bg-gray-50"
-                                    >
-                                        <div className="grid grid-cols-1 md:grid-cols-6 mb-6 gap-4">
-                                            <div className="md:col-span-2 flex flex-col items-center space-y-2">
-                                                <InputLabel
-                                                    htmlFor={`facility_image_${roadIdx}`}
-                                                    value="Road Image"
-                                                />
-
-                                                <img
-                                                    src={
-                                                        road.previewImage ||
-                                                        "/images/default-avatar.jpg"
-                                                    }
-                                                    alt="Road Image"
-                                                    className="w-32 h-32 object-cover rounded-sm border border-gray-200"
-                                                />
-
-                                                <input
-                                                    id={`facility_image_${roadIdx}`}
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={(e) => {
-                                                        const file =
-                                                            e.target.files[0];
-                                                        if (file) {
-                                                            handleRoadFieldChange(
-                                                                file,
-                                                                roadIdx,
-                                                                "road_image",
-                                                            );
-                                                        }
-                                                    }}
-                                                    className="block w-full text-sm text-gray-500
-                                                                                                                                    file:mr-2 file:py-1 file:px-3
-                                                                                                                                    file:rounded file:border-0
-                                                                                                                                    file:text-xs file:font-semibold
-                                                                                                                                    file:bg-blue-50 file:text-blue-700
-                                                                                                                                    hover:file:bg-blue-100"
-                                                />
-                                                <InputError
-                                                    message={
-                                                        errors[
-                                                            `roads.${roadIdx}.road_image`
-                                                        ]
-                                                    }
-                                                    className="mt-2"
-                                                />
-                                            </div>
-                                            <div className="md:col-span-4 space-y-4">
-                                                {/* Road Type */}
-                                                <div className="md:col-span-3">
-                                                    <DropdownInputField
-                                                        label="Road Type"
-                                                        name="road_type"
-                                                        value={
-                                                            road.road_type || ""
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleRoadFieldChange(
-                                                                e.target.value,
-                                                                roadIdx,
-                                                                "road_type",
-                                                            )
-                                                        }
-                                                        placeholder="Select road type"
-                                                        items={[
-                                                            {
-                                                                label: "Asphalt",
-                                                                value: "asphalt",
-                                                            },
-                                                            {
-                                                                label: "Concrete",
-                                                                value: "concrete",
-                                                            },
-                                                            {
-                                                                label: "Gravel",
-                                                                value: "gravel",
-                                                            },
-                                                            {
-                                                                label: "Natural Earth Surface",
-                                                                value: "natural_earth_surface",
-                                                            },
-                                                        ]}
-                                                    />
-                                                    <InputError
-                                                        message={
-                                                            errors[
-                                                                `roads.${roadIdx}.road_type`
-                                                            ]
-                                                        }
-                                                        className="mt-1"
-                                                    />
-                                                </div>
-
-                                                {/* Length */}
-                                                <div className="md:col-span-3">
-                                                    <InputField
-                                                        label="Length (km)"
-                                                        name="length"
-                                                        type="number"
-                                                        step="0.01"
-                                                        value={
-                                                            road.length || ""
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleRoadFieldChange(
-                                                                e.target.value,
-                                                                roadIdx,
-                                                                "length",
-                                                            )
-                                                        }
-                                                        placeholder="e.g. 2.50"
-                                                    />
-                                                    <InputError
-                                                        message={
-                                                            errors[
-                                                                `roads.${roadIdx}.length`
-                                                            ]
-                                                        }
-                                                        className="mt-1"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Condition */}
-                                            <div className="md:col-span-3">
-                                                <DropdownInputField
-                                                    label="Condition"
-                                                    name="condition"
-                                                    value={road.condition || ""}
-                                                    onChange={(e) =>
-                                                        handleRoadFieldChange(
-                                                            e.target.value,
-                                                            roadIdx,
-                                                            "condition",
-                                                        )
-                                                    }
-                                                    placeholder="Select condition"
-                                                    items={[
-                                                        {
-                                                            label: "Good",
-                                                            value: "good",
-                                                        },
-                                                        {
-                                                            label: "Fair",
-                                                            value: "fair",
-                                                        },
-                                                        {
-                                                            label: "Poor",
-                                                            value: "poor",
-                                                        },
-                                                        {
-                                                            label: "Under Construction",
-                                                            value: "under_construction",
-                                                        },
-                                                        {
-                                                            label: "Impassable",
-                                                            value: "impassable",
-                                                        },
-                                                    ]}
-                                                />
-                                                <InputError
-                                                    message={
-                                                        errors[
-                                                            `roads.${roadIdx}.condition`
-                                                        ]
-                                                    }
-                                                    className="mt-1"
-                                                />
-                                            </div>
-
-                                            {/* Status */}
-                                            <div className="md:col-span-3">
-                                                <SelectField
-                                                    label="Status"
-                                                    name="status"
-                                                    value={road.status || ""}
-                                                    onChange={(e) =>
-                                                        handleRoadFieldChange(
-                                                            e.target.value,
-                                                            roadIdx,
-                                                            "status",
-                                                        )
-                                                    }
-                                                    items={[
-                                                        {
-                                                            label: "Active",
-                                                            value: "active",
-                                                        },
-                                                        {
-                                                            label: "Inactive",
-                                                            value: "inactive",
-                                                        },
-                                                    ]}
-                                                />
-                                                <InputError
-                                                    message={
-                                                        errors[
-                                                            `roads.${roadIdx}.status`
-                                                        ]
-                                                    }
-                                                    className="mt-1"
-                                                />
-                                            </div>
-
-                                            {/* Maintained By */}
-                                            <div className="md:col-span-6">
-                                                <InputField
-                                                    label="Maintained By"
-                                                    name="maintained_by"
-                                                    value={
-                                                        road.maintained_by || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleRoadFieldChange(
-                                                            e.target.value,
-                                                            roadIdx,
-                                                            "maintained_by",
-                                                        )
-                                                    }
-                                                    placeholder="e.g. Barangay Government"
-                                                />
-                                                <InputError
-                                                    message={
-                                                        errors[
-                                                            `roads.${roadIdx}.maintained_by`
-                                                        ]
-                                                    }
-                                                    className="mt-1"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Remove button */}
-                                        {roadDetails === null && (
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    removeRoad(roadIdx)
-                                                }
-                                                className="absolute top-1 right-2 flex items-center gap-1 text-sm text-red-400 hover:text-red-800 font-medium mt-1 mb-5 transition-colors duration-200"
-                                            >
-                                                <IoIosCloseCircleOutline className="text-2xl" />
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
-
-                            {/* Add / Submit */}
-                            <div className="flex justify-between items-center p-3">
-                                {roadDetails === null ? (
-                                    <button
-                                        type="button"
-                                        onClick={addRoad}
-                                        className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium mt-4 transition-colors duration-200"
-                                    >
-                                        <IoIosAddCircleOutline className="text-2xl" />
-                                        <span>Add Road</span>
-                                    </button>
-                                ) : (
-                                    <div></div>
-                                )}
-
-                                <div className="flex justify-end items-center text-end mt-5 gap-4">
-                                    {roadDetails == null && (
-                                        <Button
-                                            type="button"
-                                            onClick={() => reset()}
-                                        >
-                                            <RotateCcw /> Reset
-                                        </Button>
-                                    )}
-                                    <Button
-                                        className="bg-blue-700 hover:bg-blue-400"
-                                        type="submit"
-                                    >
-                                        {roadDetails ? "Update" : "Add"}{" "}
-                                        <IoIosArrowForward />
-                                    </Button>
-                                </div>
-                            </div>
-                        </form>
-                    </SidebarModal>{" "}
+                        onClose={handleModalClose}
+                        modalState={modalState}
+                        roadDetails={roadDetails}
+                        data={data}
+                        errors={errors}
+                        handleSubmitRoad={handleSubmitRoad}
+                        handleUpdateRoad={handleUpdateRoad}
+                        handleRoadFieldChange={handleRoadFieldChange}
+                        removeRoad={removeRoad}
+                        addRoad={addRoad}
+                        reset={reset}
+                    />
                     <DeleteConfirmationModal
                         isOpen={isDeleteModalOpen}
                         onClose={() => {

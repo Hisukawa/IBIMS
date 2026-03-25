@@ -4,31 +4,20 @@ import { Head, router, useForm, usePage } from "@inertiajs/react";
 import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
 import OfficialCard from "@/Components/OfficialCards";
 import { BARANGAY_OFFICIAL_POSITIONS_TEXT } from "@/constants";
-import SidebarModal from "@/Components/SidebarModal";
-import PersonDetailContent from "@/Components/SidebarModalContents/PersonDetailContent";
 import axios from "axios";
 import useAppUrl from "@/hooks/useAppUrl";
-import FloatingAddButton from "@/Components/AddOfficalCard";
 import Modal from "@/Components/Modal2";
-import AddOfficialForm from "./AddOfficialForm";
-import EditOfficialForm from "./EditOfficialForm";
+import EditOfficialForm from "./Partials/EditOfficialForm";
 import useResidentChangeHandler from "@/hooks/handleResidentChange";
-import DropdownInputField from "@/Components/DropdownInputField";
 import SelectField from "@/Components/SelectField";
-import YearDropdown from "@/Components/YearDropdown";
-import InputField from "@/Components/InputField";
-import InputLabel from "@/Components/InputLabel";
-import { Textarea } from "@/Components/ui/textarea";
 import { Toaster, toast } from "sonner";
-import InputError from "@/Components/InputError";
-import { IoIosAddCircleOutline, IoIosCloseCircleOutline } from "react-icons/io";
-import { useQuery } from "@tanstack/react-query";
 import { Home, Plus, SquarePen, TableIcon, Trash2 } from "lucide-react";
 import DynamicTable from "@/Components/DynamicTable";
 import ActionMenu from "@/Components/ActionMenu";
 import { Switch } from "@/components/ui/switch"; // adjust path
 import DeleteConfirmationModal from "@/Components/DeleteConfirmationModal";
 import { Button } from "@/Components/ui/button";
+import BarangayOfficialSidebarModal from "./Partials/BarangayOfficialSidebarModal";
 
 const BarangayOfficials = ({
     officials,
@@ -58,7 +47,7 @@ const BarangayOfficials = ({
         officials.reduce((acc, official) => {
             acc[official.id] = official.status === "active"; // true if active, false if inactive
             return acc;
-        }, {})
+        }, {}),
     );
 
     const props = usePage().props;
@@ -117,7 +106,7 @@ const BarangayOfficials = ({
     const handleView = async (residentId) => {
         try {
             const response = await axios.get(
-                `${APP_URL}/resident/showresident/${residentId}`
+                `${APP_URL}/resident/showresident/${residentId}`,
             );
             setSelectedResident(response.data.resident);
             setIsModalOpen(true);
@@ -177,7 +166,7 @@ const BarangayOfficials = ({
     const handleEdit = async (id) => {
         try {
             const response = await axios.get(
-                `${APP_URL}/barangay_official/officialsinfo/${id}`
+                `${APP_URL}/barangay_official/officialsinfo/${id}`,
             );
             const official = response.data.official;
 
@@ -190,7 +179,7 @@ const BarangayOfficials = ({
                     official.resident.middlename
                 } ${official.resident.lastname} ${
                     official.resident.suffix ?? ""
-                }`
+                }`,
             );
             setData("contact_number", official.resident.contact_number || "");
             setData("email", official.resident.email || "");
@@ -201,15 +190,15 @@ const BarangayOfficials = ({
                     designation: d.purok_id || "",
                     term_start: d.started_at || "",
                     term_end: d.ended_at || "",
-                }))
+                })),
             );
             setData(
                 "term",
-                official.term.id ? official.term.id.toString() : ""
+                official.term.id ? official.term.id.toString() : "",
             );
             setData(
                 "resident_image",
-                official.resident.resident_picture_path || ""
+                official.resident.resident_picture_path || "",
             );
             setData("appointment_type", official.appointment_type || "");
             if (official.appointment_type === "appointed") {
@@ -217,11 +206,11 @@ const BarangayOfficials = ({
                     "appointted_by",
                     official.appointted_by
                         ? official.appointted_by.toString()
-                        : ""
+                        : "",
                 );
                 setData(
                     "appointment_reason",
-                    official.appointment_reason || ""
+                    official.appointment_reason || "",
                 );
                 setData("remarks", official.remarks || "");
             } else {
@@ -239,7 +228,7 @@ const BarangayOfficials = ({
     };
 
     const officialPositionsList = Object.entries(
-        BARANGAY_OFFICIAL_POSITIONS_TEXT
+        BARANGAY_OFFICIAL_POSITIONS_TEXT,
     ).map(([key, label]) => ({
         label: label,
         value: key.toString(),
@@ -409,7 +398,7 @@ const BarangayOfficials = ({
                             {
                                 duration: 3000,
                                 closeButton: true,
-                            }
+                            },
                         );
                     })
                     .catch(() => {
@@ -555,7 +544,7 @@ const BarangayOfficials = ({
                                             onChange={(e) => {
                                                 searchFieldName(
                                                     "term",
-                                                    e.target.value
+                                                    e.target.value,
                                                 );
                                                 setSelectedTerm(e.target.value);
                                             }}
@@ -640,17 +629,17 @@ const BarangayOfficials = ({
                                                                                 handleView(
                                                                                     official
                                                                                         .resident
-                                                                                        .id
+                                                                                        .id,
                                                                                 )
                                                                             }
                                                                             onEdit={() =>
                                                                                 handleEdit(
-                                                                                    official.id
+                                                                                    official.id,
                                                                                 )
                                                                             }
                                                                             onDelete={() =>
                                                                                 handleDeleteClick(
-                                                                                    official.id
+                                                                                    official.id,
                                                                                 )
                                                                             }
                                                                             name={`${
@@ -663,7 +652,7 @@ const BarangayOfficials = ({
                                                                                     .middlename
                                                                                     ? official.resident.middlename
                                                                                           .charAt(
-                                                                                              0
+                                                                                              0,
                                                                                           )
                                                                                           .toUpperCase() +
                                                                                       "."
@@ -711,7 +700,7 @@ const BarangayOfficials = ({
                                                                             }
                                                                         />
                                                                     </div>
-                                                                )
+                                                                ),
                                                             )}
                                                         </div>
                                                     ) : (
@@ -726,7 +715,7 @@ const BarangayOfficials = ({
                                                     )}
                                                 </div>
                                             );
-                                        }
+                                        },
                                     )}
                             </div>
                             <div className="bg-white rounded-2xl shadow-md overflow-hidden">
@@ -777,527 +766,30 @@ const BarangayOfficials = ({
                     </div>
                 </div>
 
-                {/* Sidebar Modal for Resident Details */}
-                <SidebarModal
-                    isOpen={isModalOpen}
-                    onClose={() => handleModalClose()}
-                    title={
-                        selectedResident
-                            ? "Resident Details"
-                            : selectedOfficial
-                            ? "Edit Official"
-                            : "Add Official"
-                    }
-                >
-                    {selectedResident && (
-                        <PersonDetailContent person={selectedResident} />
-                    )}
-                    {isAddModalOpen && (
-                        <form
-                            onSubmit={
-                                selectedOfficial ? onEditSubmit : onAddSubmit
-                            }
-                            className="bg-gray-50 p-4 rounded-lg"
-                        >
-                            <h3 className="text-2xl font-medium text-gray-700">
-                                Barangay Officials Information
-                            </h3>
-                            <p className="text-sm text-gray-500 mb-8">
-                                Please provide details about the elected and
-                                appointed officials serving in the barangay,
-                                including their positions, terms, and
-                                responsibilities.
-                            </p>
-                            {/* Image and Name + Position */}
-                            <div className="flex gap-4 items-center">
-                                {/* Image Upload */}
-                                <div className="flex flex-col  items-center">
-                                    <div className="flex flex-col items-center space-y-2">
-                                        <InputLabel
-                                            htmlFor="resident_image"
-                                            value="Resident Photo"
-                                        />
-
-                                        <img
-                                            src={
-                                                data.resident_image instanceof
-                                                File
-                                                    ? URL.createObjectURL(
-                                                          data.resident_image
-                                                      )
-                                                    : data.resident_image
-                                                    ? `/storage/${data.resident_image}`
-                                                    : "/images/default-avatar.jpg"
-                                            }
-                                            alt="Resident Image"
-                                            className="w-64 h-64 object-cover rounded-full border border-gray-200"
-                                        />
-
-                                        {/* <input
-                                        id="resident_image"
-                                        type="file"
-                                        name="resident_image"
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                            const file = e.target.files[0];
-                                            if (file) {
-                                                setData("resident_image", file);
-                                            }
-                                        }}
-                                        className="block w-full text-sm text-gray-500
-                                                    file:mr-2 file:py-1 file:px-3
-                                                    file:rounded file:border-0
-                                                    file:text-xs file:font-semibold
-                                                    file:bg-blue-50 file:text-blue-700
-                                                    hover:file:bg-blue-100"
-                                    /> */}
-                                    </div>
-                                    <InputError
-                                        message={errors.resident_image}
-                                        className="mt-2"
-                                    />
-                                </div>
-
-                                {/* Name & Position */}
-                                <div className="flex flex-col gap-4 flex-1">
-                                    <div>
-                                        <label
-                                            className="block text-sm font-medium mb-1"
-                                            htmlFor="resident_name"
-                                        >
-                                            Full Name
-                                        </label>
-                                        <DropdownInputField
-                                            id="resident_name"
-                                            name="resident_name"
-                                            placeholder="Enter full name"
-                                            value={data.resident_name || ""}
-                                            onChange={(e) =>
-                                                handleResidentChange(e)
-                                            }
-                                            items={residentsList}
-                                        />
-                                        <InputError
-                                            message={errors.resident_id}
-                                            className="mt-2"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label
-                                            className="block text-sm font-medium mb-1"
-                                            htmlFor="position"
-                                        >
-                                            Position
-                                        </label>
-                                        <SelectField
-                                            id="position"
-                                            name="position"
-                                            value={data.position}
-                                            onChange={handleChange}
-                                            items={officialPositionsList}
-                                        >
-                                            <option value="" disabled>
-                                                Select barangay position
-                                            </option>
-                                        </SelectField>
-                                        <InputError
-                                            message={errors.position}
-                                            className="mt-2"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Phone Number / Email */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label
-                                        className="block text-sm font-medium"
-                                        htmlFor="designation"
-                                    >
-                                        Phone Number
-                                    </label>
-                                    <InputField
-                                        id="contact_number"
-                                        name="contact_number"
-                                        type="text"
-                                        placeholder="09XXXXXXXXX"
-                                        value={data.contact_number || ""}
-                                        onChange={handleChange}
-                                        disabled
-                                    />
-                                    <InputError
-                                        message={errors.contact_number}
-                                        className="mt-2"
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        className="block text-sm font-medium"
-                                        htmlFor="designation"
-                                    >
-                                        Email
-                                    </label>
-                                    <InputField
-                                        id="email"
-                                        name="email"
-                                        type="email"
-                                        placeholder="test@gmail.com"
-                                        value={data.email || ""}
-                                        onChange={handleChange}
-                                        disabled
-                                    />
-                                    <InputError
-                                        message={errors.email}
-                                        className="mt-2"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Term Start / Term End */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {/* Official Term */}
-                                <div>
-                                    <label
-                                        className="block text-sm font-medium mb-1"
-                                        htmlFor="term"
-                                    >
-                                        Official Term
-                                    </label>
-                                    <SelectField
-                                        id="term"
-                                        name="term"
-                                        placeholder="Select term of official"
-                                        value={data.term || ""}
-                                        onChange={handleChange}
-                                        items={active_terms}
-                                    />
-                                    <InputError
-                                        message={errors.term}
-                                        className="mt-2"
-                                    />
-                                </div>
-
-                                {/* Appointment Type */}
-                                <div>
-                                    <label
-                                        className="block text-sm font-medium mb-1"
-                                        htmlFor="appointment_type"
-                                    >
-                                        Appointment Type
-                                    </label>
-                                    <SelectField
-                                        id="appointment_type"
-                                        name="appointment_type"
-                                        value={data.appointment_type || ""}
-                                        onChange={handleChange}
-                                        items={[
-                                            {
-                                                label: "Elected",
-                                                value: "elected",
-                                            },
-                                            {
-                                                label: "Appointed",
-                                                value: "appointed",
-                                            },
-                                            {
-                                                label: "Succession",
-                                                value: "succession",
-                                            },
-                                        ]}
-                                    />
-                                    <InputError
-                                        message={errors.appointment_type}
-                                        className="mt-2"
-                                    />
-                                </div>
-
-                                {/* Toggle for New Term — span both columns */}
-                                <div className="flex items-center space-x-2 mt-4 col-span-2">
-                                    <Switch
-                                        checked={showNewTermToggle}
-                                        onCheckedChange={setShowNewTermToggle}
-                                    />
-                                    <span className="text-sm text-gray-700">
-                                        {showNewTermToggle
-                                            ? "Hide New Term"
-                                            : "Add New Term (Not Found)"}
-                                    </span>
-                                </div>
-
-                                {/* Collapsible New Term Section — span both columns */}
-                                <div
-                                    className={`transition-all duration-300 overflow-hidden col-span-2 ${
-                                        showNewTermToggle
-                                            ? "max-h-96 opacity-100 mt-4"
-                                            : "max-h-0 opacity-0"
-                                    }`}
-                                >
-                                    <div className="bg-gray-50 p-6 rounded-lg space-y-6">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            {/* Start Year */}
-                                            <div className="flex flex-col">
-                                                <InputField
-                                                    type="number"
-                                                    label="Start Year"
-                                                    name="new_term_start"
-                                                    value={
-                                                        data.new_term_start ||
-                                                        ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        setData(
-                                                            "new_term_start",
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="e.g., 2024"
-                                                />
-                                                <InputError
-                                                    message={
-                                                        errors.new_term_start
-                                                    }
-                                                    className="mt-1"
-                                                />
-                                            </div>
-
-                                            {/* End Year */}
-                                            <div className="flex flex-col">
-                                                <InputField
-                                                    type="number"
-                                                    label="End Year"
-                                                    name="new_term_end"
-                                                    value={
-                                                        data.new_term_end || ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        setData(
-                                                            "new_term_end",
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    placeholder="e.g., 2027"
-                                                />
-                                                <InputError
-                                                    message={
-                                                        errors.new_term_end
-                                                    }
-                                                    className="mt-1"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <p className="text-xs text-gray-500">
-                                            Enter the years to create a new
-                                            barangay term. This will be saved
-                                            and selectable after submission.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {["barangay_kagawad", "sk_kagawad"].includes(
-                                data.position
-                            ) && (
-                                <div className="grid grid-cols-3 gap-4">
-                                    {(data.designations || []).map(
-                                        (designation, desIdx) => (
-                                            <div
-                                                key={desIdx}
-                                                className="items-start pr-8 rounded-md relative"
-                                            >
-                                                {/* Left: input fields */}
-                                                <div>
-                                                    <SelectField
-                                                        id="designation"
-                                                        name="designation"
-                                                        label="Designation"
-                                                        value={
-                                                            designation.designation ||
-                                                            ""
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleArrayValues(
-                                                                e,
-                                                                desIdx,
-                                                                "designation",
-                                                                "designations"
-                                                            )
-                                                        }
-                                                        items={purok_numbers.map(
-                                                            (item, idx) => ({
-                                                                ...item,
-                                                                key: idx, // unique key for React
-                                                            })
-                                                        )}
-                                                    />
-                                                    <InputError
-                                                        message={
-                                                            errors[
-                                                                `designations.${desIdx}.designation`
-                                                            ]
-                                                        }
-                                                        className="mt-2"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <YearDropdown
-                                                        id="term_start"
-                                                        name="term_start"
-                                                        label="Term Start"
-                                                        value={
-                                                            designation.term_start ||
-                                                            ""
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleArrayValues(
-                                                                e,
-                                                                desIdx,
-                                                                "term_start",
-                                                                "designations"
-                                                            )
-                                                        }
-                                                        className="w-full"
-                                                    />
-                                                    <InputError
-                                                        message={
-                                                            errors[
-                                                                `designations.${desIdx}.term_start`
-                                                            ]
-                                                        }
-                                                        className="mt-2"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <YearDropdown
-                                                        id="term_end"
-                                                        name="term_end"
-                                                        label="Term Ended"
-                                                        value={
-                                                            designation.term_end ||
-                                                            ""
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleArrayValues(
-                                                                e,
-                                                                desIdx,
-                                                                "term_end",
-                                                                "designations"
-                                                            )
-                                                        }
-                                                        className="w-full"
-                                                    />
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        removeDesignation(
-                                                            desIdx
-                                                        )
-                                                    }
-                                                    className="absolute top-1 right-2 flex items-center gap-1 text-2xl text-red-400 hover:text-red-800 font-medium mt-1 mb-5 transition-colors duration-200"
-                                                    title="Remove"
-                                                >
-                                                    <IoIosCloseCircleOutline />
-                                                </button>
-                                            </div>
-                                        )
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={() => addDesignation()}
-                                        className="flex items-center text-blue-600 hover:text-blue-800 text-sm mt-2"
-                                        title="Add Designation"
-                                    >
-                                        <IoIosAddCircleOutline className="text-4xl" />
-                                        <span className="ml-1">
-                                            Add Designation
-                                        </span>
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* If official is appointed */}
-                            {data.appointment_type === "appointed" && (
-                                <div className="grid grid-cols-2 gap-4 items-start">
-                                    <div>
-                                        <label
-                                            className="block text-sm font-medium mb-1"
-                                            htmlFor="appointted_by"
-                                        >
-                                            Appointed By
-                                        </label>
-                                        <DropdownInputField
-                                            id="appointted_by"
-                                            name="appointted_by"
-                                            placeholder="Enter full name"
-                                            value={data.appointted_by || ""}
-                                            onChange={(e) => handleChange(e)}
-                                            items={residentsList}
-                                        />
-                                        <InputError
-                                            message={errors.appointted_by}
-                                            className="mt-2"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label
-                                            className="block text-sm font-medium mb-1"
-                                            htmlFor="remarks"
-                                        >
-                                            Remarks
-                                        </label>
-                                        <InputField
-                                            id="remarks"
-                                            name="remarks"
-                                            value={data.remarks}
-                                            onChange={handleChange}
-                                        />
-                                        <InputError
-                                            message={errors.remarks}
-                                            className="mt-2"
-                                        />
-                                    </div>
-                                    <div className="grid col-span-2">
-                                        <label
-                                            className="block text-sm font-medium mb-1"
-                                            htmlFor="appointment_reason"
-                                        >
-                                            Appointment Reason
-                                        </label>
-                                        <Textarea
-                                            id="appointment_reason"
-                                            name="appointment_reason"
-                                            value={data.appointment_reason}
-                                            onChange={handleChange}
-                                        />
-                                        <InputError
-                                            message={errors.appointment_reason}
-                                            className="mt-2"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Submit */}
-                            <div className="flex justify-end pt-4">
-                                <button
-                                    type="submit"
-                                    className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-                                    disabled={processing}
-                                >
-                                    {selectedOfficial
-                                        ? processing
-                                            ? "Updating..."
-                                            : "Update"
-                                        : processing
-                                        ? "Saving..."
-                                        : "Save"}
-                                </button>
-                            </div>
-                        </form>
-                    )}
-                </SidebarModal>
+                <BarangayOfficialSidebarModal
+                    isModalOpen={isModalOpen}
+                    isAddModalOpen={isAddModalOpen}
+                    handleModalClose={handleModalClose}
+                    selectedResident={selectedResident}
+                    selectedOfficial={selectedOfficial}
+                    onAddSubmit={onAddSubmit}
+                    onEditSubmit={onEditSubmit}
+                    data={data}
+                    setData={setData}
+                    errors={errors}
+                    processing={processing}
+                    residentsList={residentsList}
+                    officialPositionsList={officialPositionsList}
+                    active_terms={active_terms}
+                    purok_numbers={purok_numbers}
+                    showNewTermToggle={showNewTermToggle}
+                    setShowNewTermToggle={setShowNewTermToggle}
+                    handleResidentChange={handleResidentChange}
+                    handleChange={handleChange}
+                    handleArrayValues={handleArrayValues}
+                    addDesignation={addDesignation}
+                    removeDesignation={removeDesignation}
+                />
 
                 <Modal
                     isOpen={isEditModalOpen}

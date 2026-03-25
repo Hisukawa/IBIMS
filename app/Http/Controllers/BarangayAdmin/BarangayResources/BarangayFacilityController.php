@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\BarangayAdmin\BarangayResources;
 
 use App\Helpers\ActivityLogHelper;
+use App\Http\Controllers\Controller;
 use App\Models\Barangay;
 use App\Models\BarangayFacility;
 use App\Http\Requests\StoreBarangayFacilityRequest;

@@ -1,18 +1,25 @@
 <?php
 
 use App\Exports\ResidentsExport;
-use App\Http\Controllers\ActivityLogsController;
+
+use App\Http\Controllers\BarangayAdmin\BarangayInformation\ActivityLogsController;
+use App\Http\Controllers\BarangayAdmin\BarangayInformation\UserController;
+use App\Http\Controllers\BarangayAdmin\BarangayInformation\BarangayController;
+use App\Http\Controllers\BarangayAdmin\BarangayInformation\DocumentController;
+use App\Http\Controllers\BarangayAdmin\BarangayInformation\DocumentGenerationController;
+use App\Http\Controllers\BarangayAdmin\BarangayInformation\BarangayProfileController;
+
+use App\Http\Controllers\BarangayAdmin\BarangayResources\BarangayInfrastructureController;
+use App\Http\Controllers\BarangayAdmin\BarangayResources\BarangayFacilityController;
+use App\Http\Controllers\BarangayAdmin\BarangayResources\BarangayInstitutionController;
+use App\Http\Controllers\BarangayAdmin\BarangayResources\BarangayManagementController;
+use App\Http\Controllers\BarangayAdmin\BarangayResources\BarangayOfficialController;
+use App\Http\Controllers\BarangayAdmin\BarangayResources\BarangayProjectController;
+use App\Http\Controllers\BarangayAdmin\BarangayResources\BarangayRoadController;
+
 use App\Http\Controllers\AllergyController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\BarangayController;
-use App\Http\Controllers\BarangayInfrastructureController;
-use App\Http\Controllers\BarangayFacilityController;
-use App\Http\Controllers\BarangayInstitutionController;
-use App\Http\Controllers\BarangayManagementController;
-use App\Http\Controllers\BarangayOfficialController;
-use App\Http\Controllers\BarangayProfileController;
-use App\Http\Controllers\BarangayProjectController;
-use App\Http\Controllers\BarangayRoadController;
+
 use App\Http\Controllers\BlotterController;
 use App\Http\Controllers\CaseParticipantController;
 use App\Http\Controllers\CDRRMOAdminController;
@@ -26,8 +33,7 @@ use App\Http\Controllers\CRADataController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeathController;
 use App\Http\Controllers\DisabilityController;
-use App\Http\Controllers\DocumentController;
-use App\Http\Controllers\DocumentGenerationController;
+
 use App\Http\Controllers\EducationController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\FamilyController;
@@ -55,7 +61,8 @@ use App\Http\Controllers\SummonController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\SuperAdminDataController;
 use App\Http\Controllers\UnauthenticatedIssuanceController;
-use App\Http\Controllers\UserController;
+
+
 use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\WaterController;
 use App\Models\BarangayInfrastructure;
@@ -179,6 +186,8 @@ Route::middleware(['auth', 'role:barangay_officer|cdrrmo_admin|super_admin|admin
     // user
     Route::post('user/confirmpassword', [UserController::class, 'confirmPassword'])->name('user.confirm');
     Route::get('/user/{id}', [UserController::class, 'accountDetails'])->name('user.details');
+    Route::patch('/user/{user}/reset-password', [UserController::class, 'resetPassword'])
+    ->name('user.reset-password');
 
     // reports
     Route::get('report', [ReportGenerationController::class, 'index'])->name('report.index');

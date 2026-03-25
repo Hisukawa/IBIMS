@@ -6,10 +6,7 @@ import {
     Search,
     SquarePen,
     Trash2,
-    SquarePlus,
     Eye,
-    MoveRight,
-    RotateCcw,
     ListPlus,
     UsersRound,
 } from "lucide-react";
@@ -22,24 +19,13 @@ import {
     RESIDENT_GENDER_COLOR_CLASS,
     RESIDENT_GENDER_TEXT2,
 } from "@/constants";
-import SidebarModal from "@/Components/SidebarModal";
 import DynamicTableControls from "@/Components/FilterButtons/DynamicTableControls";
 import FilterToggle from "@/Components/FilterButtons/FillterToggle";
 import axios from "axios";
 import useAppUrl from "@/hooks/useAppUrl";
-import PersonDetailContent from "@/Components/SidebarModalContents/PersonDetailContent";
 import DeleteConfirmationModal from "@/Components/DeleteConfirmationModal";
-import DropdownInputField from "@/Components/DropdownInputField";
-import InputError from "@/Components/InputError";
-import InputLabel from "@/Components/InputLabel";
-import InputField from "@/Components/InputField";
-import {
-    IoIosAddCircleOutline,
-    IoIosArrowForward,
-    IoIosCloseCircleOutline,
-} from "react-icons/io";
 import ExportButton from "@/Components/ExportButton";
-import { Switch } from "@/Components/ui/switch";
+import InstitutionMemberSidebarModal from "./Partials/InstitutionMemberFormModal";
 
 export default function Members({
     members,
@@ -69,6 +55,15 @@ export default function Members({
     const hasHead = members.some((m) => m.is_head === 1 || m.is_head === true);
     const head = members.find((m) => m.is_head === 1 || m.is_head === true);
 
+    const formatName = (value = "") =>
+        value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+
+    const headFullName = head?.resident
+        ? `${formatName(head.resident.firstname || "")} ${formatName(
+              head.resident.lastname || "",
+          )}`
+        : "";
+
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         searchFieldName("name", query);
@@ -85,7 +80,7 @@ export default function Members({
         }
         router.get(
             route("barangay_institution.show", institution.id),
-            queryParams
+            queryParams,
         );
     };
     const onKeyPressed = (field, e) => {
@@ -115,7 +110,7 @@ export default function Members({
         value: res.id.toString(),
     }));
     const [visibleColumns, setVisibleColumns] = useState(
-        allColumns.map((col) => col.key)
+        allColumns.map((col) => col.key),
     );
     const hasActiveFilter = Object.entries(queryParams || {}).some(
         ([key, value]) =>
@@ -128,7 +123,7 @@ export default function Members({
                 "solo_parent",
             ].includes(key) &&
             value &&
-            value !== ""
+            value !== "",
     );
 
     useEffect(() => {
@@ -372,7 +367,7 @@ export default function Members({
             onError: (errors) => {
                 // console.error("Validation Errors:", errors);
                 const errorList = Object.values(errors).map(
-                    (msg, i) => `<div key=${i}> ${msg}</div>`
+                    (msg, i) => `<div key=${i}> ${msg}</div>`,
                 );
 
                 toast.error("Validation Error", {
@@ -395,7 +390,7 @@ export default function Members({
             onError: () => {
                 // console.error("Validation Errors:", errors);
                 const errorList = Object.values(errors).map(
-                    (msg, i) => `<div key=${i}> ${msg}</div>`
+                    (msg, i) => `<div key=${i}> ${msg}</div>`,
                 );
 
                 toast.error("Validation Error", {
@@ -428,7 +423,7 @@ export default function Members({
 
         try {
             const response = await axios.get(
-                `${APP_URL}/institution_member/details/${id}`
+                `${APP_URL}/institution_member/details/${id}`,
             );
 
             const details = response.data.member;
@@ -468,7 +463,7 @@ export default function Members({
                 title = "Validation Error";
 
                 const errorList = Object.values(
-                    error.response.data.errors
+                    error.response.data.errors,
                 ).flat();
 
                 description = (
@@ -500,7 +495,7 @@ export default function Members({
             onError: (errors) => {
                 //console.error("Validation Errors:", errors);
                 const errorList = Object.values(errors).map(
-                    (msg, i) => `<div key=${i}> ${msg}</div>`
+                    (msg, i) => `<div key=${i}> ${msg}</div>`,
                 );
 
                 toast.error("Validation Error", {
@@ -523,7 +518,7 @@ export default function Members({
         setModalState("view");
         try {
             const response = await axios.get(
-                `${APP_URL}/resident/showresident/${resident}`
+                `${APP_URL}/resident/showresident/${resident}`,
             );
             setSelectedResident(response.data.resident);
         } catch (error) {
@@ -678,7 +673,7 @@ export default function Members({
                                             onKeyDown={(e) =>
                                                 onKeyPressed(
                                                     "name",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                             className="w-full"
@@ -739,266 +734,24 @@ export default function Members({
                         </div>
                     </div>
                 </div>
-                <SidebarModal
+                <InstitutionMemberSidebarModal
                     isOpen={isModalOpen}
                     onClose={handleModalClose}
-                    title={
-                        modalState === "add"
-                            ? memberDetails
-                                ? "Edit Resident Death Details"
-                                : "Add Resident Death Details"
-                            : "View Resident Details"
-                    }
-                >
-                    {modalState === "add" && (
-                        <div className="w-full rounded-xl border border-white/20 bg-white/10 backdrop-blur-md shadow-lg text-sm text-black p-4 space-y-4">
-                            <form
-                                onSubmit={
-                                    memberDetails
-                                        ? handleEditSubmit
-                                        : handleAddSubmit
-                                }
-                            >
-                                {data.members.map((member, index) => (
-                                    <div
-                                        key={index}
-                                        className="border p-4 mb-4 rounded-md relative bg-gray-50"
-                                    >
-                                        <h3 className="text-2xl font-bold text-gray-900 mb-3 flex items-center gap-2">
-                                            Institution Member –{" "}
-                                            {member.resident_name ||
-                                                "Select a Resident"}
-                                        </h3>
-                                        <p className="text-gray-600 mb-6 text-sm">
-                                            Please provide the membership
-                                            details of the resident, including
-                                            their status and role.
-                                        </p>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-6 gap-y-2 md:gap-x-4 mb-5 w-full">
-                                            {/* Profile Image */}
-                                            <div className="md:row-span-2 md:col-span-2 flex flex-col items-center space-y-2">
-                                                <InputLabel
-                                                    htmlFor={`resident_image_${index}`}
-                                                    value="Profile Photo"
-                                                />
-                                                <img
-                                                    src={
-                                                        member.resident_image
-                                                            ? `/storage/${member.resident_image}`
-                                                            : "/images/default-avatar.jpg"
-                                                    }
-                                                    alt="Resident Image"
-                                                    className="w-32 h-32 object-cover rounded-full border border-gray-200"
-                                                />
-                                            </div>
-
-                                            {/* Resident Info & Membership Fields */}
-                                            <div className="md:col-span-4 space-y-2">
-                                                {/* Resident Dropdown */}
-                                                <DropdownInputField
-                                                    label="Full Name"
-                                                    name={`members.${index}.resident_name`}
-                                                    value={
-                                                        member.resident_name ||
-                                                        ""
-                                                    }
-                                                    placeholder="Select a resident"
-                                                    onChange={(e) =>
-                                                        handleResidentChange(
-                                                            e,
-                                                            index
-                                                        )
-                                                    }
-                                                    items={residentsList}
-                                                />
-                                                <InputError
-                                                    message={
-                                                        errors[
-                                                            `members.${index}.resident_id`
-                                                        ]
-                                                    }
-                                                    className="mt-2"
-                                                />
-
-                                                {/* Birthdate & Purok */}
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                    <InputField
-                                                        label="Birthdate"
-                                                        name={`members.${index}.birthdate`}
-                                                        value={
-                                                            member.birthdate ||
-                                                            ""
-                                                        }
-                                                        readOnly
-                                                    />
-                                                    <InputField
-                                                        label="Purok Number"
-                                                        name={`members.${index}.purok_number`}
-                                                        value={
-                                                            member.purok_number ||
-                                                            ""
-                                                        }
-                                                        readOnly
-                                                    />
-                                                </div>
-
-                                                {/* Membership Details */}
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
-                                                    <div>
-                                                        <InputLabel value="Member Since" />
-                                                        <InputField
-                                                            type="date"
-                                                            name={`members.${index}.member_since`}
-                                                            value={
-                                                                member.member_since ||
-                                                                ""
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleArrayValues(
-                                                                    e,
-                                                                    index,
-                                                                    "member_since"
-                                                                )
-                                                            }
-                                                        />
-                                                        <InputError
-                                                            message={
-                                                                errors[
-                                                                    `members.${index}.member_since`
-                                                                ]
-                                                            }
-                                                            className="mt-2"
-                                                        />
-                                                    </div>
-
-                                                    <div>
-                                                        <InputLabel value="Status" />
-                                                        <select
-                                                            name={`members.${index}.status`}
-                                                            value={
-                                                                member.status ||
-                                                                "active"
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleArrayValues(
-                                                                    e,
-                                                                    index,
-                                                                    "status"
-                                                                )
-                                                            }
-                                                            className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
-                                                        >
-                                                            <option value="active">
-                                                                Active
-                                                            </option>
-                                                            <option value="inactive">
-                                                                Inactive
-                                                            </option>
-                                                        </select>
-                                                        <InputError
-                                                            message={
-                                                                errors[
-                                                                    `members.${index}.status`
-                                                                ]
-                                                            }
-                                                            className="mt-2"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                {/* Is Head Checkbox */}
-                                                {(!hasHead ||
-                                                    member.is_head) && (
-                                                    <div className="flex items-center gap-3 mt-3">
-                                                        <Switch
-                                                            id={`is_head_${index}`}
-                                                            checked={
-                                                                !!member.is_head
-                                                            }
-                                                            onCheckedChange={(
-                                                                checked
-                                                            ) =>
-                                                                handleArrayValues(
-                                                                    {
-                                                                        target: {
-                                                                            value: checked,
-                                                                        },
-                                                                    },
-                                                                    index,
-                                                                    "is_head"
-                                                                )
-                                                            }
-                                                        />
-                                                        <label
-                                                            htmlFor={`is_head_${index}`}
-                                                            className="text-sm font-medium text-gray-700"
-                                                        >
-                                                            Set as Head of
-                                                            Institution
-                                                        </label>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Remove Button */}
-                                        {data.members.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    removeMember(index)
-                                                }
-                                                className="absolute top-1 right-2 flex items-center gap-1 text-sm text-red-400 hover:text-red-800 font-medium transition-colors duration-200"
-                                            >
-                                                <IoIosCloseCircleOutline className="text-2xl" />
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
-
-                                <div className="flex justify-between items-center p-3">
-                                    {memberDetails === null ? (
-                                        <button
-                                            type="button"
-                                            onClick={addMember}
-                                            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium mt-4 transition-colors duration-200"
-                                        >
-                                            <IoIosAddCircleOutline className="text-2xl" />
-                                            <span>Add Member</span>
-                                        </button>
-                                    ) : (
-                                        <div></div>
-                                    )}
-
-                                    <div className="flex justify-end items-center text-end mt-5 gap-4">
-                                        {memberDetails === null && (
-                                            <Button
-                                                type="button"
-                                                onClick={() => reset()}
-                                            >
-                                                <RotateCcw /> Reset
-                                            </Button>
-                                        )}
-
-                                        <Button
-                                            className="bg-blue-700 hover:bg-blue-400"
-                                            type="submit"
-                                        >
-                                            {memberDetails ? "Update" : "Add"}{" "}
-                                            <IoIosArrowForward />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    )}
-                    {modalState === "view" ? (
-                        selectedResident ? (
-                            <PersonDetailContent person={selectedResident} />
-                        ) : null
-                    ) : null}
-                </SidebarModal>
+                    modalState={modalState}
+                    memberDetails={memberDetails}
+                    selectedResident={selectedResident}
+                    data={data}
+                    errors={errors}
+                    residentsList={residentsList}
+                    hasHead={hasHead}
+                    handleAddSubmit={handleAddSubmit}
+                    handleEditSubmit={handleEditSubmit}
+                    handleResidentChange={handleResidentChange}
+                    handleArrayValues={handleArrayValues}
+                    removeMember={removeMember}
+                    addMember={addMember}
+                    reset={reset}
+                />
                 <DeleteConfirmationModal
                     isOpen={isDeleteModalOpen}
                     onClose={() => {

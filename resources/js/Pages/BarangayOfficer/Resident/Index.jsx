@@ -26,20 +26,20 @@ import { toTitleCase } from "@/utils/stringFormat";
 // Lazy load heavy components
 const AdminLayout = lazy(() => import("@/Layouts/AdminLayout"));
 const SidebarModal = lazy(() => import("@/Components/SidebarModal"));
-const PersonDetailContent = lazy(() =>
-    import("@/Components/SidebarModalContents/PersonDetailContent")
+const PersonDetailContent = lazy(
+    () => import("@/Components/SidebarModalContents/PersonDetailContent"),
 );
 const BreadCrumbsHeader = lazy(() => import("@/Components/BreadcrumbsHeader"));
 const DynamicTable = lazy(() => import("@/Components/DynamicTable"));
 const ActionMenu = lazy(() => import("@/Components/ActionMenu"));
-const FilterToggle = lazy(() =>
-    import("@/Components/FilterButtons/FillterToggle")
+const FilterToggle = lazy(
+    () => import("@/Components/FilterButtons/FillterToggle"),
 );
-const DynamicTableControls = lazy(() =>
-    import("@/Components/FilterButtons/DynamicTableControls")
+const DynamicTableControls = lazy(
+    () => import("@/Components/FilterButtons/DynamicTableControls"),
 );
-const DeleteConfirmationModal = lazy(() =>
-    import("@/Components/DeleteConfirmationModal")
+const DeleteConfirmationModal = lazy(
+    () => import("@/Components/DeleteConfirmationModal"),
 );
 const ResidentCharts = lazy(() => import("./ResidentCharts"));
 
@@ -134,7 +134,7 @@ export default function Index({
         queryFn: async ({ signal }) => {
             const { data } = await axios.get(
                 `${APP_URL}/resident/chartdata`,
-                { params: queryParams, signal } // cancel old requests
+                { params: queryParams, signal }, // cancel old requests
             );
             return data.residents;
         },
@@ -167,7 +167,7 @@ export default function Index({
                 replace: true, // Replace history entry instead of pushing a new one
             });
         },
-        [currentQueryParams]
+        [currentQueryParams],
     ); // Dependency on currentQueryParams
 
     const handleSubmit = (e) => {
@@ -194,7 +194,7 @@ export default function Index({
             }
             return age;
         },
-        []
+        [],
     );
 
     const handleEdit = (id) => {
@@ -209,7 +209,7 @@ export default function Index({
         try {
             // Using template literals for route if APP_URL is needed, or just route() helper
             const response = await axios.get(
-                route("resident.showresident", residentId) // Assuming you have a route 'resident.showresident'
+                route("resident.showresident", residentId), // Assuming you have a route 'resident.showresident'
             );
             setSelectedResident(response.data.resident);
         } catch (error) {
@@ -222,7 +222,7 @@ export default function Index({
     };
 
     const [visibleColumns, setVisibleColumns] = useState(
-        allColumns.map((col) => col.key)
+        allColumns.map((col) => col.key),
     );
 
     // Memoize the check for active filters
@@ -245,9 +245,9 @@ export default function Index({
                     ].includes(key) &&
                     value &&
                     value !== "" && // Check for empty string
-                    value !== "0" // Explicitly ignore "0" for welfare filters
+                    value !== "0", // Explicitly ignore "0" for welfare filters
             ),
-        [currentQueryParams]
+        [currentQueryParams],
     );
 
     const [showFilters, setShowFilters] = useState(hasActiveFilter);
@@ -285,7 +285,7 @@ export default function Index({
                 });
             }
         },
-        [residentToDelete]
+        [residentToDelete],
     );
 
     // Memoize columnRenderers to prevent unnecessary re-creation on every render
@@ -317,7 +317,7 @@ export default function Index({
                             resident.middlename ? resident.middlename + " " : ""
                         }${resident.lastname ?? ""} ${
                             resident.suffix ? resident.suffix : ""
-                        }`
+                        }`,
                     )}
                 </div>
             ),
@@ -467,7 +467,7 @@ export default function Index({
             handleEdit,
             handleExportPdf,
             handleExportRBI,
-        ]
+        ],
     ); // Dependencies for columnRenderers
 
     const [showAll, setShowAll] = useState(currentQueryParams.all === "true");
@@ -664,9 +664,28 @@ export default function Index({
             </SidebarModal>
             <DeleteConfirmationModal
                 isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
+                onClose={() => {
+                    setIsDeleteModalOpen(false);
+                }}
                 onConfirm={confirmDelete}
-                residentId={residentToDelete}
+                residentId={recordToDelete}
+                title="Delete Resident Record"
+                description="This action requires password confirmation before proceeding."
+                message="You are about to permanently delete this resident record. This action cannot be undone."
+                itemName={
+                    residents?.data?.find((r) => r.id === recordToDelete)
+                        ? `${residents.data.find((r) => r.id === recordToDelete).first_name} ${
+                              residents.data.find(
+                                  (r) => r.id === recordToDelete,
+                              ).last_name
+                          }`
+                        : ""
+                }
+                itemLabel="Resident"
+                note="Deleting this resident may also remove or affect related household, document, and profiling records."
+                buttonLabel="Confirm and Delete"
+                cancelLabel="Cancel"
+                processingText="Verifying..."
             />
         </AdminLayout>
     );

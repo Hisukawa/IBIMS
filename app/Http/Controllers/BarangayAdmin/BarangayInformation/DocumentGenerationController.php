@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
 
+namespace App\Http\Controllers\BarangayAdmin\BarangayInformation;
+
+use App\Http\Controllers\Controller;
 use App\Models\Document;
 use App\Models\Resident;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use PhpOffice\PhpWord\TemplateProcessor;
 
