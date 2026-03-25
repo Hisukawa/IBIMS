@@ -13,6 +13,7 @@ class Resident extends Model
     use HasFactory;
 
     public $timestamps = true;
+    protected $appends = ['full_name'];
     protected $fillable = [
         'barangay_id',
         'firstname',
