@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+
+namespace App\Http\Controllers\BarangayAdmin\BarangayInformation;
 
 use App\Helpers\ActivityLogHelper;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateBarangayProfileRequest;
 use App\Models\Barangay;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;

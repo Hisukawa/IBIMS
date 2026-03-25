@@ -2,34 +2,21 @@ import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import useAppUrl from "@/hooks/useAppUrl";
 import AdminLayout from "@/Layouts/AdminLayout";
-import {
-    Home,
-    ListPlus,
-    RotateCcw,
-    Search,
-    SquarePen,
-    Trash2,
-} from "lucide-react";
+import { Home, ListPlus, Search, SquarePen, Trash2 } from "lucide-react";
 import ActionMenu from "@/Components/ActionMenu";
-import InputField from "@/Components/InputField";
+
 import { Button } from "@/Components/ui/button";
 import { Head, Link, router, useForm, usePage } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
-import SidebarModal from "@/Components/SidebarModal";
-import {
-    IoIosAddCircleOutline,
-    IoIosArrowForward,
-    IoIosCloseCircleOutline,
-} from "react-icons/io";
-import DropdownInputField from "@/Components/DropdownInputField";
 import { Toaster, toast } from "sonner";
-import InputLabel from "@/Components/InputLabel";
 import DeleteConfirmationModal from "@/Components/DeleteConfirmationModal";
 import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
 import FilterToggle from "@/Components/FilterButtons/FillterToggle";
 import DynamicTableControls from "@/Components/FilterButtons/DynamicTableControls";
 import DynamicTable from "@/Components/DynamicTable";
-import InputError from "@/Components/InputError";
+import PageHeader from "@/Components/PageHeader";
+import InfrastructureSidebarForm from "./Partials/InfrastructureSidebarForm";
+import TableSearchBar from "@/Components/TableSearchBar";
 
 export default function BarangayInfrastucture({
     infrastructure,
@@ -74,7 +61,7 @@ export default function BarangayInfrastucture({
     useEffect(() => {
         localStorage.setItem(
             "infrastructures_visible_columns",
-            JSON.stringify(visibleColumns)
+            JSON.stringify(visibleColumns),
         );
     }, [visibleColumns]);
 
@@ -88,7 +75,7 @@ export default function BarangayInfrastucture({
                 "updated_at",
             ].includes(key) &&
             value &&
-            value !== ""
+            value !== "",
     );
 
     useEffect(() => {
@@ -121,82 +108,125 @@ export default function BarangayInfrastucture({
             searchFieldName(field, e.target.value);
         }
     };
+
+    // columns renderers
+    const formatDateTime = (value) => {
+        if (!value) return "—";
+
+        return new Date(value).toLocaleString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
+
+    const categoryStyles = {
+        "Disaster and Community Facilities":
+            "bg-amber-100 text-amber-800 border border-amber-200",
+        "Health and Medical":
+            "bg-emerald-100 text-emerald-800 border border-emerald-200",
+        Educational: "bg-blue-100 text-blue-800 border border-blue-200",
+        Agricultural: "bg-lime-100 text-lime-800 border border-lime-200",
+    };
+
     const columnRenderers = {
-        id: (row) => row.id,
+        id: (row) => (
+            <span className="inline-flex min-w-[40px] justify-center rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                #{row.id}
+            </span>
+        ),
 
         image: (row) => (
-            <img
-                src={
-                    row.infrastructure_image
-                        ? `/storage/${row.infrastructure_image}`
-                        : "/images/default-avatar.jpg"
-                }
-                onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "/images/default-avatar.jpg";
-                }}
-                alt="Resident"
-                className="w-20 h-20 min-w-20 min-h-20 object-cover rounded-sm border"
-            />
-        ),
-        infrastructure_type: (row) => (
-            <span className="font-medium text-gray-900">
-                {row.infrastructure_type || "—"}
-            </span>
+            <div className="flex items-center justify-center">
+                <img
+                    src={
+                        row.infrastructure_image
+                            ? `/storage/${row.infrastructure_image}`
+                            : "/images/default-avatar.jpg"
+                    }
+                    onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "/images/default-avatar.jpg";
+                    }}
+                    alt={row.infrastructure_type || "Infrastructure"}
+                    className="h-16 w-16 min-h-16 min-w-16 rounded-xl border border-slate-200 object-cover shadow-sm"
+                />
+            </div>
         ),
 
-        infrastructure_category: (row) => (
-            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md text-xs font-medium capitalize">
-                {row.infrastructure_category || "—"}
-            </span>
+        infrastructure_type: (row) => (
+            <div className="min-w-[160px]">
+                <p className="font-semibold leading-5 text-slate-900">
+                    {row.infrastructure_type || "Unnamed Infrastructure"}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                    Barangay infrastructure record
+                </p>
+            </div>
         ),
+
+        infrastructure_category: (row) => {
+            const value = row.infrastructure_category || "Uncategorized";
+
+            return (
+                <span
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
+                        categoryStyles[value] ||
+                        "bg-slate-100 text-slate-700 border border-slate-200"
+                    }`}
+                >
+                    {value}
+                </span>
+            );
+        },
 
         quantity: (row) => (
-            <span className="text-sm text-gray-700">{row.quantity ?? "—"}</span>
+            <div className="flex items-center gap-2">
+                <span className="inline-flex min-w-[48px] justify-center rounded-lg bg-indigo-50 px-3 py-1.5 text-sm font-semibold text-indigo-700">
+                    {row.quantity ?? "—"}
+                </span>
+            </div>
         ),
+
         created_at: (row) => (
-            <span className="text-sm text-gray-500">
-                {row.created_at
-                    ? new Date(row.created_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                      })
-                    : "—"}
-            </span>
+            <div className="min-w-[150px]">
+                <p className="text-sm font-medium text-slate-700">
+                    {formatDateTime(row.created_at)}
+                </p>
+                <p className="mt-1 text-xs text-slate-400">Date created</p>
+            </div>
         ),
 
         updated_at: (row) => (
-            <span className="text-sm text-gray-500">
-                {row.updated_at
-                    ? new Date(row.updated_at).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                      })
-                    : "—"}
-            </span>
+            <div className="min-w-[150px]">
+                <p className="text-sm font-medium text-slate-700">
+                    {formatDateTime(row.updated_at)}
+                </p>
+                <p className="mt-1 text-xs text-slate-400">Last updated</p>
+            </div>
         ),
 
         actions: (row) => (
-            <ActionMenu
-                actions={[
-                    {
-                        label: "Edit",
-                        icon: <SquarePen className="w-4 h-4 text-green-500" />,
-                        onClick: () => handleEdit(row.id),
-                    },
-                    {
-                        label: "Delete",
-                        icon: <Trash2 className="w-4 h-4 text-red-600" />,
-                        onClick: () => handleDeleteClick(row.id),
-                    },
-                ]}
-            />
+            <div className="flex justify-center">
+                <ActionMenu
+                    actions={[
+                        {
+                            label: "Edit",
+                            icon: (
+                                <SquarePen className="h-4 w-4 text-emerald-600" />
+                            ),
+                            onClick: () => handleEdit(row.id),
+                        },
+                        {
+                            label: "Delete",
+                            icon: <Trash2 className="h-4 w-4 text-red-600" />,
+                            onClick: () => handleDeleteClick(row.id),
+                        },
+                    ]}
+                />
+            </div>
         ),
     };
 
@@ -330,7 +360,7 @@ export default function BarangayInfrastucture({
 
         try {
             const response = await axios.get(
-                `${APP_URL}/barangay_infrastructure/details/${id}`
+                `${APP_URL}/barangay_infrastructure/details/${id}`,
             );
             const infrastructure = response.data.infra;
             setInfrastructureDetails(infrastructure);
@@ -432,22 +462,21 @@ export default function BarangayInfrastucture({
                 <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
                     <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
                         {/* Header */}
-                        <div className="mb-6">
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl shadow-sm">
-                                <div className="p-2 bg-indigo-100 rounded-full">
-                                    <Home className="w-6 h-6 text-indigo-600" />
-                                </div>
-                                <div>
-                                    <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
-                                        Barangay Infrastructure Overview
-                                    </h1>
-                                    <p className="text-sm text-gray-500">
-                                        Review, filter, and manage existing
-                                        barangay infrastructures efficiently.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        <PageHeader
+                            title="Barangay Infrastructure Overview"
+                            description="Review, filter, and manage existing barangay infrastructures efficiently."
+                            icon={Home}
+                            iconWrapperClassName="bg-indigo-100 text-indigo-600"
+                            actions={
+                                <Button
+                                    onClick={handleAddInfrastructure}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                >
+                                    <ListPlus className="mr-2 h-4 w-4" />
+                                    Add Infrastructure
+                                </Button>
+                            }
+                        />
 
                         <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
                             <div className="flex flex-wrap justify-between gap-2 mb-4">
@@ -461,43 +490,15 @@ export default function BarangayInfrastucture({
                                     }
                                 />
 
-                                <div className="flex items-center gap-2">
-                                    {/* Search */}
-                                    <form
-                                        onSubmit={handleSearchSubmit}
-                                        className="flex w-[300px] max-w-lg items-center space-x-1"
-                                    >
-                                        <Input
-                                            type="text"
-                                            placeholder="Search infrastructure name"
-                                            value={query}
-                                            onChange={(e) =>
-                                                setQuery(e.target.value)
-                                            }
-                                            onKeyDown={(e) =>
-                                                onKeyPressed("name", e)
-                                            }
-                                            className="ml-4"
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                                        <TableSearchBar
+                                            url="barangay_infrastructure.index"
+                                            queryParams={queryParams}
+                                            label="Search infrastructure name"
+                                            field="name"
+                                            className="w-full sm:min-w-[280px]"
                                         />
-                                        <Button
-                                            type="submit"
-                                            className="border border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
-                                            variant="outline"
-                                        >
-                                            <Search />
-                                        </Button>
-                                    </form>
-                                    <div className="relative group z-50">
-                                        <Button
-                                            variant="outline"
-                                            className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
-                                            onClick={handleAddInfrastructure}
-                                        >
-                                            <ListPlus className="w-4 h-4" />
-                                        </Button>
-                                        <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                            Add an Infrastructure
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -531,249 +532,23 @@ export default function BarangayInfrastucture({
                     </div>
                 </div>
 
-                {/* Sidebar Modal for Add/Edit */}
-                <SidebarModal
+                <InfrastructureSidebarForm
                     isOpen={isModalOpen}
-                    onClose={() => {
-                        handleModalClose();
-                    }}
-                    title={
-                        modalState == "add"
-                            ? "Add Infrastructure"
-                            : "Edit Infrastructure"
+                    onClose={handleModalClose}
+                    modalState={modalState}
+                    infrastructureDetails={infrastructureDetails}
+                    data={data}
+                    errors={errors}
+                    infrastructure_types={infrastructure_types}
+                    handleSubmitInfrastruture={handleSubmitInfrastruture}
+                    handleUpdateInfrastruture={handleUpdateInfrastruture}
+                    handleInfrastructureFieldChange={
+                        handleInfrastructureFieldChange
                     }
-                >
-                    <form
-                        className="bg-gray-50 p-4 rounded-lg"
-                        onSubmit={
-                            infrastructureDetails
-                                ? handleUpdateInfrastruture
-                                : handleSubmitInfrastruture
-                        }
-                    >
-                        <h3 className="text-2xl font-medium text-gray-700">
-                            Barangay Infrastructure Information
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-8">
-                            Please provide details about the existing
-                            facilities, utilities, and structures within the
-                            barangay.
-                        </p>
-                        {Array.isArray(data.infrastructures) &&
-                            data.infrastructures.map(
-                                (infrastructure, infraIdx) => (
-                                    <div
-                                        key={infraIdx}
-                                        className="border p-4 mb-4 rounded-md relative bg-gray-50"
-                                    >
-                                        <div className="grid grid-cols-1 md:grid-cols-6 mb-6">
-                                            <div className="md:col-span-2 flex flex-col items-center space-y-2">
-                                                <InputLabel
-                                                    htmlFor={`infrastructure_image_${infraIdx}`}
-                                                    value="Infrastructure Photo"
-                                                />
-                                                <img
-                                                    src={
-                                                        infrastructure.previewImage
-                                                            ? infrastructure.previewImage // user-selected file or preview of existing
-                                                            : "/images/default-avatar.jpg" // fallback placeholder
-                                                    }
-                                                    alt="Infrastructure Image"
-                                                    className="w-32 h-32 object-cover rounded-sm border border-gray-200"
-                                                />
-
-                                                <input
-                                                    id={`infrastructure_image_${infraIdx}`}
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={(e) => {
-                                                        const file =
-                                                            e.target.files[0];
-                                                        if (file) {
-                                                            handleInfrastructureFieldChange(
-                                                                file,
-                                                                infraIdx,
-                                                                "infrastructure_image"
-                                                            );
-                                                        }
-                                                    }}
-                                                    className="block w-full text-sm text-gray-500
-                                                        file:mr-2 file:py-1 file:px-3
-                                                        file:rounded file:border-0
-                                                        file:text-xs file:font-semibold
-                                                        file:bg-blue-50 file:text-blue-700
-                                                        hover:file:bg-blue-100"
-                                                />
-                                                <InputError
-                                                    message={
-                                                        errors[
-                                                            `infrastructures.${infraIdx}.infrastructure_image`
-                                                        ]
-                                                    }
-                                                    className="mt-2"
-                                                />
-                                            </div>
-
-                                            {/* Infrastructure Details */}
-                                            <div className="md:col-span-4 space-y-4">
-                                                <div className="w-full">
-                                                    <DropdownInputField
-                                                        label="Infrastructure Type"
-                                                        name="infrastructure_type"
-                                                        value={
-                                                            infrastructure.infrastructure_type ||
-                                                            ""
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleInfrastructureFieldChange(
-                                                                e.target.value,
-                                                                infraIdx,
-                                                                "infrastructure_type"
-                                                            )
-                                                        }
-                                                        items={
-                                                            infrastructure_types
-                                                        }
-                                                        placeholder="Select or Enter Type"
-                                                    />
-                                                    <InputError
-                                                        message={
-                                                            errors[
-                                                                `infrastructures.${infraIdx}.infrastructure_type`
-                                                            ]
-                                                        }
-                                                        className="mt-1"
-                                                    />
-                                                </div>
-
-                                                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                                                    <div className="sm:col-span-2">
-                                                        <DropdownInputField
-                                                            label="Infrastructure Category"
-                                                            name="infrastructure_category"
-                                                            value={
-                                                                infrastructure.infrastructure_category ||
-                                                                ""
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleInfrastructureFieldChange(
-                                                                    e.target
-                                                                        .value,
-                                                                    infraIdx,
-                                                                    "infrastructure_category"
-                                                                )
-                                                            }
-                                                            placeholder="Select or Enter Category"
-                                                            items={[
-                                                                {
-                                                                    label: "Disaster and Community Facilities",
-                                                                    value: "Disaster and Community Facilities",
-                                                                },
-                                                                {
-                                                                    label: "Health and Medical",
-                                                                    value: "Health and Medical",
-                                                                },
-                                                                {
-                                                                    label: "Educational",
-                                                                    value: "Educational",
-                                                                },
-                                                                {
-                                                                    label: "Agricultural",
-                                                                    value: "Agricultural",
-                                                                },
-                                                            ]}
-                                                        />
-                                                        <InputError
-                                                            message={
-                                                                errors[
-                                                                    `infrastructures.${infraIdx}.infrastructure_category`
-                                                                ]
-                                                            }
-                                                            className="mt-1"
-                                                        />
-                                                    </div>
-
-                                                    <div className="sm:col-span-2">
-                                                        <InputField
-                                                            type="number"
-                                                            label="Quantity"
-                                                            name="quantity"
-                                                            value={
-                                                                infrastructure.quantity ||
-                                                                ""
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleInfrastructureFieldChange(
-                                                                    e.target
-                                                                        .value,
-                                                                    infraIdx,
-                                                                    "quantity"
-                                                                )
-                                                            }
-                                                            placeholder="Enter Quantity"
-                                                        />
-                                                        <InputError
-                                                            message={
-                                                                errors[
-                                                                    `infrastructures.${infraIdx}.quantity`
-                                                                ]
-                                                            }
-                                                            className="mt-1"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {infrastructureDetails === null && (
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    removeInfrastructure(
-                                                        infraIdx
-                                                    )
-                                                }
-                                                className="absolute top-1 right-2 flex items-center gap-1 text-sm text-red-400 hover:text-red-800 font-medium mt-1 mb-5 transition-colors duration-200"
-                                            >
-                                                <IoIosCloseCircleOutline className="text-2xl" />
-                                            </button>
-                                        )}
-                                    </div>
-                                )
-                            )}
-                        <div className="flex justify-between items-center p-3">
-                            {infrastructureDetails === null ? (
-                                <button
-                                    type="button"
-                                    onClick={addInfrastructure}
-                                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium mt-4 transition-colors duration-200"
-                                >
-                                    <IoIosAddCircleOutline className="text-2xl" />
-                                    <span>Add Infrastructure</span>
-                                </button>
-                            ) : (
-                                <div></div>
-                            )}
-                            <div className="flex justify-end items-center text-end mt-5 gap-4">
-                                {infrastructureDetails == null && (
-                                    <Button
-                                        type="button"
-                                        onClick={() => reset()}
-                                    >
-                                        <RotateCcw /> Reset
-                                    </Button>
-                                )}
-
-                                <Button
-                                    className="bg-blue-700 hover:bg-blue-400 "
-                                    type={"submit"}
-                                >
-                                    {infrastructureDetails ? "Update" : "Add"}{" "}
-                                    <IoIosArrowForward />
-                                </Button>
-                            </div>
-                        </div>
-                    </form>
-                </SidebarModal>
+                    removeInfrastructure={removeInfrastructure}
+                    addInfrastructure={addInfrastructure}
+                    reset={reset}
+                />
 
                 {/* Delete Confirmation */}
                 <DeleteConfirmationModal

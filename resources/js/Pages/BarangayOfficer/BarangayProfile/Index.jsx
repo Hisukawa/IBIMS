@@ -2,7 +2,7 @@ import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, useForm } from "@inertiajs/react";
 import { Toaster, toast } from "sonner";
-import BarangayProfileForm from "@/Components/BarangayProfileForm"; // import the form component
+import BarangayProfileForm from "@/Pages/BarangayOfficer/BarangayProfile/Partials/BarangayProfileForm"; // import the form component
 import { useState } from "react";
 
 export default function Index({ barangay }) {
@@ -47,7 +47,7 @@ export default function Index({ barangay }) {
             },
             onError: (errs) => {
                 const errorList = Object.values(errs).map(
-                    (msg, i) => `<div key=${i}>${msg}</div>`
+                    (msg, i) => `<div key=${i}>${msg}</div>`,
                 );
 
                 toast.error("Validation Error", {

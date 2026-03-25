@@ -20,6 +20,9 @@ const ActionMenu = ({ actions = [] }) => {
     const [visibleActions, setVisibleActions] = useState(actions);
     const [overflowActions, setOverflowActions] = useState([]);
 
+    // ✅ ADD THIS (control dropdown state)
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+
     useEffect(() => {
         const handleResize = () => {
             const containerWidth = containerRef.current?.offsetWidth || 0;
@@ -28,7 +31,7 @@ const ActionMenu = ({ actions = [] }) => {
             const overflow = [];
 
             actions.forEach((action) => {
-                const buttonWidth = 35; // approximate icon button width
+                const buttonWidth = 35;
                 if (totalWidth + buttonWidth <= containerWidth - 35) {
                     totalWidth += buttonWidth;
                     visible.push(action);
@@ -46,9 +49,21 @@ const ActionMenu = ({ actions = [] }) => {
         return () => window.removeEventListener("resize", handleResize);
     }, [actions]);
 
+    // ✅ FIXED HANDLER
+    const handleActionClick = (action) => {
+        if (action.href) return;
+
+        // close dropdown first
+        setDropdownOpen(false);
+
+        // wait before opening modal
+        setTimeout(() => {
+            action.onClick?.();
+        }, 0);
+    };
+
     const renderButton = (action) => {
         if (action.href) {
-            // Use Link for href actions
             return (
                 <Link href={action.href}>
                     <Button
@@ -60,24 +75,23 @@ const ActionMenu = ({ actions = [] }) => {
                     </Button>
                 </Link>
             );
-        } else {
-            return (
-                <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={action.onClick}
-                    className="p-1 hover:bg-gray-100 focus:ring-2 focus:ring-gray-200"
-                >
-                    {action.icon}
-                </Button>
-            );
         }
+
+        return (
+            <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => handleActionClick(action)} // ✅ FIXED
+                className="p-1 hover:bg-gray-100 focus:ring-2 focus:ring-gray-200"
+            >
+                {action.icon}
+            </Button>
+        );
     };
 
     return (
         <div ref={containerRef} className="flex gap-1 items-center">
             <TooltipProvider>
-                {/* Inline Icons with Tooltip */}
                 {visibleActions.map((action, idx) => (
                     <Tooltip key={idx}>
                         <TooltipTrigger asChild>
@@ -90,9 +104,12 @@ const ActionMenu = ({ actions = [] }) => {
                 ))}
             </TooltipProvider>
 
-            {/* Overflow Dropdown */}
+            {/* ✅ CONTROLLED DROPDOWN */}
             {overflowActions.length > 0 && (
-                <DropdownMenu>
+                <DropdownMenu
+                    open={dropdownOpen}
+                    onOpenChange={setDropdownOpen}
+                >
                     <DropdownMenuTrigger asChild>
                         <Button
                             size="icon"
@@ -102,15 +119,17 @@ const ActionMenu = ({ actions = [] }) => {
                             <MoreHorizontal className="h-5 w-5" />
                         </Button>
                     </DropdownMenuTrigger>
+
                     <DropdownMenuContent align="end">
                         {overflowActions.map((action, idx) => (
                             <DropdownMenuItem
                                 key={idx}
                                 className="flex items-center gap-2"
                                 asChild={!!action.href}
-                                onClick={
-                                    action.href ? undefined : action.onClick
-                                }
+                                onSelect={(e) => {
+                                    e.preventDefault(); // ✅ IMPORTANT
+                                    handleActionClick(action);
+                                }}
                             >
                                 {action.href ? (
                                     <Link

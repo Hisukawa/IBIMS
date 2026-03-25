@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\BarangayAdmin\BarangayInformation;
 
 use App\Helpers\ActivityLogHelper;
+use App\Http\Controllers\Controller;
 use App\Models\Document;
-use App\Models\Resident;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;

@@ -5,34 +5,28 @@ import useAppUrl from "@/hooks/useAppUrl";
 import AdminLayout from "@/Layouts/AdminLayout";
 import ActionMenu from "@/Components/ActionMenu";
 import {
-    Eye,
     Home,
-    HousePlus,
     ListPlus,
-    Plus,
-    RotateCcw,
     Search,
+    CalendarDays,
+    Package,
+    ShieldCheck,
     SquarePen,
+    Tag,
     Trash2,
+    Truck,
 } from "lucide-react";
 import DynamicTableControls from "@/Components/FilterButtons/DynamicTableControls";
 import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { Head, Link, router, useForm, usePage } from "@inertiajs/react";
 import FilterToggle from "@/Components/FilterButtons/FillterToggle";
-import InputField from "@/Components/InputField";
-import InputError from "@/Components/InputError";
-import DropdownInputField from "@/Components/DropdownInputField";
-import {
-    IoIosAddCircleOutline,
-    IoIosArrowForward,
-    IoIosCloseCircleOutline,
-} from "react-icons/io";
-import SidebarModal from "@/Components/SidebarModal";
-import { Toaster, toast } from "sonner";
-import SelectField from "@/Components/SelectField";
 import DeleteConfirmationModal from "@/Components/DeleteConfirmationModal";
 import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
+import InventorySidebarModal from "./Partials/InventorySidebarModal";
+import PageHeader from "@/Components/PageHeader";
+import { Toaster, toast } from "sonner";
+import TableSearchBar from "@/Components/TableSearchBar";
 
 const InventoryIndex = ({
     inventory_items,
@@ -97,10 +91,6 @@ const InventoryIndex = ({
     }, [hasActiveFilter]);
     const [showFilters, setShowFilters] = useState(hasActiveFilter);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        searchFieldName("name", query);
-    };
     const searchFieldName = (field, value) => {
         if (value && value.trim() !== "") {
             queryParams[field] = value;
@@ -113,90 +103,145 @@ const InventoryIndex = ({
         }
         router.get(route("inventory.index", queryParams));
     };
-    const onKeyPressed = (field, e) => {
-        if (e.key === "Enter") {
-            searchFieldName(field, e.target.value);
-        }
+
+    const formatDate = (value) => {
+        if (!value) return "—";
+
+        return new Date(value).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        });
+    };
+
+    const statusStyles = {
+        available: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        low_stock: "bg-amber-50 text-amber-700 border-amber-200",
+        out_of_stock: "bg-red-50 text-red-700 border-red-200",
+    };
+
+    const categoryStyles = {
+        food: "bg-orange-50 text-orange-700 border-orange-200",
+        medicine: "bg-blue-50 text-blue-700 border-blue-200",
+        equipment: "bg-violet-50 text-violet-700 border-violet-200",
+        relief_goods: "bg-cyan-50 text-cyan-700 border-cyan-200",
+        other: "bg-slate-50 text-slate-700 border-slate-200",
+    };
+
+    const formatLabel = (value) => {
+        if (!value) return "—";
+
+        return value
+            .toString()
+            .replaceAll("_", " ")
+            .replace(/\b\w/g, (char) => char.toUpperCase());
     };
 
     const columnRenderers = {
-        id: (row) => row.id,
+        id: (row) => (
+            <div className="flex items-center">
+                <span className="inline-flex min-w-[42px] items-center justify-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                    #{row.id}
+                </span>
+            </div>
+        ),
 
         item_name: (row) => (
-            <span className="font-medium text-gray-900">
-                {row.item_name || "—"}
-            </span>
+            <div className="min-w-0 space-y-1">
+                <div className="truncate text-sm font-semibold text-slate-900">
+                    {row.item_name || "Unnamed Item"}
+                </div>
+            </div>
         ),
 
         item_category: (row) => (
-            <span className="text-sm text-gray-700">
-                {row.item_category || "—"}
+            <span
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${
+                    categoryStyles[row.item_category] ||
+                    "bg-slate-50 text-slate-700 border-slate-200"
+                }`}
+            >
+                <Tag className="h-3.5 w-3.5" />
+                {formatLabel(row.item_category)}
             </span>
         ),
 
         quantity: (row) => (
-            <span className="text-sm text-gray-700">{row.quantity ?? "—"}</span>
+            <div className="flex items-center">
+                <div className="inline-flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1.5">
+                    <span className="text-xs text-slate-500">Qty</span>
+                    <span className="text-sm font-semibold text-slate-800">
+                        {row.quantity ?? "—"}
+                    </span>
+                </div>
+            </div>
         ),
 
         year_established: (row) => (
-            <span className="text-sm text-gray-700">
+            <span className="text-sm font-medium text-slate-700">
                 {row.year_established || "—"}
             </span>
         ),
 
         unit: (row) => (
-            <span className="text-sm text-gray-700">{row.unit || "—"}</span>
-        ),
-
-        status: (row) => {
-            const statusColors = {
-                available: "bg-green-100 text-green-800",
-                low_stock: "bg-yellow-100 text-yellow-800",
-                out_of_stock: "bg-red-100 text-red-800",
-            };
-
-            return (
-                <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        statusColors[row.status] || "bg-gray-100 text-gray-800"
-                    }`}
-                >
-                    {row.status || "—"}
-                </span>
-            );
-        },
-
-        received_date: (row) => (
-            <span className="text-sm text-gray-500">
-                {row.received_date
-                    ? new Date(row.received_date).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                      })
-                    : "—"}
+            <span className="inline-flex rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                {row.unit || "—"}
             </span>
         ),
 
+        status: (row) => (
+            <span
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold ${
+                    statusStyles[row.status] ||
+                    "bg-slate-50 text-slate-700 border-slate-200"
+                }`}
+            >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                {formatLabel(row.status)}
+            </span>
+        ),
+
+        received_date: (row) => (
+            <div className="space-y-1">
+                <div className="flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                    <CalendarDays className="h-4 w-4 text-slate-400" />
+                    <span>{formatDate(row.received_date)}</span>
+                </div>
+                <div className="pl-5 text-xs text-slate-500">Received Date</div>
+            </div>
+        ),
+
         supplier: (row) => (
-            <span className="text-sm text-gray-700">{row.supplier || "—"}</span>
+            <div className="min-w-0 space-y-1">
+                <div className="truncate text-sm font-medium text-slate-800">
+                    {row.supplier || "—"}
+                </div>
+                <div className="flex items-center gap-1 text-xs text-slate-500">
+                    <Truck className="h-3.5 w-3.5" />
+                    <span>Supplier / Source</span>
+                </div>
+            </div>
         ),
 
         actions: (row) => (
-            <ActionMenu
-                actions={[
-                    {
-                        label: "Edit",
-                        icon: <SquarePen className="w-4 h-4 text-green-500" />,
-                        onClick: () => handleEdit(row.id),
-                    },
-                    {
-                        label: "Delete",
-                        icon: <Trash2 className="w-4 h-4 text-red-600" />,
-                        onClick: () => handleDeleteClick(row.id),
-                    },
-                ]}
-            />
+            <div className="flex items-center justify-center">
+                <ActionMenu
+                    actions={[
+                        {
+                            label: "Edit",
+                            icon: (
+                                <SquarePen className="h-4 w-4 text-emerald-500" />
+                            ),
+                            onClick: () => handleEdit(row.id),
+                        },
+                        {
+                            label: "Delete",
+                            icon: <Trash2 className="h-4 w-4 text-red-500" />,
+                            onClick: () => handleDeleteClick(row.id),
+                        },
+                    ]}
+                />
+            </div>
         ),
     };
 
@@ -373,24 +418,24 @@ const InventoryIndex = ({
                 <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
                     <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
                         {/* Header */}
-                        <div className="mb-6">
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl shadow-sm">
-                                <div className="p-2 bg-green-100 rounded-full">
-                                    <Home className="w-6 h-6 text-green-600" />
-                                </div>
-                                <div>
-                                    <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
-                                        Barangay Inventory Overview
-                                    </h1>
-                                    <p className="text-sm text-gray-500">
-                                        Review, filter, and manage barangay
-                                        inventory items efficiently. Monitor
-                                        stock levels, categories, and units with
-                                        ease.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        <PageHeader
+                            title="Barangay Inventory Overview"
+                            description="Review, filter, and manage barangay inventory items efficiently. Monitor stock levels, categories, and units with ease."
+                            icon={Home}
+                            iconWrapperClassName="bg-green-100 text-green-600 rounded-full"
+                            containerClassName="bg-gray-50 border-transparent shadow-sm"
+                            titleClassName="text-gray-900"
+                            descriptionClassName="text-gray-500"
+                            actions={
+                                <Button
+                                    onClick={handleAddInstitution}
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                >
+                                    <ListPlus className="mr-2 h-4 w-4" />
+                                    Add Item
+                                </Button>
+                            }
+                        />
 
                         <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
                             <div className="flex flex-wrap items-start justify-between gap-2 w-full mb-0">
@@ -406,49 +451,13 @@ const InventoryIndex = ({
                                     />
                                 </div>
                                 <div className="flex items-center gap-2 flex-wrap justify-end">
-                                    <form
-                                        onSubmit={handleSubmit}
-                                        className="flex w-[300px] max-w-lg items-center space-x-1"
-                                    >
-                                        <Input
-                                            type="text"
-                                            placeholder="Search Inventory Items"
-                                            value={query}
-                                            onChange={(e) =>
-                                                setQuery(e.target.value)
-                                            }
-                                            onKeyDown={(e) =>
-                                                onKeyPressed(
-                                                    "name",
-                                                    e.target.value,
-                                                )
-                                            }
-                                            className="ml-4"
-                                        />
-                                        <Button
-                                            type="submit"
-                                            className="border active:bg-blue-900 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white flex items-center gap-2 bg-transparent"
-                                            variant="outline"
-                                        >
-                                            <Search />
-                                        </Button>
-                                        <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                            Search
-                                        </div>
-                                    </form>
-
-                                    <div className="relative group z-50">
-                                        <Button
-                                            variant="outline"
-                                            className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
-                                            onClick={handleAddInstitution}
-                                        >
-                                            <ListPlus className="w-4 h-4" />
-                                        </Button>
-                                        <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                            Add an Item
-                                        </div>
-                                    </div>
+                                    <TableSearchBar
+                                        url="barangay_inventory.index"
+                                        queryParams={queryParams}
+                                        field="name"
+                                        label="Search Inventory"
+                                        placeholder="Search Inventory Items"
+                                    />
                                 </div>
                             </div>
                             {showFilters && (
@@ -478,305 +487,20 @@ const InventoryIndex = ({
                         </div>
                     </div>
                 </div>
-                <SidebarModal
+                <InventorySidebarModal
                     isOpen={isModalOpen}
-                    onClose={() => {
-                        handleModalClose();
-                    }}
-                    title={modalState == "add" ? "Add Item/s" : "Edit Item"}
-                >
-                    <form
-                        className="bg-gray-50 p-4 rounded-lg"
-                        onSubmit={
-                            itemDetails
-                                ? handleUpdateInventory
-                                : handleSubmitInventory
-                        }
-                    >
-                        <h3 className="text-2xl font-medium text-gray-700">
-                            Barangay Inventory
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-8">
-                            Please provide details about the barangay’s
-                            inventory items.
-                        </p>
-
-                        {Array.isArray(data.inventory_items) &&
-                            data.inventory_items.map((inventory, invIdx) => (
-                                <div
-                                    key={invIdx}
-                                    className="border p-4 mb-4 rounded-md relative bg-gray-50"
-                                >
-                                    <div className="grid grid-cols-1 md:grid-cols-6 mb-6 gap-4">
-                                        {/* Item Name */}
-                                        <div className="md:col-span-3">
-                                            <InputField
-                                                label="Item Name"
-                                                name="item_name"
-                                                value={
-                                                    inventory.item_name || ""
-                                                }
-                                                onChange={(e) =>
-                                                    handleInventoryFieldChange(
-                                                        e.target.value,
-                                                        invIdx,
-                                                        "item_name",
-                                                    )
-                                                }
-                                                placeholder="e.g. Rice, Medicine, Generator"
-                                            />
-                                            <InputError
-                                                message={
-                                                    errors[
-                                                        `inventory_items.${invIdx}.item_name`
-                                                    ]
-                                                }
-                                                className="mt-1"
-                                            />
-                                        </div>
-
-                                        {/* Item Category */}
-                                        <div className="md:col-span-3">
-                                            <DropdownInputField
-                                                label="Category"
-                                                name="item_category"
-                                                value={
-                                                    inventory.item_category ||
-                                                    ""
-                                                }
-                                                onChange={(e) =>
-                                                    handleInventoryFieldChange(
-                                                        e.target.value,
-                                                        invIdx,
-                                                        "item_category",
-                                                    )
-                                                }
-                                                placeholder="Select category"
-                                                items={[
-                                                    {
-                                                        label: "Food",
-                                                        value: "food",
-                                                    },
-                                                    {
-                                                        label: "Medicine",
-                                                        value: "medicine",
-                                                    },
-                                                    {
-                                                        label: "Equipment",
-                                                        value: "equipment",
-                                                    },
-                                                    {
-                                                        label: "Relief Goods",
-                                                        value: "relief_goods",
-                                                    },
-                                                    {
-                                                        label: "Other",
-                                                        value: "other",
-                                                    },
-                                                ]}
-                                            />
-                                            <InputError
-                                                message={
-                                                    errors[
-                                                        `inventory_items.${invIdx}.item_category`
-                                                    ]
-                                                }
-                                                className="mt-1"
-                                            />
-                                        </div>
-
-                                        {/* Quantity */}
-                                        <div className="md:col-span-2">
-                                            <InputField
-                                                label="Quantity"
-                                                name="quantity"
-                                                type="number"
-                                                value={inventory.quantity || ""}
-                                                onChange={(e) =>
-                                                    handleInventoryFieldChange(
-                                                        e.target.value,
-                                                        invIdx,
-                                                        "quantity",
-                                                    )
-                                                }
-                                                placeholder="Enter quantity"
-                                            />
-                                            <InputError
-                                                message={
-                                                    errors[
-                                                        `inventory_items.${invIdx}.quantity`
-                                                    ]
-                                                }
-                                                className="mt-1"
-                                            />
-                                        </div>
-
-                                        {/* Unit */}
-                                        <div className="md:col-span-2">
-                                            <InputField
-                                                label="Unit"
-                                                name="unit"
-                                                value={inventory.unit || ""}
-                                                onChange={(e) =>
-                                                    handleInventoryFieldChange(
-                                                        e.target.value,
-                                                        invIdx,
-                                                        "unit",
-                                                    )
-                                                }
-                                                placeholder="e.g. kg, pcs, box"
-                                            />
-                                            <InputError
-                                                message={
-                                                    errors[
-                                                        `inventory_items.${invIdx}.unit`
-                                                    ]
-                                                }
-                                                className="mt-1"
-                                            />
-                                        </div>
-
-                                        {/* Status */}
-                                        <div className="md:col-span-2">
-                                            <SelectField
-                                                label="Status"
-                                                name="status"
-                                                value={inventory.status || ""}
-                                                onChange={(e) =>
-                                                    handleInventoryFieldChange(
-                                                        e.target.value,
-                                                        invIdx,
-                                                        "status",
-                                                    )
-                                                }
-                                                items={[
-                                                    {
-                                                        label: "Available",
-                                                        value: "available",
-                                                    },
-                                                    {
-                                                        label: "Low Stock",
-                                                        value: "low_stock",
-                                                    },
-                                                    {
-                                                        label: "Out of Stock",
-                                                        value: "out_of_stock",
-                                                    },
-                                                ]}
-                                            />
-                                            <InputError
-                                                message={
-                                                    errors[
-                                                        `inventory_items.${invIdx}.status`
-                                                    ]
-                                                }
-                                                className="mt-1"
-                                            />
-                                        </div>
-
-                                        {/* Received Date */}
-                                        <div className="md:col-span-3">
-                                            <InputField
-                                                label="Date Received"
-                                                name="received_date"
-                                                type="date"
-                                                value={
-                                                    inventory.received_date ||
-                                                    ""
-                                                }
-                                                onChange={(e) =>
-                                                    handleInventoryFieldChange(
-                                                        e.target.value,
-                                                        invIdx,
-                                                        "received_date",
-                                                    )
-                                                }
-                                            />
-                                            <InputError
-                                                message={
-                                                    errors[
-                                                        `inventory_items.${invIdx}.received_date`
-                                                    ]
-                                                }
-                                                className="mt-1"
-                                            />
-                                        </div>
-
-                                        {/* Supplier */}
-                                        <div className="md:col-span-3">
-                                            <InputField
-                                                label="Supplier"
-                                                name="supplier"
-                                                value={inventory.supplier || ""}
-                                                onChange={(e) =>
-                                                    handleInventoryFieldChange(
-                                                        e.target.value,
-                                                        invIdx,
-                                                        "supplier",
-                                                    )
-                                                }
-                                                placeholder="e.g. Local Distributor, DOH"
-                                            />
-                                            <InputError
-                                                message={
-                                                    errors[
-                                                        `inventory_items.${invIdx}.supplier`
-                                                    ]
-                                                }
-                                                className="mt-1"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Remove button */}
-                                    {itemDetails === null && (
-                                        <button
-                                            type="button"
-                                            onClick={() => removeItem(invIdx)}
-                                            className="absolute top-1 right-2 flex items-center gap-1 text-sm text-red-400 hover:text-red-800 font-medium mt-1 mb-5 transition-colors duration-200"
-                                        >
-                                            <IoIosCloseCircleOutline className="text-2xl" />
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-
-                        {/* Footer */}
-                        <div className="flex justify-between items-center p-3">
-                            {itemDetails === null ? (
-                                <button
-                                    type="button"
-                                    onClick={addItem}
-                                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium mt-4 transition-colors duration-200"
-                                >
-                                    <IoIosAddCircleOutline className="text-2xl" />
-                                    <span>Add Item</span>
-                                </button>
-                            ) : (
-                                <div></div>
-                            )}
-
-                            <div className="flex justify-end items-center text-end mt-5 gap-4">
-                                {itemDetails == null && (
-                                    <Button
-                                        type="button"
-                                        onClick={() => reset()}
-                                    >
-                                        <RotateCcw /> Reset
-                                    </Button>
-                                )}
-
-                                <Button
-                                    className="bg-blue-700 hover:bg-blue-400"
-                                    type={"submit"}
-                                >
-                                    {itemDetails ? "Update" : "Add"}{" "}
-                                    <IoIosArrowForward />
-                                </Button>
-                            </div>
-                        </div>
-                    </form>
-                </SidebarModal>
+                    onClose={handleModalClose}
+                    modalState={modalState}
+                    itemDetails={itemDetails}
+                    data={data}
+                    errors={errors}
+                    handleSubmitInventory={handleSubmitInventory}
+                    handleUpdateInventory={handleUpdateInventory}
+                    handleInventoryFieldChange={handleInventoryFieldChange}
+                    removeItem={removeItem}
+                    addItem={addItem}
+                    reset={reset}
+                />
                 <DeleteConfirmationModal
                     isOpen={isDeleteModalOpen}
                     onClose={() => {

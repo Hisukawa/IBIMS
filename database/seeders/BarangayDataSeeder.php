@@ -97,8 +97,8 @@ class BarangayDataSeeder extends Seeder
         ];
 
         // Seed ONLY one barangay for testing
-        //$barangays = Barangay::take(5)->get();
-        $barangays = Barangay::all();
+        $barangays = Barangay::take(1)->get();
+        //$barangays = Barangay::all();
         foreach ($barangays as $barangay) {
             /**
              * ADMIN USERS
@@ -138,14 +138,34 @@ class BarangayDataSeeder extends Seeder
             /**
              * HOUSEHOLDS & FAMILIES
              */
-            Household::factory(50)
-                ->for($barangay)
-                ->has(Livestock::factory()->count(rand(0, 5)), 'livestocks')
-                ->has(HouseholdToilet::factory()->count(rand(1, 2)), 'toilets')
-                ->has(HouseholdElectricitySource::factory(), 'electricityTypes')
-                ->has(HouseholdWasteManagement::factory(), 'wasteManagementTypes')
-                ->has(HouseholdWaterSource::factory()->count(rand(1, 3)), 'waterSourceTypes')
-                ->create();
+            Household::factory()
+                ->count(50)
+                ->for($barangay, 'barangay')
+                ->create()
+                ->each(function ($household) {
+                    Livestock::factory()
+                        ->count(rand(0, 5))
+                        ->for($household, 'household')
+                        ->create();
+
+                    HouseholdToilet::factory()
+                        ->count(rand(1, 2))
+                        ->for($household, 'household')
+                        ->create();
+
+                    HouseholdElectricitySource::factory()
+                        ->for($household, 'household')
+                        ->create();
+
+                    HouseholdWasteManagement::factory()
+                        ->for($household, 'household')
+                        ->create();
+
+                    HouseholdWaterSource::factory()
+                        ->count(rand(1, 3))
+                        ->for($household, 'household')
+                        ->create();
+                });
 
             Family::factory(5)->create(['barangay_id' => $barangay->id]);
 
@@ -201,7 +221,7 @@ class BarangayDataSeeder extends Seeder
             /**
              * SAMPLE USERS
              */
-            foreach ($residents->take(5) as $i => $res) {
+            foreach ($residents->take(15) as $i => $res) {
                 $user = User::factory()->create([
                     'barangay_id' => $barangay->id,
                     'resident_id' => $res->id,

@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\BarangayAdmin\BarangayResources;
 
 use App\Helpers\ActivityLogHelper;
+use App\Http\Controllers\Controller;
 use App\Models\Barangay;
 use App\Models\BarangayInfrastructure;
 use App\Http\Requests\StoreBarangayInfrastructureRequest;
 use App\Http\Requests\UpdateBarangayInfrastructureRequest;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Str;
