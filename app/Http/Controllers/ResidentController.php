@@ -79,7 +79,8 @@ class ResidentController extends Controller
             'is_pwd',
             'registered_voter',
             'employment_status',
-            'resident_picture_path'
+            'resident_picture_path',
+
         ])
             ->where('barangay_id', $brgy_id)
             ->where('is_deceased', false)
@@ -161,6 +162,7 @@ class ResidentController extends Controller
         $transform = fn($r) => [
             'id' => $r->id,
             'resident_picture' => $r->resident_picture_path,
+            'full_name' => $r->full_name,
             'firstname' => $r->firstname,
             'middlename' => $r->middlename,
             'lastname' => $r->lastname,

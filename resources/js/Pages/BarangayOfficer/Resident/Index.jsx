@@ -272,6 +272,10 @@ export default function Index({
         window.open(fullUrl, "_blank");
     };
     // Memoize confirmDelete to ensure it's stable
+    const selectedResidentToDelete = useMemo(() => {
+        return residents?.data?.find((r) => r.id === residentToDelete);
+    }, [residents, residentToDelete]);
+    const residentDeleteName = selectedResidentToDelete?.full_name || "";
     const confirmDelete = useMemo(
         () => () => {
             if (residentToDelete) {
@@ -664,23 +668,13 @@ export default function Index({
             </SidebarModal>
             <DeleteConfirmationModal
                 isOpen={isDeleteModalOpen}
-                onClose={() => {
-                    setIsDeleteModalOpen(false);
-                }}
+                onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
-                residentId={recordToDelete}
+                residentId={residentToDelete} // ✅ FIXED
                 title="Delete Resident Record"
                 description="This action requires password confirmation before proceeding."
                 message="You are about to permanently delete this resident record. This action cannot be undone."
-                itemName={
-                    residents?.data?.find((r) => r.id === recordToDelete)
-                        ? `${residents.data.find((r) => r.id === recordToDelete).first_name} ${
-                              residents.data.find(
-                                  (r) => r.id === recordToDelete,
-                              ).last_name
-                          }`
-                        : ""
-                }
+                itemName={residentDeleteName} // ✅ CLEAN
                 itemLabel="Resident"
                 note="Deleting this resident may also remove or affect related household, document, and profiling records."
                 buttonLabel="Confirm and Delete"
