@@ -31,6 +31,9 @@ import FilterToggle from "@/Components/FilterButtons/FillterToggle";
 import DynamicTableControls from "@/Components/FilterButtons/DynamicTableControls";
 import DynamicTable from "@/Components/DynamicTable";
 import InputError from "@/Components/InputError";
+import StreetSidebarModal from "./Partials/StreetSidebarModal";
+import TableSearchBar from "@/Components/TableSearchBar";
+import PageHeader from "@/Components/PageHeader";
 
 export default function BarangayInfrastucture({
     streets,
@@ -78,13 +81,13 @@ export default function BarangayInfrastucture({
     useEffect(() => {
         localStorage.setItem(
             "street_visible_columns",
-            JSON.stringify(visibleColumns)
+            JSON.stringify(visibleColumns),
         );
     }, [visibleColumns]);
 
     // Detect active filters
     const hasActiveFilter = Object.entries(queryParams || {}).some(
-        ([key, value]) => ["purok"].includes(key) && value && value !== ""
+        ([key, value]) => ["purok"].includes(key) && value && value !== "",
     );
 
     useEffect(() => {
@@ -146,12 +149,12 @@ export default function BarangayInfrastucture({
             <span className="text-sm text-gray-500">
                 {row.created_at
                     ? new Date(row.created_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    })
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                      })
                     : "—"}
             </span>
         ),
@@ -160,12 +163,12 @@ export default function BarangayInfrastucture({
             <span className="text-sm text-gray-500">
                 {row.updated_at
                     ? new Date(row.updated_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    })
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                      })
                     : "—"}
             </span>
         ),
@@ -199,7 +202,7 @@ export default function BarangayInfrastucture({
             // console.log(purok_numbers);
             // Find the matching dropdown item
             const selectedPurok = purok_numbers.find(
-                (p) => p.value === street.purok_id.toString()
+                (p) => p.value === street.purok_id.toString(),
             );
 
             setData({
@@ -322,23 +325,25 @@ export default function BarangayInfrastucture({
             <div className="pt-4 mb-10">
                 <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
                     <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
-                        {/* Header */}
-                        <div className="mb-6">
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl shadow-sm">
-                                <div className="p-2 bg-green-100 rounded-full">
-                                    <MapPin className="w-6 h-6 text-green-600" />
-                                </div>
-                                <div>
-                                    <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
-                                        Street Directory
-                                    </h1>
-                                    <p className="text-sm text-gray-500">
-                                        View, add, and manage all streets and
-                                        zones in the barangay.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        <PageHeader
+                            title="Street Directory"
+                            description="View, add, and manage all streets and zones in the barangay."
+                            icon={MapPin}
+                            iconWrapperClassName="bg-green-100 text-green-600 rounded-full"
+                            containerClassName="border-0 bg-gray-50 shadow-sm"
+                            titleClassName="text-gray-900"
+                            descriptionClassName="text-gray-500"
+                            actions={
+                                <Button
+                                    variant="outline"
+                                    onClick={() => handleAddStreet()}
+                                    className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
+                                >
+                                    <ListPlus className="w-4 h-4" />
+                                    Add Street
+                                </Button>
+                            }
+                        />
 
                         <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
                             <div className="flex flex-wrap justify-between gap-2 mb-4">
@@ -352,41 +357,14 @@ export default function BarangayInfrastucture({
                                     }
                                 />
                                 <div className="flex items-center gap-2">
-                                    {/* Search */}
-                                    <form
-                                        onSubmit={handleSearchSubmit}
-                                        className="flex w-[300px] max-w-lg items-center space-x-1"
-                                    >
-                                        <Input
-                                            type="text"
-                                            placeholder="Search Street name"
-                                            value={query}
-                                            onChange={(e) =>
-                                                setQuery(e.target.value)
-                                            }
-                                            onKeyDown={(e) =>
-                                                onKeyPressed("name", e)
-                                            }
-                                            className="ml-4"
-                                        />
-                                        <Button
-                                            type="submit"
-                                            className="border border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
-                                            variant="outline"
-                                        >
-                                            <Search />
-                                        </Button>
-                                    </form>
-
-                                    {/* Add button */}
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => handleAddStreet()}
-                                        className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
-                                    >
-                                        <ListPlus className="w-4 h-4" />
-                                        Add Street
-                                    </Button>
+                                    <TableSearchBar
+                                        url="street.index"
+                                        queryParams={queryParams}
+                                        label="Search street"
+                                        field="search"
+                                        placeholder="Search street name"
+                                        className="w-full md:w-[300px]"
+                                    />
                                 </div>
                             </div>
                             {showFilters && (
@@ -396,7 +374,7 @@ export default function BarangayInfrastucture({
                                     visibleFilters={["purok"]}
                                     clearRouteName="street.index"
                                     clearRouteParams={{}}
-                                    puroks={puroks}
+                                    puroks={puroks.map((p) => p.purok_number)}
                                     showFilters={showFilters}
                                 />
                             )}
@@ -413,84 +391,19 @@ export default function BarangayInfrastucture({
                     </div>
                 </div>
 
-                <SidebarModal
+                <StreetSidebarModal
                     isOpen={isModalOpen}
                     onClose={handleModalClose}
-                    title={modalState === "add" ? "Add Street" : "Edit Street"}
-                >
-                    <form
-                        className="bg-gray-50 p-4 rounded-lg"
-                        onSubmit={
-                            streetDetails
-                                ? handleUpdateStreet
-                                : handleSubmitStreet
-                        }
-                    >
-                        <h3 className="text-2xl font-medium text-gray-700">
-                            Barangay Street Information
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-6">
-                            Please enter the street information below.
-                        </p>
-
-                        {/* Street Fields */}
-                        <div className="space-y-4">
-                            {/* Street Name */}
-                            <InputField
-                                label="Street Name"
-                                name="street_name"
-                                value={data.street_name || ""}
-                                onChange={(e) =>
-                                    setData("street_name", e.target.value)
-                                }
-                                placeholder="Enter Street Name"
-                            />
-                            <InputError
-                                message={errors.street_name}
-                                className="mt-1"
-                            />
-
-                            {/* Purok Dropdown */}
-                            <DropdownInputField
-                                label="Purok"
-                                name="purok_id"
-                                value={data.purok_id || ""}
-                                onChange={(e) =>
-                                    setData("purok_id", e.target.value)
-                                }
-                                placeholder="Select Purok"
-                                items={purok_numbers}
-                            />
-                            <InputError
-                                message={errors.purok_id}
-                                className="mt-1"
-                            />
-                        </div>
-
-                        {/* Footer Buttons */}
-                        <div className="flex justify-between items-center p-3 mt-6">
-                            {streetDetails === null ? (
-                                <Button
-                                    type="button"
-                                    onClick={() => reset()}
-                                    className="flex items-center gap-1"
-                                >
-                                    <RotateCcw /> Reset
-                                </Button>
-                            ) : (
-                                <div></div>
-                            )}
-
-                            <Button
-                                className="bg-blue-700 hover:bg-blue-500"
-                                type="submit"
-                            >
-                                {streetDetails ? "Update" : "Add"}{" "}
-                                <IoIosArrowForward />
-                            </Button>
-                        </div>
-                    </form>
-                </SidebarModal>
+                    modalState={modalState}
+                    streetDetails={streetDetails}
+                    data={data}
+                    setData={setData}
+                    errors={errors}
+                    purok_numbers={purok_numbers}
+                    handleSubmitStreet={handleSubmitStreet}
+                    handleUpdateStreet={handleUpdateStreet}
+                    reset={reset}
+                />
                 <DeleteConfirmationModal
                     isOpen={isDeleteModalOpen}
                     onClose={() => setIsDeleteModalOpen(false)}

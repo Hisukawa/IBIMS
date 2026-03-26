@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\BarangayAdmin\BarangayResources;
 
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBodiesOFLandRequest;
 use App\Http\Requests\UpdateBodiesOFLandRequest;
 use App\Models\BodiesOfLand;
@@ -17,11 +18,20 @@ class LandController extends Controller
     public function index()
     {
         $brgy_id = auth()->user()->barangay_id;
+        $search = trim(request('search', ''));
 
-        $query = BodiesOfLand::where('barangay_id', $brgy_id);
+        $query = BodiesOfLand::where('barangay_id', $brgy_id)
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('type', 'like', "%{$search}%");
+                });
+            });
 
-        // ✅ Pagination with query string preservation
-        $bodiesOfLand = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+        $bodiesOfLand = $query
+            ->latest('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('BarangayOfficer/Land/Index', [
             'bodiesOfLand' => $bodiesOfLand,

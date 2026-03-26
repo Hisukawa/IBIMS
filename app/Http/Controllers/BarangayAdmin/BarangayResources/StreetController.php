@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\BarangayAdmin\BarangayResources;
 
 use App\Helpers\ActivityLogHelper;
+use App\Http\Controllers\Controller;
 use App\Models\Purok;
 use App\Models\Street;
 use Illuminate\Http\Request;
@@ -16,29 +17,34 @@ class StreetController extends Controller
     public function index(Request $request)
     {
         $barangayId = auth()->user()->barangay_id;
+        $search = trim($request->get('search', ''));
 
         $query = Street::with('purok')
             ->whereHas('purok', fn($q) => $q->where('barangay_id', $barangayId))
             ->join('puroks', 'puroks.id', '=', 'streets.purok_id')
+            ->select('streets.*') // avoid column conflicts
+            ->when($request->filled('purok') && $request->get('purok') !== 'All', function ($q) use ($request) {
+                $q->where('puroks.purok_number', $request->get('purok'));
+            })
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('streets.street_name', 'like', "%{$search}%")
+                        ->orWhere('puroks.purok_number', 'like', "%{$search}%");
+                });
+            })
             ->orderBy('puroks.purok_number')
-            ->orderBy('street_name')
-            ->select('streets.*'); // ✅ Avoid column conflicts
+            ->orderBy('streets.street_name');
 
         $puroks = Purok::where('barangay_id', $barangayId)
             ->orderBy('purok_number', 'asc')
             ->get(['id', 'purok_number']);
 
-
-        if (($purok = $request->get('purok')) && $purok !== 'All') {
-            $query->where('puroks.purok_number', $purok);
-        }
-
         $streets = $query->paginate(10)->withQueryString();
 
         return Inertia::render("BarangayOfficer/BarangayProfile/Street/Index", [
-            'streets'     => $streets,
+            'streets' => $streets,
             'queryParams' => $request->query() ?: null,
-            'puroks' => $puroks
+            'puroks' => $puroks,
         ]);
     }
 

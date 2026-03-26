@@ -16,6 +16,9 @@ use App\Http\Controllers\BarangayAdmin\BarangayResources\BarangayManagementContr
 use App\Http\Controllers\BarangayAdmin\BarangayResources\BarangayOfficialController;
 use App\Http\Controllers\BarangayAdmin\BarangayResources\BarangayProjectController;
 use App\Http\Controllers\BarangayAdmin\BarangayResources\BarangayRoadController;
+use App\Http\Controllers\BarangayAdmin\BarangayResources\WaterController;
+use App\Http\Controllers\BarangayAdmin\BarangayResources\LandController;
+use App\Http\Controllers\BarangayAdmin\BarangayResources\StreetController;
 
 use App\Http\Controllers\AllergyController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -43,7 +46,7 @@ use App\Http\Controllers\HouseholdController;
 use App\Http\Controllers\IBIMSController;
 use App\Http\Controllers\InstitutionMemberController;
 use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\LandController;
+
 use App\Http\Controllers\LivelihoodController;
 use App\Http\Controllers\MedicalInformationController;
 use App\Http\Controllers\OccupationController;
@@ -56,7 +59,6 @@ use App\Http\Controllers\ResidentMedicalConditionController;
 use App\Http\Controllers\ResidentMedicationController;
 use App\Http\Controllers\ResidentVaccinationController;
 use App\Http\Controllers\SeniorCitizenController;
-use App\Http\Controllers\StreetController;
 use App\Http\Controllers\SummonController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\SuperAdminDataController;
@@ -64,7 +66,7 @@ use App\Http\Controllers\UnauthenticatedIssuanceController;
 
 
 use App\Http\Controllers\VehicleController;
-use App\Http\Controllers\WaterController;
+
 use App\Models\BarangayInfrastructure;
 use App\Models\BarangayInstitution;
 use App\Models\User;
