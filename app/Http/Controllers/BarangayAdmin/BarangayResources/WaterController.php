@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\BarangayAdmin\BarangayResources;
 
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBodiesOFWaterRequest;
 use App\Http\Requests\UpdateBodiesOFWaterRequest;
 use App\Models\BodiesOfWater;
@@ -20,8 +21,18 @@ class WaterController extends Controller
 
         $query = BodiesOfWater::where('barangay_id', $brgy_id);
 
-        // ✅ Pagination with query string preservation
-        $bodiesOfWater = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+        // Search
+        $query->when(request('search'), function ($q, $search) {
+            $q->where(function ($subQuery) use ($search) {
+                $subQuery->where('name', 'like', "%{$search}%")
+                        ->orWhere('type', 'like', "%{$search}%");
+            });
+        });
+
+        $bodiesOfWater = $query
+            ->orderBy('id', 'desc')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('BarangayOfficer/Water/Index', [
             'bodiesOfWater' => $bodiesOfWater,

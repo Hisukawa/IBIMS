@@ -32,6 +32,9 @@ import FilterToggle from "@/Components/FilterButtons/FillterToggle";
 import DynamicTableControls from "@/Components/FilterButtons/DynamicTableControls";
 import DynamicTable from "@/Components/DynamicTable";
 import InputError from "@/Components/InputError";
+import BodyOfLandSidebarModal from "./Partials/BodyOfLandSidebarModal";
+import PageHeader from "@/Components/PageHeader";
+import TableSearchBar from "@/Components/TableSearchBar";
 
 export default function Index({ bodiesOfLand, queryParams }) {
     const breadcrumbs = [
@@ -78,13 +81,13 @@ export default function Index({ bodiesOfLand, queryParams }) {
     useEffect(() => {
         localStorage.setItem(
             "land_visible_columns",
-            JSON.stringify(visibleColumns)
+            JSON.stringify(visibleColumns),
         );
     }, [visibleColumns]);
 
     // Detect active filters
     const hasActiveFilter = Object.entries(queryParams || {}).some(
-        ([key, value]) => [].includes(key) && value && value !== ""
+        ([key, value]) => [].includes(key) && value && value !== "",
     );
 
     useEffect(() => {
@@ -335,63 +338,37 @@ export default function Index({ bodiesOfLand, queryParams }) {
             <div className="pt-4 mb-10">
                 <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
                     <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
-                        <div className="mb-6">
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl shadow-sm">
-                                <div className="p-2 bg-green-100 rounded-full">
-                                    <MapPin className="w-6 h-6 text-green-600" />{" "}
-                                    {/* Use lucide-react MapPin icon */}
-                                </div>
-                                <div>
-                                    <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
-                                        Bodies of Land Overview
-                                    </h1>
-                                    <p className="text-sm text-gray-500">
-                                        View, filter, and manage mountains,
-                                        hills, plains, and other land formations
-                                        within your barangay.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        <PageHeader
+                            title="Bodies of Land Overview"
+                            description="View, filter, and manage mountains, hills, plains, and other land formations within your barangay."
+                            icon={MapPin}
+                            iconWrapperClassName="bg-green-100 text-green-600 rounded-full"
+                            containerClassName="border-0 bg-gray-50 shadow-sm"
+                            titleClassName="text-gray-900"
+                            descriptionClassName="text-gray-500"
+                            actions={
+                                <Button
+                                    variant="outline"
+                                    onClick={handleAddBodyOfLand}
+                                    className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
+                                >
+                                    <ListPlus className="w-4 h-4" />
+                                    Add Body of Land
+                                </Button>
+                            }
+                        />
 
                         <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
                             <div className="flex flex-wrap justify-end gap-2 mb-4">
                                 <div className="flex items-center gap-2">
-                                    {/* Search */}
-                                    <form
-                                        onSubmit={handleSearchSubmit}
-                                        className="flex w-[300px] max-w-lg items-center space-x-1"
-                                    >
-                                        <Input
-                                            type="text"
-                                            placeholder="Search name"
-                                            value={query}
-                                            onChange={(e) =>
-                                                setQuery(e.target.value)
-                                            }
-                                            onKeyDown={(e) =>
-                                                onKeyPressed("name", e)
-                                            }
-                                            className="ml-4"
-                                        />
-                                        <Button
-                                            type="submit"
-                                            className="border border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
-                                            variant="outline"
-                                        >
-                                            <Search />
-                                        </Button>
-                                    </form>
-
-                                    {/* Add button */}
-                                    <Button
-                                        variant="outline"
-                                        onClick={handleAddBodyOfLand}
-                                        className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
-                                    >
-                                        <ListPlus className="w-4 h-4" />
-                                        Add Body of Land
-                                    </Button>
+                                    <TableSearchBar
+                                        url="land.index"
+                                        queryParams={queryParams}
+                                        label="Search land"
+                                        field="search"
+                                        placeholder="Search by name or type"
+                                        className="w-full md:w-[300px]"
+                                    />
                                 </div>
                             </div>
 
@@ -406,144 +383,21 @@ export default function Index({ bodiesOfLand, queryParams }) {
                         </div>
                     </div>
                 </div>
-                <SidebarModal
+                <BodyOfLandSidebarModal
                     isOpen={isModalOpen}
                     onClose={handleModalClose}
-                    title={
-                        modalState === "add"
-                            ? "Add Body of Land"
-                            : "Edit Body of Land"
-                    }
-                >
-                    <form
-                        className="bg-gray-50 p-4 rounded-lg"
-                        onSubmit={
-                            landDetails ? handleUpdateLand : handleSubmitLand
-                        }
-                    >
-                        <h3 className="text-2xl font-medium text-gray-700">
-                            Body of Land Information
-                        </h3>
-                        <p className="text-sm text-gray-500 mb-8">
-                            Provide accurate information about the body of land
-                            located within your barangay. This helps track
-                            natural resources and manage land planning.
-                        </p>
-
-                        {Array.isArray(data.bodiesOfLand) &&
-                            data.bodiesOfLand.map((land, idx) => (
-                                <div
-                                    key={idx}
-                                    className="border p-4 mb-4 rounded-md relative bg-white shadow-sm"
-                                >
-                                    <div className="grid grid-cols-1 md:grid-cols-2 mb-6 gap-4">
-                                        {/* Land Name */}
-                                        <div>
-                                            <InputField
-                                                label="Name of Body of Land"
-                                                name="name"
-                                                value={land.name || ""}
-                                                onChange={(e) =>
-                                                    handleLandFieldChange(
-                                                        e.target.value,
-                                                        idx,
-                                                        "name"
-                                                    )
-                                                }
-                                                placeholder="e.g., Mountain A, Hill B, Barangay Field"
-                                            />
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                Enter the official or local name
-                                                of the land formation.
-                                            </p>
-                                            <InputError
-                                                message={
-                                                    errors[
-                                                        `bodiesOfLand.${idx}.name`
-                                                    ]
-                                                }
-                                                className="mt-1"
-                                            />
-                                        </div>
-
-                                        {/* Land Type */}
-                                        <div>
-                                            <DropdownInputField
-                                                label="Type of Land Body"
-                                                name="type"
-                                                value={land.type || ""}
-                                                onChange={(e) =>
-                                                    handleLandFieldChange(
-                                                        e.target.value,
-                                                        idx,
-                                                        "type"
-                                                    )
-                                                }
-                                                items={landTypes}
-                                                placeholder="Select or enter type (e.g., Mountain, Hill, Plain)"
-                                            />
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                Choose the classification that
-                                                best describes this land
-                                                formation.
-                                            </p>
-                                            <InputError
-                                                message={
-                                                    errors[
-                                                        `bodiesOfLand.${idx}.type`
-                                                    ]
-                                                }
-                                                className="mt-1"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Remove button for dynamic rows */}
-                                    {landDetails === null && (
-                                        <button
-                                            type="button"
-                                            onClick={() => removeLand(idx)}
-                                            className="absolute top-1 right-2 flex items-center gap-1 text-sm text-red-400 hover:text-red-800 font-medium mt-1 transition-colors duration-200"
-                                        >
-                                            <IoIosCloseCircleOutline className="text-2xl" />
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-
-                        <div className="flex justify-between items-center p-3">
-                            {landDetails === null ? (
-                                <button
-                                    type="button"
-                                    onClick={addLand}
-                                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium mt-4 transition-colors duration-200"
-                                >
-                                    <IoIosAddCircleOutline className="text-2xl" />
-                                    <span>Add Another Body of Land</span>
-                                </button>
-                            ) : null}
-
-                            <div className="flex justify-end items-center text-end mt-5 gap-4">
-                                {landDetails == null && (
-                                    <Button
-                                        type="button"
-                                        onClick={() => reset()}
-                                    >
-                                        <RotateCcw /> Reset
-                                    </Button>
-                                )}
-
-                                <Button
-                                    className="bg-green-700 hover:bg-green-400"
-                                    type="submit"
-                                >
-                                    {landDetails ? "Update" : "Add"}{" "}
-                                    <IoIosArrowForward />
-                                </Button>
-                            </div>
-                        </div>
-                    </form>
-                </SidebarModal>
+                    modalState={modalState}
+                    landDetails={landDetails}
+                    data={data}
+                    errors={errors}
+                    landTypes={landTypes}
+                    handleSubmitLand={handleSubmitLand}
+                    handleUpdateLand={handleUpdateLand}
+                    handleLandFieldChange={handleLandFieldChange}
+                    addLand={addLand}
+                    removeLand={removeLand}
+                    reset={reset}
+                />
                 <DeleteConfirmationModal
                     isOpen={isDeleteModalOpen}
                     onClose={() => {

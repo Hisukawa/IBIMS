@@ -53,47 +53,144 @@ class BarangayDataSeeder extends Seeder
 
         // ----- Bodies of Water -----
         $waterTypes = [
-            'Sea',
-            'River',
-            'Gulf (Inlet)',
-            'Lake',
-            'Spring',
-            'Falls',
-            'Creek',
+            'Sea (Dagat)',
+            'River (Ilog)',
+            'Gulf (Golpo)',
+            'Bay (Look)',
+            'Strait (Kipot)',
+            'Lagoon (Latian / Lawaing maalat)',
+            'Lake (Lawa)',
+            'Spring (Bukal)',
+            'Falls (Talon)',
+            'Creek (Sapa)',
+            'Stream (Batis)',
+            'Canal (Kanal)',
+            'Estuary (Bunganga ng ilog)',
+            'Swamp (Latian)',
+            'Marsh (Lambak na latian)',
+            'Reservoir (Imbakan ng tubig)',
+            'Irrigation Canal (Patubig)',
+            'Fishpond (Palaisdaan)',
+            'Coral Reef Area (Bahura)',
+            'Coastal Waters (Baybaying dagat)',
+            'Mangrove Area (Bakawan)',
+            'Floodplain (Kapatagang binabaha)',
             'Not mentioned above (Specify)',
         ];
 
         $waterNames = [
-            'Sea' => ['San Miguel Sea', 'Dalisay Sea', 'Maligaya Coast', 'Bayanihan Bay'],
-            'River' => ['San Roque River', 'Mabini River', 'Katipunan River', 'Bulusan River'],
-            'Gulf (Inlet)' => ['Agila Gulf', 'Luna Gulf', 'Esperanza Inlet', 'Rizal Inlet'],
-            'Lake' => ['Banahaw Lake', 'Makiling Lake', 'Maharlika Lake'],
-            'Spring' => ['Mapula Spring', 'Tagumpay Spring', 'Maligaya Spring', 'Sampaguita Spring'],
-            'Falls' => ['Maria Falls', 'Tinago Falls', 'Bulusan Falls', 'Mayumi Falls'],
-            'Creek' => ['Tinago Creek', 'Katipunan Creek', 'Maligaya Creek', 'San Roque Creek'],
-            'Not mentioned above (Specify)' => ['Underground Stream', 'Hidden Pond', 'Mystic Basin'],
+            'Sea (Dagat)' => ['Philippine Sea', 'West Philippine Sea', 'Sulu Sea'],
+            'River (Ilog)' => ['Cagayan River', 'Magat River', 'Pinacanauan River'],
+            'Gulf (Golpo)' => ['Lingayen Gulf', 'Davao Gulf', 'Moro Gulf'],
+            'Bay (Look)' => ['Manila Bay', 'Lamon Bay', 'San Miguel Bay'],
+            'Strait (Kipot)' => ['San Bernardino Strait', 'Surigao Strait', 'Tablas Strait'],
+            'Lagoon (Latian / Lawaing maalat)' => ['Coastal Lagoon', 'Mangrove Lagoon'],
+            'Lake (Lawa)' => ['Laguna de Bay', 'Lake Lanao', 'Taal Lake'],
+            'Spring (Bukal)' => ['Cold Spring', 'Mountain Spring', 'Natural Spring'],
+            'Falls (Talon)' => ['Pagsanjan Falls', 'Maria Cristina Falls', 'Tinuy-an Falls'],
+            'Creek (Sapa)' => ['San Isidro Creek', 'Malinao Creek', 'Bucal Creek'],
+            'Stream (Batis)' => ['Malamig na Batis', 'Mountain Stream', 'Forest Stream'],
+            'Canal (Kanal)' => ['Irrigation Canal', 'Drainage Canal'],
+            'Estuary (Bunganga ng ilog)' => ['River Estuary', 'Coastal Estuary'],
+            'Swamp (Latian)' => ['Freshwater Swamp', 'Lowland Swamp'],
+            'Marsh (Lambak na latian)' => ['Marshland Area', 'Wet Marsh'],
+            'Reservoir (Imbakan ng tubig)' => ['Magat Reservoir', 'Angat Reservoir'],
+            'Irrigation Canal (Patubig)' => ['National Irrigation Canal', 'Barangay Irrigation Line'],
+            'Fishpond (Palaisdaan)' => ['Tilapia Fishpond', 'Milkfish Fishpond'],
+            'Coral Reef Area (Bahura)' => ['Protected Reef Area', 'Coastal Reef'],
+            'Coastal Waters (Baybaying dagat)' => ['Municipal Coastal Waters', 'Fishing Coastal Area'],
+            'Mangrove Area (Bakawan)' => ['Mangrove Forest', 'Bakawan Zone'],
+            'Floodplain (Kapatagang binabaha)' => ['River Floodplain', 'Low Floodplain Area'],
+            'Not mentioned above (Specify)' => ['Unnamed Water Feature'],
         ];
         // ----- Bodies of Land -----
         $landTypes = [
-            'Mountain',
-            'Hill',
-            'Plateau',
-            'Valley',
-            'Plain',
-            'Forest',
-            'Cave',
+            'Mountain (Bundok)',
+            'Hill (Burol)',
+            'Plateau (Talampas)',
+            'Valley (Lambak)',
+            'Plain (Kapatagan)',
+            'Forest (Kagubatan)',
+            'Cave (Kuweba)',
+            'Volcano (Bulkan)',
+            'Cliff (Bangin)',
+            'Grassland (Damuhan)',
+            'Wetland (Basang lupa)',
+            'Rice Field (Palayan)',
+            'Agricultural Land (Lupang sakahan)',
+            'Residential Area (Pamayanan)',
+            'Urban Area (Kalungsuran)',
             'Not mentioned above (Specify)',
         ];
 
         $landNames = [
-            'Mountain' => ['Mt. Banahaw', 'Mt. Makiling', 'Mt. Dalisay', 'Mt. Kalayaan'],
-            'Hill' => ['Tagumpay Hill', 'San Isidro Hill', 'Mabini Hill'],
-            'Plateau' => ['Luntian Plateau', 'Esperanza Plateau', 'Bayanihan Plateau'],
-            'Valley' => ['Mapayapa Valley', 'Katipunan Valley', 'Luna Valley'],
-            'Plain' => ['Maligaya Plain', 'Sampaguita Plain', 'San Roque Plain'],
-            'Forest' => ['Bayanihan Forest', 'Katipunan Forest', 'Maligaya Forest', 'Esperanza Woods'],
-            'Cave' => ['San Pedro Cave', 'Tagumpay Cave', 'Bulusan Cave', 'Dalisay Cave'],
-            'Not mentioned above (Specify)' => ['Rock Formation', 'Underground Ridge', 'Hidden Plateau'],
+            'Mountain (Bundok)' => [
+                'Sierra Madre Range',
+                'Cordillera Mountain',
+                'Mt. Isarog',
+                'Mt. Apo',
+            ],
+            'Hill (Burol)' => [
+                'Rolling Hills',
+                'Chocolate Hills Area',
+                'Green Hill Zone',
+            ],
+            'Plateau (Talampas)' => [
+                'Bukidnon Plateau',
+                'Highland Plateau',
+            ],
+            'Valley (Lambak)' => [
+                'Cagayan Valley',
+                'Valley Lowlands',
+            ],
+            'Plain (Kapatagan)' => [
+                'Central Plain',
+                'Floodplain Area',
+            ],
+            'Forest (Kagubatan)' => [
+                'Protected Forest',
+                'Secondary Forest',
+                'Rainforest Area',
+            ],
+            'Cave (Kuweba)' => [
+                'Limestone Cave',
+                'Underground Cave',
+            ],
+            'Volcano (Bulkan)' => [
+                'Mayon Volcano Area',
+                'Taal Volcano Zone',
+            ],
+            'Cliff (Bangin)' => [
+                'Rock Cliff',
+                'Steep Cliffside',
+            ],
+            'Grassland (Damuhan)' => [
+                'Open Grassland',
+                'Savanna Grass Area',
+            ],
+            'Wetland (Basang lupa)' => [
+                'Wetland Reserve',
+                'Protected Wetland',
+            ],
+            'Rice Field (Palayan)' => [
+                'Irrigated Rice Field',
+                'Rainfed Rice Field',
+            ],
+            'Agricultural Land (Lupang sakahan)' => [
+                'Corn Field',
+                'Mixed Cropland',
+            ],
+            'Residential Area (Pamayanan)' => [
+                'Barangay Proper',
+                'Housing Area',
+            ],
+            'Urban Area (Kalungsuran)' => [
+                'Town Center',
+                'Commercial Zone',
+            ],
+            'Not mentioned above (Specify)' => [
+                'Unnamed Land Feature',
+            ],
         ];
 
         // Seed ONLY one barangay for testing
@@ -306,7 +403,7 @@ class BarangayDataSeeder extends Seeder
                     'barangay_id' => $barangay->id,
                     'type' => $type,
                     'exists' => true,
-                    'name' => fake()->randomElement($waterNames[$type]),
+                    'name' => fake()->randomElement($waterNames[$type] ?? ['Unknown Water Feature']),
                 ]);
             }
         }
@@ -326,7 +423,7 @@ class BarangayDataSeeder extends Seeder
                     'barangay_id' => $barangay->id,
                     'type' => $type,
                     'exists' => true,
-                    'name' => fake()->randomElement($landNames[$type]),
+                    'name' => fake()->randomElement($landNames[$type] ?? ['Unknown Land Feature']),
                 ]);
             }
         }
