@@ -293,137 +293,390 @@ export default function Index({
     );
 
     // Memoize columnRenderers to prevent unnecessary re-creation on every render
+    // const columnRenderers = useMemo(
+    //     () => ({
+    //         resident_id: (resident) => resident.id,
+    //         resident_picture: (resident) => (
+    //             // Use an optimized image component or service if available.
+    //             // For now, ensure default-avatar.jpg is small and optimized.
+    //             <img
+    //                 src={
+    //                     resident.resident_picture
+    //                         ? `/storage/${resident.resident_picture}`
+    //                         : "/images/default-avatar.jpg"
+    //                 }
+    //                 onError={(e) => {
+    //                     e.target.onerror = null;
+    //                     e.target.src = "/images/default-avatar.jpg";
+    //                 }}
+    //                 alt="Resident"
+    //                 className="w-16 h-16 min-w-16 min-h-16 object-cover rounded-full border"
+    //                 loading="lazy" // Add lazy loading for images
+    //             />
+    //         ),
+    //         name: (resident) => (
+    //             <div className="text-sm break-words whitespace-normal leading-snug">
+    //                 {toTitleCase(
+    //                     `${resident.firstname} ${
+    //                         resident.middlename ? resident.middlename + " " : ""
+    //                     }${resident.lastname ?? ""} ${
+    //                         resident.suffix ? resident.suffix : ""
+    //                     }`,
+    //                 )}
+    //             </div>
+    //         ),
+    //         sex: (resident) => {
+    //             const genderKey = resident.sex;
+    //             const label =
+    //                 CONSTANTS.RESIDENT_GENDER_TEXT2[genderKey] ?? "Unknown";
+    //             const className =
+    //                 CONSTANTS.RESIDENT_GENDER_COLOR_CLASS[genderKey] ??
+    //                 "bg-gray-300";
+    //             return (
+    //                 <span
+    //                     className={`py-1 px-2 rounded-xl text-sm font-medium whitespace-nowrap ${className}`}
+    //                 >
+    //                     {label}
+    //                 </span>
+    //             );
+    //         },
+    //         age: (resident) => {
+    //             const age = calculateAge(resident.birthdate);
+    //             if (typeof age !== "number") return "Unknown";
+    //             return (
+    //                 <div className="flex flex-col text-sm">
+    //                     <span className="font-medium text-gray-800">{age}</span>
+    //                     {age > 60 && (
+    //                         <span className="text-xs text-rose-500 font-semibold">
+    //                             Senior Citizen
+    //                         </span>
+    //                     )}
+    //                 </div>
+    //             );
+    //         },
+    //         civil_status: (resident) =>
+    //             CONSTANTS.RESIDENT_CIVIL_STATUS_TEXT[resident.civil_status],
+    //         employment_status: (resident) =>
+    //             CONSTANTS.RESIDENT_EMPLOYMENT_STATUS_TEXT[
+    //                 resident.employment_status
+    //             ],
+    //         occupation: (resident) => {
+    //             const occ = resident.occupation;
+    //             return occ ? (
+    //                 <span className="text-sm text-gray-700">
+    //                     {resident.occupation}
+    //                 </span>
+    //             ) : (
+    //                 <span className="text-gray-400 text-[12px] italic">
+    //                     No occupation available
+    //                 </span>
+    //             );
+    //         },
+    //         ethnicity: (resident) => {
+    //             const eth = resident.ethnicity;
+    //             return eth ? (
+    //                 <span className="text-sm text-gray-700">{eth}</span>
+    //             ) : (
+    //                 <span className="text-gray-400 text-[12px] italic">
+    //                     No ethnicity data
+    //                 </span>
+    //             );
+    //         },
+    //         registered_voter: (resident) => {
+    //             const voter = resident.registered_voter;
+
+    //             return voter !== null && voter !== undefined ? (
+    //                 <span
+    //                     className={`${CONSTANTS.RESIDENT_REGISTER_VOTER_CLASS[voter]} whitespace-nowrap`}
+    //                 >
+    //                     {CONSTANTS.RESIDENT_REGISTER_VOTER_TEXT[voter]}
+    //                 </span>
+    //             ) : (
+    //                 <span className="text-gray-400 text-[12px] italic">
+    //                     No voter data
+    //                 </span>
+    //             );
+    //         },
+    //         contact_number: (resident) => {
+    //             const contact = resident.contact_number;
+
+    //             return contact ? (
+    //                 <span className="whitespace-nowrap text-sm text-gray-700">
+    //                     {contact}
+    //                 </span>
+    //             ) : (
+    //                 <span className="text-gray-400 text-[12px] italic whitespace-nowrap">
+    //                     No contact number
+    //                 </span>
+    //             );
+    //         },
+    //         purok_number: (resident) => resident.purok_number,
+    //         email: (resident) => {
+    //             const email = resident.email;
+
+    //             return email ? (
+    //                 <span className="text-sm text-gray-700 whitespace-nowrap">
+    //                     {email}
+    //                 </span>
+    //             ) : (
+    //                 <span className="text-gray-400 text-[12px] italic whitespace-nowrap">
+    //                     No email provided
+    //                 </span>
+    //             );
+    //         },
+    //         actions: (resident) => (
+    //             <ActionMenu
+    //                 actions={[
+    //                     {
+    //                         label: "View",
+    //                         icon: <Eye className="w-4 h-4 text-indigo-600" />,
+    //                         onClick: () => handleView(resident.id),
+    //                     },
+    //                     {
+    //                         label: "Export to PDF",
+    //                         icon: <FileText className="w-4 h-4 text-red-600" />,
+    //                         onClick: () => handleExportPdf(resident.id),
+    //                     },
+    //                     {
+    //                         label: "Export RBI Form B",
+    //                         icon: <FileText className="w-4 h-4 text-red-600" />,
+    //                         onClick: () => handleExportRBI(resident.id),
+    //                     },
+    //                     {
+    //                         label: "Edit",
+    //                         icon: (
+    //                             <SquarePen className="w-4 h-4 text-green-500" />
+    //                         ),
+    //                         onClick: () => handleEdit(resident.id),
+    //                     },
+    //                     {
+    //                         label: "Delete",
+    //                         icon: <Trash2 className="w-4 h-4 text-red-600" />,
+    //                         onClick: () => handleDeleteClick(resident.id),
+    //                     },
+    //                     {
+    //                         label: "Family Tree",
+    //                         icon: <Network className="w-4 h-4 text-blue-500" />,
+    //                         href: route("resident.familytree", resident.id),
+    //                         tooltip: "See Family Tree",
+    //                     },
+    //                 ]}
+    //             />
+    //         ),
+    //     }),
+    //     [
+    //         calculateAge,
+    //         handleView,
+    //         handleDeleteClick,
+    //         handleEdit,
+    //         handleExportPdf,
+    //         handleExportRBI,
+    //     ],
+    // ); // Dependencies for columnRenderers
+
     const columnRenderers = useMemo(
         () => ({
-            resident_id: (resident) => resident.id,
-            resident_picture: (resident) => (
-                // Use an optimized image component or service if available.
-                // For now, ensure default-avatar.jpg is small and optimized.
-                <img
-                    src={
-                        resident.resident_picture
-                            ? `/storage/${resident.resident_picture}`
-                            : "/images/default-avatar.jpg"
-                    }
-                    onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/images/default-avatar.jpg";
-                    }}
-                    alt="Resident"
-                    className="w-16 h-16 min-w-16 min-h-16 object-cover rounded-full border"
-                    loading="lazy" // Add lazy loading for images
-                />
-            ),
-            name: (resident) => (
-                <div className="text-sm break-words whitespace-normal leading-snug">
-                    {toTitleCase(
-                        `${resident.firstname} ${
-                            resident.middlename ? resident.middlename + " " : ""
-                        }${resident.lastname ?? ""} ${
-                            resident.suffix ? resident.suffix : ""
-                        }`,
-                    )}
+            resident_id: (resident) => (
+                <div className="min-w-0 text-sm font-medium text-slate-700">
+                    #{resident.id}
                 </div>
             ),
+
+            resident_picture: (resident) => (
+                <div className="flex items-center justify-center">
+                    <img
+                        src={
+                            resident.resident_picture
+                                ? `/storage/${resident.resident_picture}`
+                                : "/images/default-avatar.jpg"
+                        }
+                        onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "/images/default-avatar.jpg";
+                        }}
+                        alt="Resident"
+                        className="h-14 w-14 min-h-14 min-w-14 rounded-full border-2 border-white object-cover shadow-sm ring-1 ring-slate-200"
+                        loading="lazy"
+                    />
+                </div>
+            ),
+
+            name: (resident) => (
+                <div className="min-w-0 max-w-full">
+                    <p className="text-sm font-semibold leading-snug text-slate-800 break-words whitespace-normal">
+                        {toTitleCase(
+                            `${resident.firstname} ${
+                                resident.middlename
+                                    ? resident.middlename + " "
+                                    : ""
+                            }${resident.lastname ?? ""} ${
+                                resident.suffix ? resident.suffix : ""
+                            }`,
+                        )}
+                    </p>
+                </div>
+            ),
+
             sex: (resident) => {
                 const genderKey = resident.sex;
                 const label =
                     CONSTANTS.RESIDENT_GENDER_TEXT2[genderKey] ?? "Unknown";
                 const className =
                     CONSTANTS.RESIDENT_GENDER_COLOR_CLASS[genderKey] ??
-                    "bg-gray-300";
+                    "bg-gray-100 text-gray-700";
+
                 return (
-                    <span
-                        className={`py-1 px-2 rounded-xl text-sm font-medium whitespace-nowrap ${className}`}
-                    >
-                        {label}
-                    </span>
+                    <div className="min-w-0">
+                        <span
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${className}`}
+                        >
+                            {label}
+                        </span>
+                    </div>
                 );
             },
+
             age: (resident) => {
                 const age = calculateAge(resident.birthdate);
-                if (typeof age !== "number") return "Unknown";
+
+                if (typeof age !== "number") {
+                    return (
+                        <span className="text-xs italic text-slate-400">
+                            Unknown age
+                        </span>
+                    );
+                }
+
                 return (
-                    <div className="flex flex-col text-sm">
-                        <span className="font-medium text-gray-800">{age}</span>
-                        {age > 60 && (
-                            <span className="text-xs text-rose-500 font-semibold">
+                    <div className="min-w-0 flex flex-col">
+                        <span className="text-sm font-semibold text-slate-800">
+                            {age}
+                        </span>
+                        {age >= 60 && (
+                            <span className="mt-0.5 inline-flex w-fit rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-medium text-rose-600">
                                 Senior Citizen
                             </span>
                         )}
                     </div>
                 );
             },
-            civil_status: (resident) =>
-                CONSTANTS.RESIDENT_CIVIL_STATUS_TEXT[resident.civil_status],
-            employment_status: (resident) =>
-                CONSTANTS.RESIDENT_EMPLOYMENT_STATUS_TEXT[
-                    resident.employment_status
-                ],
+
+            civil_status: (resident) => {
+                const civilStatus =
+                    CONSTANTS.RESIDENT_CIVIL_STATUS_TEXT[resident.civil_status];
+
+                return civilStatus ? (
+                    <div className="min-w-0 text-sm text-slate-700 break-words whitespace-normal">
+                        {civilStatus}
+                    </div>
+                ) : (
+                    <span className="text-xs italic text-slate-400">
+                        No civil status
+                    </span>
+                );
+            },
+
+            employment_status: (resident) => {
+                const employmentStatus =
+                    CONSTANTS.RESIDENT_EMPLOYMENT_STATUS_TEXT[
+                        resident.employment_status
+                    ];
+
+                return employmentStatus ? (
+                    <div className="min-w-0 text-sm text-slate-700 break-words whitespace-normal">
+                        {employmentStatus}
+                    </div>
+                ) : (
+                    <span className="text-xs italic text-slate-400">
+                        No employment data
+                    </span>
+                );
+            },
+
             occupation: (resident) => {
                 const occ = resident.occupation;
+
                 return occ ? (
-                    <span className="text-sm text-gray-700">
-                        {resident.occupation}
-                    </span>
+                    <div className="min-w-0 max-w-full text-sm text-slate-700 break-words whitespace-normal">
+                        {occ}
+                    </div>
                 ) : (
-                    <span className="text-gray-400 text-[12px] italic">
+                    <span className="text-xs italic text-slate-400">
                         No occupation available
                     </span>
                 );
             },
+
             ethnicity: (resident) => {
                 const eth = resident.ethnicity;
+
                 return eth ? (
-                    <span className="text-sm text-gray-700">{eth}</span>
+                    <div className="min-w-0 text-sm text-slate-700 break-words whitespace-normal">
+                        {eth}
+                    </div>
                 ) : (
-                    <span className="text-gray-400 text-[12px] italic">
+                    <span className="text-xs italic text-slate-400">
                         No ethnicity data
                     </span>
                 );
             },
+
             registered_voter: (resident) => {
                 const voter = resident.registered_voter;
 
                 return voter !== null && voter !== undefined ? (
-                    <span
-                        className={`${CONSTANTS.RESIDENT_REGISTER_VOTER_CLASS[voter]} whitespace-nowrap`}
-                    >
-                        {CONSTANTS.RESIDENT_REGISTER_VOTER_TEXT[voter]}
-                    </span>
+                    <div className="min-w-0">
+                        <span
+                            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                                CONSTANTS.RESIDENT_REGISTER_VOTER_CLASS[voter]
+                            }`}
+                        >
+                            {CONSTANTS.RESIDENT_REGISTER_VOTER_TEXT[voter]}
+                        </span>
+                    </div>
                 ) : (
-                    <span className="text-gray-400 text-[12px] italic">
+                    <span className="text-xs italic text-slate-400">
                         No voter data
                     </span>
                 );
             },
+
             contact_number: (resident) => {
                 const contact = resident.contact_number;
 
                 return contact ? (
-                    <span className="whitespace-nowrap text-sm text-gray-700">
+                    <div className="min-w-0 text-sm text-slate-700 break-all whitespace-normal">
                         {contact}
-                    </span>
+                    </div>
                 ) : (
-                    <span className="text-gray-400 text-[12px] italic whitespace-nowrap">
+                    <span className="text-xs italic text-slate-400">
                         No contact number
                     </span>
                 );
             },
-            purok_number: (resident) => resident.purok_number,
+
+            purok_number: (resident) => (
+                <div className="min-w-0">
+                    <span className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+                        Purok {resident.purok_number}
+                    </span>
+                </div>
+            ),
+
             email: (resident) => {
                 const email = resident.email;
 
                 return email ? (
-                    <span className="text-sm text-gray-700 whitespace-nowrap">
+                    <div className="min-w-0 max-w-full text-sm text-slate-700 break-all whitespace-normal">
                         {email}
-                    </span>
+                    </div>
                 ) : (
-                    <span className="text-gray-400 text-[12px] italic whitespace-nowrap">
+                    <span className="text-xs italic text-slate-400">
                         No email provided
                     </span>
                 );
             },
+
             actions: (resident) => (
                 <ActionMenu
                     actions={[
@@ -472,7 +725,7 @@ export default function Index({
             handleExportPdf,
             handleExportRBI,
         ],
-    ); // Dependencies for columnRenderers
+    );
 
     const [showAll, setShowAll] = useState(currentQueryParams.all === "true");
 

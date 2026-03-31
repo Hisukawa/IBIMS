@@ -3,9 +3,6 @@ import DropdownInputField from "@/Components/DropdownInputField";
 import InputError from "@/Components/InputError";
 import InputField from "@/Components/InputField";
 import InputLabel from "@/Components/InputLabel";
-import RadioGroup from "@/Components/RadioGroup";
-import PersonalInformation from "@/Components/ResidentInput/PersonalInformation";
-import Section5 from "@/Components/ResidentInput/Section5";
 import { Button } from "@/Components/ui/button";
 import {
     BMI_STATUS,
@@ -116,7 +113,7 @@ export default function Edit({ record }) {
             },
             onError: (errors) => {
                 const errorList = Object.values(errors).map(
-                    (msg, i) => `<div key=${i}> ${msg}</div>`
+                    (msg, i) => `<div key=${i}> ${msg}</div>`,
                 );
                 toast.error("Validation Error", {
                     description: (
@@ -171,7 +168,7 @@ export default function Edit({ record }) {
                 data.weight_kg,
                 data.height_cm,
                 data.age,
-                data.gender
+                data.gender,
             );
 
             setData((prev) => ({
@@ -200,12 +197,12 @@ export default function Edit({ record }) {
                     bmi < 13
                         ? "Severely Underweight"
                         : bmi < 14
-                        ? "Underweight"
-                        : bmi <= 18
-                        ? "Normal"
-                        : bmi <= 20
-                        ? "Overweight"
-                        : "Obese",
+                          ? "Underweight"
+                          : bmi <= 18
+                            ? "Normal"
+                            : bmi <= 20
+                              ? "Overweight"
+                              : "Obese",
             }));
         }
     }, [data.weight_kg, data.height_cm]);
@@ -312,7 +309,7 @@ export default function Edit({ record }) {
                                                     placeholder="Select a resident"
                                                     onChange={(e) =>
                                                         handleResidentChange(
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                 />
@@ -369,7 +366,7 @@ export default function Edit({ record }) {
                                                 onChange={(e) =>
                                                     setData(
                                                         "weight_kg",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                             />
@@ -389,7 +386,7 @@ export default function Edit({ record }) {
                                                 onChange={(e) =>
                                                     setData(
                                                         "height_cm",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                             />
@@ -421,7 +418,7 @@ export default function Edit({ record }) {
                                                 onChange={(e) =>
                                                     setData(
                                                         "head_circumference",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                             />
@@ -450,7 +447,7 @@ export default function Edit({ record }) {
                                             onChange={(e) =>
                                                 setData(
                                                     "developmental_milestones",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                         />
@@ -486,7 +483,7 @@ export default function Edit({ record }) {
                                                                 "vaccinations", // field
                                                                 index, // index
                                                                 "vaccine", // key
-                                                                e.target.value // value
+                                                                e.target.value, // value
                                                             )
                                                         }
                                                     />
@@ -516,7 +513,7 @@ export default function Edit({ record }) {
                                                                     index, // index
                                                                     "vaccination_date", // key
                                                                     e.target
-                                                                        .value // value
+                                                                        .value, // value
                                                                 )
                                                             }
                                                         />
@@ -538,7 +535,7 @@ export default function Edit({ record }) {
                                                             onClick={() =>
                                                                 removeArrayItem(
                                                                     "vaccinations",
-                                                                    index
+                                                                    index,
                                                                 )
                                                             }
                                                             className="absolute top-1 right-2 text-sm text-red-500 hover:text-red-800"
@@ -547,7 +544,7 @@ export default function Edit({ record }) {
                                                         </button>
                                                     )}
                                                 </div>
-                                            )
+                                            ),
                                         )}
 
                                         {/* Add Vaccination Button */}

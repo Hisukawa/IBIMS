@@ -3,8 +3,6 @@ import DropdownInputField from "@/Components/DropdownInputField";
 import InputError from "@/Components/InputError";
 import InputField from "@/Components/InputField";
 import InputLabel from "@/Components/InputLabel";
-import RadioGroup from "@/Components/RadioGroup";
-import PersonalInformation from "@/Components/ResidentInput/PersonalInformation";
 import Section5 from "@/Components/ResidentInput/Section5";
 import { Button } from "@/Components/ui/button";
 import {
@@ -111,7 +109,7 @@ export default function Edit({
                 electricity_types: latestHead.household?.electricity_types?.map(
                     (e) => ({
                         electricity_type: e.electricity_type,
-                    })
+                    }),
                 ) || [{ electricity_type: "" }],
                 water_source_types:
                     latestHead.household?.water_source_types?.map((w) => ({
@@ -120,7 +118,7 @@ export default function Edit({
                 type_of_internet:
                     latestHead.household?.internet_accessibility?.sort(
                         (a, b) =>
-                            new Date(b.created_at) - new Date(a.created_at)
+                            new Date(b.created_at) - new Date(a.created_at),
                     )[0]?.type_of_internet || null,
                 relationship_to_head: latestHead.relationship_to_head || "",
                 household_position: latestHead.household_position || "",

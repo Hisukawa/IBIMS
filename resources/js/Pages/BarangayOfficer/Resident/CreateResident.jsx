@@ -1,7 +1,8 @@
 import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
-import PersonalInformation from "@/Components/ResidentInput/PersonalInformation";
+
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, router, usePage } from "@inertiajs/react";
+import PersonalInformation from "./Partials/PersonalInformation";
 
 export default function Index({
     auth,
