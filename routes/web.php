@@ -20,6 +20,8 @@ use App\Http\Controllers\BarangayAdmin\BarangayResources\WaterController;
 use App\Http\Controllers\BarangayAdmin\BarangayResources\LandController;
 use App\Http\Controllers\BarangayAdmin\BarangayResources\StreetController;
 
+use App\Http\Controllers\BarangayAdmin\ResidentInformation\ResidentController;
+
 use App\Http\Controllers\AllergyController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
@@ -54,7 +56,7 @@ use App\Http\Controllers\PregnancyRecordController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportGenerationController;
 use App\Http\Controllers\ResidentAccountController;
-use App\Http\Controllers\ResidentController;
+
 use App\Http\Controllers\ResidentMedicalConditionController;
 use App\Http\Controllers\ResidentMedicationController;
 use App\Http\Controllers\ResidentVaccinationController;

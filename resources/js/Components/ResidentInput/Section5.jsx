@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import InputField from "../InputField";
 import InputError from "../InputError";
-import InputLabel from "../InputLabel";
 import DropdownInputField from "../DropdownInputField";
 import RadioGroup from "../RadioGroup";
 import SelectField from "../SelectField";
@@ -9,9 +8,137 @@ import YearDropdown from "../YearDropdown";
 import { IoIosAddCircleOutline, IoIosCloseCircleOutline } from "react-icons/io";
 import useAppUrl from "@/hooks/useAppUrl";
 import axios from "axios";
-import { useEffect } from "react";
-import { useState } from "react";
-import { Switch } from "@/components/ui/switch"; // adjust path
+import { Switch } from "@/components/ui/switch";
+
+const SectionCard = ({ title, description, children }) => (
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-5 border-b border-slate-100 pb-4">
+            <h2 className="text-xl font-semibold text-slate-800">{title}</h2>
+            {description && (
+                <p className="mt-1 text-sm text-slate-500">{description}</p>
+            )}
+        </div>
+        {children}
+    </div>
+);
+
+const SubCard = ({ title, description, children }) => (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+        <div className="mb-4">
+            <h3 className="text-base font-semibold text-slate-800">{title}</h3>
+            {description && (
+                <p className="mt-1 text-sm text-slate-500">{description}</p>
+            )}
+        </div>
+        {children}
+    </div>
+);
+
+const EntryCard = ({ title, children, onRemove }) => (
+    <div className="relative rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-4 flex items-start justify-between gap-4 border-b border-slate-100 pb-3">
+            <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-700">
+                {title}
+            </h4>
+
+            {onRemove && (
+                <button
+                    type="button"
+                    onClick={onRemove}
+                    className="rounded-full p-1 text-red-500 transition hover:bg-red-50 hover:text-red-700"
+                    title="Remove"
+                >
+                    <IoIosCloseCircleOutline className="text-2xl" />
+                </button>
+            )}
+        </div>
+        {children}
+    </div>
+);
+
+const FieldHint = ({ children }) => (
+    <p className="mt-1 text-xs leading-relaxed text-slate-500">{children}</p>
+);
+
+const DynamicSelectList = ({
+    label,
+    field,
+    items,
+    entries = [],
+    errors,
+    addLabel,
+    addDynamicField,
+    removeDynamicField,
+    handleDynamicFieldChange,
+    valueKey,
+    placeholder,
+}) => {
+    const safeEntries = Array.isArray(entries) ? entries : [];
+
+    return (
+        <SubCard title={label}>
+            <div className="space-y-3">
+                {safeEntries.length > 0 ? (
+                    safeEntries.map((entry, idx) => (
+                        <div
+                            key={idx}
+                            className="flex items-start gap-2 rounded-xl border border-slate-200 bg-white p-3"
+                        >
+                            <div className="flex-1">
+                                <DropdownInputField
+                                    name={valueKey}
+                                    value={entry?.[valueKey] || ""}
+                                    onChange={(e) =>
+                                        handleDynamicFieldChange(field, idx, e)
+                                    }
+                                    placeholder={placeholder}
+                                    items={items}
+                                />
+                                <InputError
+                                    message={
+                                        errors?.[`${field}.${idx}.${valueKey}`]
+                                    }
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            {safeEntries.length > 1 && (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        removeDynamicField(field, idx)
+                                    }
+                                    className="mt-1 rounded-full p-1 text-red-500 transition hover:bg-red-50 hover:text-red-700"
+                                    title="Remove"
+                                >
+                                    <IoIosCloseCircleOutline className="text-2xl" />
+                                </button>
+                            )}
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-sm italic text-slate-500">
+                        No entries added yet.
+                    </p>
+                )}
+
+                <button
+                    type="button"
+                    onClick={() =>
+                        addDynamicField(field, {
+                            [valueKey]: "",
+                        })
+                    }
+                    className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+                >
+                    <IoIosAddCircleOutline className="text-2xl" />
+                    <span>{addLabel}</span>
+                </button>
+            </div>
+        </SubCard>
+    );
+};
+
 const Section5 = ({
     data,
     setData,
@@ -37,7 +164,7 @@ const Section5 = ({
 
     const householdList = households?.map((house) => ({
         label:
-            house.household.house_number.toString().padStart(4, "0") + // pad to 4 digits
+            house.household.house_number.toString().padStart(4, "0") +
             " || " +
             house.lastname +
             "'s Residence",
@@ -68,19 +195,22 @@ const Section5 = ({
         const householdId = Number(e.target.value);
         if (!householdId) return;
 
-        // Use find efficiently and safely
-        const head = households.find(
-            (r) => Number(r.household_id) === householdId && r.is_household_head
+        const foundHead = households.find(
+            (r) =>
+                Number(r.household_id) === householdId && r.is_household_head,
         );
 
-        // Build full name only if a head exists
-        const fullName = head
-            ? [head.firstname, head.middlename, head.lastname, head.suffix]
+        const fullName = foundHead
+            ? [
+                  foundHead.firstname,
+                  foundHead.middlename,
+                  foundHead.lastname,
+                  foundHead.suffix,
+              ]
                   .filter(Boolean)
                   .join(" ")
             : "";
 
-        // Batch updates for consistency
         setData((prev) => ({
             ...prev,
             housenumber: String(householdId),
@@ -91,30 +221,27 @@ const Section5 = ({
     const handleStreetChange = (e) => {
         const street_id = Number(e.target.value);
         const street = streets.find((s) => s.id == street_id);
+
         if (street) {
             setData("street_id", street.id);
             setData("street_name", street?.street_name || "");
-
             setData("purok_id", street.purok.id);
             setData("purok_number", street.purok.purok_number);
         }
     };
 
-    // Add to dynamic field
     const addDynamicField = (field, defaultValue = {}) => {
         const currentArray = data[field] || [];
         const updatedArray = [...currentArray, defaultValue];
         setData((prev) => ({ ...prev, [field]: updatedArray }));
     };
 
-    // Remove from dynamic field
     const removeDynamicField = (field, index) => {
         const currentArray = [...(data[field] || [])];
         currentArray.splice(index, 1);
         setData((prev) => ({ ...prev, [field]: currentArray }));
     };
 
-    // Handle change in dynamic field
     const handleDynamicFieldChange = (field, index, e) => {
         const { name, value } = e.target;
         const currentArray = [...(data[field] || [])];
@@ -126,18 +253,17 @@ const Section5 = ({
     };
 
     useEffect(() => {
-        if (!head) {
-            return;
-        }
+        if (!head) return;
+
         const fetchLatestHouseNumber = async () => {
             try {
                 const response = await axios.get(
-                    `${APP_URL}/household/latest-house-number`
+                    `${APP_URL}/household/latest-house-number`,
                 );
+
                 if (response.data.success) {
                     const latest = response.data.house_number;
 
-                    // If no housenumber is set yet, auto-fill it
                     setData((prev) => ({
                         ...prev,
                         housenumber: data.housenumber || latest,
@@ -154,446 +280,41 @@ const Section5 = ({
     }, []);
 
     return (
-        <>
-            {/* HOUSE INFORMATION */}
+        <div className="space-y-6">
+            <div className="rounded-2xl border border-cyan-100 bg-gradient-to-r from-cyan-50 to-slate-50 px-6 py-5 shadow-sm">
+                <h2 className="text-2xl font-bold text-slate-800 md:text-3xl">
+                    Housing, Utilities & Household Assets
+                </h2>
+                <p className="mt-2 max-w-3xl text-sm text-slate-600">
+                    Record the resident&apos;s household, home conditions,
+                    utilities, livestock, and pet ownership information.
+                </p>
+            </div>
+
             {head === false && (
-                <section className="my-8">
-                    <h2 className="text-3xl font-semibold text-gray-800 mb-2 mt-5">
-                        House Information
-                    </h2>
-                    <p className="text-sm text-gray-600 mb-4">
-                        Please provide the necessary house details. If you are
-                        the head of the household, some fields will be editable.
-                    </p>
-
-                    <div className="bg-gray-50 p-6 rounded-lg space-y-6">
-                        <div className="grid md:grid-cols-3 gap-6">
-                            {/* House Number */}
-                            <div className="flex flex-col">
-                                <DropdownInputField
-                                    type="text"
-                                    label="House/Unit No./Lot/Blk No."
-                                    name="housenumber"
-                                    value={data.housenumber || ""}
-                                    onChange={(e) => handleHouseholdChange(e)}
-                                    placeholder="Select or enter house number"
-                                    items={householdList}
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Choose your assigned house or lot number.
-                                </p>
-                                <InputError
-                                    message={errors.housenumber}
-                                    className="mt-1"
-                                />
-                            </div>
-                            {/* Head of Household */}
-                            <div className="flex flex-col">
-                                <InputField
-                                    type="text"
-                                    label="Head of Household"
-                                    name="name_of_head"
-                                    value={data.name_of_head || ""}
-                                    placeholder="Head of Household"
-                                    disabled
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    This field displays the head of the
-                                    household.
-                                </p>
-                                <InputError
-                                    message={errors.name_of_head}
-                                    className="mt-1"
-                                />
-                            </div>
-
-                            <div className="flex flex-col">
-                                <SelectField
-                                    label="Relationship to Household Head"
-                                    name="relationship_to_head"
-                                    value={data.relationship_to_head || ""}
-                                    onChange={(e) =>
-                                        setData(
-                                            "relationship_to_head",
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="Select relationship"
-                                    items={[
-                                        // {
-                                        //     label: "Self/Head",
-                                        //     value: "self",
-                                        //     subtitle:
-                                        //         "The main resident of the household",
-                                        // },
-                                        {
-                                            label: "Spouse",
-                                            value: "spouse",
-                                            subtitle:
-                                                "Legally married partner of the head",
-                                        },
-                                        {
-                                            label: "Child",
-                                            value: "child",
-                                            subtitle:
-                                                "Son or daughter of the head",
-                                        },
-                                        {
-                                            label: "Sibling",
-                                            value: "sibling",
-                                            subtitle:
-                                                "Brother or sister of the head",
-                                        },
-                                        {
-                                            label: "Parent",
-                                            value: "parent",
-                                            subtitle:
-                                                "Father or mother of the head",
-                                        },
-                                        {
-                                            label: "Parent-in-law",
-                                            value: "parent_in_law",
-                                            subtitle:
-                                                "Parent of the head's spouse",
-                                        },
-                                        {
-                                            label: "Sibling of Spouse",
-                                            value: "sibling-of-spouse",
-                                            subtitle:
-                                                "Brother or sister of the spouse",
-                                        },
-                                        {
-                                            label: "Spouse of (Sibling of Spouse)",
-                                            value: "spouse-of-sibling-of-spouse",
-                                            subtitle:
-                                                "Spouse of your sibling-in-law",
-                                        },
-                                        {
-                                            label: "Spouse of Sibling",
-                                            value: "spouse-sibling",
-                                            subtitle: "Spouse of your sibling",
-                                        },
-                                        {
-                                            label: "Niece/Nephew",
-                                            value: "niblings",
-                                            subtitle:
-                                                "Child of your sibling or sibling-in-law",
-                                        },
-                                        {
-                                            label: "Grandparent",
-                                            value: "grandparent",
-                                            subtitle:
-                                                "Grandfather or grandmother of the head",
-                                        },
-                                    ]}
-                                />
-                                <InputError
-                                    message={errors.relationship_to_head}
-                                    className="mt-1"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Select how this resident is related to the
-                                    head of the household. This helps establish
-                                    family connections and proper household
-                                    records.
-                                </p>
-                            </div>
-
-                            {/* Street Name */}
-                            <div className="flex flex-col">
-                                <InputField
-                                    type="text"
-                                    label="Street Name"
-                                    name="street_name"
-                                    value={data.street_name || ""}
-                                    placeholder="e.g., Rizal St., Mabini Avenue"
-                                    disabled={data.is_household_head != 1}
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Provide the street where your house is
-                                    located.
-                                </p>
-                                <InputError
-                                    message={errors.street_name}
-                                    className="mt-1"
-                                />
-                            </div>
-
-                            {/* Subdivision/Village */}
-                            <div className="flex flex-col">
-                                <InputField
-                                    type="text"
-                                    label="Subdivision/Village/Compound"
-                                    name="subdivision"
-                                    value={data.subdivision || ""}
-                                    onChange={(e) =>
-                                        setData("subdivision", e.target.value)
-                                    }
-                                    placeholder="e.g., Villa Gloria Subdivision"
-                                    disabled={data.is_household_head != 1}
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Enter the subdivision or village name if
-                                    applicable.
-                                </p>
-                                <InputError
-                                    message={errors.subdivision}
-                                    className="mt-1"
-                                />
-                            </div>
-
-                            {/* Purok Number */}
-                            <div className="flex flex-col">
-                                <SelectField
-                                    label="Purok Number"
-                                    name="purok_number"
-                                    value={data.purok_number || ""}
-                                    onChange={(e) =>
-                                        setData("purok_number", e.target.value)
-                                    }
-                                    items={purok_numbers}
-                                    disabled={data.is_household_head != 1}
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Select the assigned Purok number.
-                                </p>
-                                <InputError
-                                    message={errors.purok_number}
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    {/* Toggle for New House Number */}
-                    <div className="flex items-center space-x-2 mt-6">
-                        <Switch
-                            checked={showNewHouseToggle}
-                            onCheckedChange={setShowNewHouseToggle}
-                        />
-                        <span className="text-sm text-gray-700">
-                            {showNewHouseToggle
-                                ? "Hide New House Number"
-                                : "Add New House Number (Not Found)"}
-                        </span>
-                    </div>
-
-                    {/* Collapsible New House Number Section */}
-                    <div
-                        className={`transition-all duration-300 overflow-hidden ${
-                            showNewHouseToggle
-                                ? "max-h-96 opacity-100 mt-4"
-                                : "max-h-0 opacity-0"
-                        }`}
-                    >
-                        <div className="bg-gray-50 p-6 rounded-lg space-y-6">
-                            <div className="flex flex-col mt-2">
-                                <InputField
-                                    type="text"
-                                    label="New House Number (Not Found in Records)"
-                                    name="new_housenumber"
-                                    value={data.new_housenumber || ""}
-                                    onChange={(e) =>
-                                        setData(
-                                            "new_housenumber",
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="Enter new house or lot number"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    This household number is not yet in the
-                                    database. You may add it.
-                                </p>
-                                <InputError
-                                    message={errors.new_housenumber}
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            )}
-
-            {/* FAMILY RELATION */}
-            {/* {!edit && (
-                <section className="mb-8">
-                    <h2 className="text-3xl font-semibold text-gray-800 mb-1 mt-5">
-                        Family Relation Information
-                    </h2>
-                    <p className="text-sm text-gray-600 mb-4">
-                        Specify your relationship to the head of the household,
-                        your household position, and whether you are the family
-                        head.
-                    </p>
-
-                    <div className="bg-gray-50 p-5 rounded space-y-4">
-                        <div className="grid md:grid-cols-3 gap-6">
-                            <div>
-                                <DropdownInputField
-                                    type="text"
-                                    label="Select Family Head"
-                                    name="family_head_id"
-                                    value={data.family_head_name ?? ""}
-                                    onChange={handleFamilyHeadChange}
-                                    placeholder="Select if this member is the family head"
-                                    items={familyHeadList}
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Indicate if this member is the head of the
-                                    family.
-                                </p>
-                                <InputError
-                                    message={errors.family_head_id}
-                                    className="mt-1"
-                                />
-                            </div>
-
-                            <div>
-                                <DropdownInputField
-                                    type="text"
-                                    label="Relation to Head of Family"
-                                    name="relationship_to_head"
-                                    value={data.relationship_to_head || ""}
-                                    onChange={(e) =>
-                                        setData(
-                                            "relationship_to_head",
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="Select relationship"
-                                    items={[
-                                        { label: "Spouse", value: "spouse" },
-                                        { label: "Child", value: "child" },
-                                        { label: "Sibling", value: "sibling" },
-                                        { label: "Parent", value: "parent" },
-                                        {
-                                            label: "Parent-in-law",
-                                            value: "parent_in_law",
-                                        },
-                                        {
-                                            label: "Grandparent",
-                                            value: "grandparent",
-                                        },
-                                        {
-                                            label: "Grandchild",
-                                            value: "grandchild",
-                                        },
-                                        { label: "Other", value: "other" },
-                                    ]}
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Select your relationship to the head of the
-                                    household.
-                                </p>
-                                <InputError
-                                    message={errors.relationship_to_head}
-                                    className="mt-1"
-                                />
-                            </div>
-
-                            <div>
-                                <DropdownInputField
-                                    type="text"
-                                    label="Household Position"
-                                    name="household_position"
-                                    value={data.household_position || ""}
-                                    onChange={(e) =>
-                                        setData(
-                                            "household_position",
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="Select household position"
-                                    items={[
-                                        { label: "Primary", value: "primary" },
-                                        {
-                                            label: "Extended",
-                                            value: "extended",
-                                        },
-                                        { label: "Boarder", value: "boarder" },
-                                    ]}
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Select your position within the household.
-                                </p>
-                                <InputError
-                                    message={errors.household_position}
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            )} */}
-
-            {/* HOUSE ADDRESS */}
-            {/* {head !== true && (
-                <div className="bg-gray-50 p-3 rounded space-y-2">
-                    <div className="grid md:grid-cols-4 gap-4">
+                <SectionCard
+                    title="House Information"
+                    description="Select the household where this resident belongs and define the resident's relationship to the household head."
+                >
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                         <div>
                             <DropdownInputField
                                 type="text"
                                 label="House/Unit No./Lot/Blk No."
                                 name="housenumber"
                                 value={data.housenumber || ""}
-                                onChange={(e) => handleHouseholdChange(e)}
-                                placeholder="Select or enter house number"
+                                onChange={handleHouseholdChange}
+                                placeholder="Select house number"
                                 items={householdList}
                             />
                             <InputError
                                 message={errors.housenumber}
-                                className="mt-2"
+                                className="mt-1"
                             />
-                        </div>
-
-                        <div>
-                            <InputField
-                                type="text"
-                                label="Street Name"
-                                name="street_name"
-                                value={data.street_name || ""}
-                                placeholder="e.g., Rizal St., Mabini Avenue"
-                                disabled={data.is_household_head != 1}
-                            />
-                            <InputError
-                                message={errors.street_name}
-                                className="mt-2"
-                            />
-                        </div>
-
-                        <div>
-                            <InputField
-                                type="text"
-                                label="Subdivision/Village/Compound"
-                                name="subdivision"
-                                value={data.subdivision || ""}
-                                onChange={(e) =>
-                                    setData("subdivision", e.target.value)
-                                }
-                                placeholder="e.g., Villa Gloria Subdivision"
-                                disabled={data.is_household_head != 1}
-                            />
-                            <InputError
-                                message={errors.subdivision}
-                                className="mt-2"
-                            />
-                        </div>
-
-                        <div>
-                            <SelectField
-                                label="Purok Number"
-                                name="purok_number"
-                                value={data.purok_number || ""}
-                                onChange={(e) =>
-                                    setData("purok_number", e.target.value)
-                                }
-                                items={purok_numbers}
-                                disabled={data.is_household_head != 1}
-                            />
-                            <InputError
-                                message={errors.purok_number}
-                                className="mt-2"
-                            />
+                            <FieldHint>
+                                Choose the house or lot number from existing
+                                records.
+                            </FieldHint>
                         </div>
 
                         <div>
@@ -602,27 +323,30 @@ const Section5 = ({
                                 label="Head of Household"
                                 name="name_of_head"
                                 value={data.name_of_head || ""}
-                                placeholder="Select or enter house number"
+                                placeholder="Head of Household"
                                 disabled
                             />
                             <InputError
                                 message={errors.name_of_head}
-                                className="mt-2"
+                                className="mt-1"
                             />
+                            <FieldHint>
+                                This is auto-filled from the selected household.
+                            </FieldHint>
                         </div>
+
                         <div>
-                            <DropdownInputField
-                                type="text"
-                                label="Relation to Head of Household"
+                            <SelectField
+                                label="Relationship to Household Head"
                                 name="relationship_to_head"
                                 value={data.relationship_to_head || ""}
                                 onChange={(e) =>
                                     setData(
                                         "relationship_to_head",
-                                        e.target.value
+                                        e.target.value,
                                     )
                                 }
-                                placeholder="Select or enter house number"
+                                placeholder="Select relationship"
                                 items={[
                                     { label: "Spouse", value: "spouse" },
                                     { label: "Child", value: "child" },
@@ -633,93 +357,52 @@ const Section5 = ({
                                         value: "parent_in_law",
                                     },
                                     {
+                                        label: "Sibling of Spouse",
+                                        value: "sibling-of-spouse",
+                                    },
+                                    {
+                                        label: "Spouse of (Sibling of Spouse)",
+                                        value: "spouse-of-sibling-of-spouse",
+                                    },
+                                    {
+                                        label: "Spouse of Sibling",
+                                        value: "spouse-sibling",
+                                    },
+                                    {
+                                        label: "Niece/Nephew",
+                                        value: "niblings",
+                                    },
+                                    {
                                         label: "Grandparent",
                                         value: "grandparent",
                                     },
-                                    {
-                                        label: "Grandchild",
-                                        value: "grandchild",
-                                    },
-                                    {
-                                        label: "Other",
-                                        value: "other",
-                                    },
                                 ]}
-                                disabled={data.relationship_to_head === "self"}
                             />
                             <InputError
                                 message={errors.relationship_to_head}
-                                className="mt-2"
+                                className="mt-1"
                             />
+                            <FieldHint>
+                                Helps identify household relationships and
+                                structure.
+                            </FieldHint>
                         </div>
-                        <div>
-                            <DropdownInputField
-                                type="text"
-                                label="Household Position"
-                                name="household_position"
-                                value={data.household_position || ""}
-                                onChange={(e) =>
-                                    setData(
-                                        "household_position",
-                                        e.target.value
-                                    )
-                                }
-                                placeholder="Select or enter house number"
-                                items={[
-                                    {
-                                        label: "Primary",
-                                        value: "primary",
-                                    },
-                                    { label: "Extended", value: "extended" },
-                                    { label: "Boarder", value: "boarder" },
-                                ]}
-                                disabled={data.relationship_to_head === "self"}
-                            />
-                            <InputError
-                                message={errors.household_position}
-                                className="mt-2"
-                            />
-                        </div>
-                    </div>
-                </div>
-            )} */}
 
-            {head !== false && (
-                <>
-                    <div className="grid md:grid-cols-4 gap-4">
                         <div>
                             <InputField
                                 type="text"
-                                label="House/Unit No./Lot/Blk No."
-                                name="housenumber"
-                                value={data.housenumber || ""}
-                                onChange={(e) =>
-                                    setData("housenumber", e.target.value)
-                                }
-                                placeholder="Select or enter house number"
+                                label="Street Name"
+                                name="street_name"
+                                value={data.street_name || ""}
+                                placeholder="e.g., Rizal St."
+                                disabled={data.is_household_head != 1}
                             />
                             <InputError
-                                message={errors.housenumber}
-                                className="mt-2"
+                                message={errors.street_name}
+                                className="mt-1"
                             />
                         </div>
-                        <div>
-                            <div>
-                                <DropdownInputField
-                                    label="Street Name"
-                                    name="street_id"
-                                    type="text"
-                                    value={data.street_name}
-                                    onChange={(e) => handleStreetChange(e)}
-                                    placeholder="e.g., Rizal St., Mabini Avenue"
-                                    items={streetList}
-                                />
-                                <InputError
-                                    message={errors.street_id}
-                                    className="mt-2"
-                                />
-                            </div>
-                        </div>
+
                         <div>
                             <InputField
                                 type="text"
@@ -730,12 +413,14 @@ const Section5 = ({
                                     setData("subdivision", e.target.value)
                                 }
                                 placeholder="e.g., Villa Gloria Subdivision"
+                                disabled={data.is_household_head != 1}
                             />
                             <InputError
                                 message={errors.subdivision}
-                                className="mt-2"
+                                className="mt-1"
                             />
                         </div>
+
                         <div>
                             <SelectField
                                 label="Purok Number"
@@ -745,618 +430,520 @@ const Section5 = ({
                                     setData("purok_number", e.target.value)
                                 }
                                 items={purok_numbers}
+                                disabled={data.is_household_head != 1}
                             />
                             <InputError
                                 message={errors.purok_number}
-                                className="mt-2"
+                                className="mt-1"
                             />
-                        </div>
-
-                        <div>
-                            <DropdownInputField
-                                label="Ownership Type"
-                                name="ownership_type"
-                                value={data.ownership_type || ""}
-                                onChange={(e) => {
-                                    setData("ownership_type", e.target.value);
-                                }}
-                                placeholder="Select or enter ownership type"
-                                items={[
-                                    "owned",
-                                    "rented",
-                                    "shared",
-                                    "goverment-provided",
-                                    "inherited",
-                                ]}
-                            />
-                            <InputError
-                                message={errors.ownership_type}
-                                className="mt-2"
-                            />
-                        </div>
-                        <div>
-                            <SelectField
-                                label="Housing Condition"
-                                name="housing_condition"
-                                value={data.housing_condition || ""}
-                                onChange={(e) =>
-                                    setData("housing_condition", e.target.value)
-                                }
-                                placeholder="Select house condition"
-                                items={[
-                                    { label: "Good", value: "good" },
-                                    {
-                                        label: "Needs Repair",
-                                        value: "needs_repair",
-                                    },
-                                    {
-                                        label: "Dilapidated",
-                                        value: "dilapidated",
-                                    },
-                                ]}
-                            />
-                            <InputError
-                                message={errors.housing_condition}
-                                className="mt-2"
-                            />
-                        </div>
-                        <div>
-                            <SelectField
-                                label="House Structure"
-                                name="house_structure"
-                                value={data.house_structure || ""}
-                                onChange={(e) =>
-                                    setData("house_structure", e.target.value)
-                                }
-                                placeholder="Select or Enter house structure"
-                                items={[
-                                    {
-                                        label: "Concrete",
-                                        value: "concrete",
-                                    },
-                                    {
-                                        label: "Semi-Concrete",
-                                        value: "semi_concrete",
-                                    },
-                                    {
-                                        label: "Wood",
-                                        value: "wood",
-                                    },
-                                    {
-                                        label: "Makeshift",
-                                        value: "makeshift",
-                                    },
-                                ]}
-                            />
-                            <InputError
-                                message={errors.house_structure}
-                                className="mt-2"
-                            />
-                        </div>
-                        <div>
-                            <YearDropdown
-                                label="Year Establish"
-                                name="year_established"
-                                value={data.year_established || ""}
-                                onChange={(e) =>
-                                    setData("year_established", e.target.value)
-                                }
-                                placeholder="Select year"
-                            />
-                            <InputError
-                                message={errors.year_established}
-                                className="mt-2"
-                            />
-                        </div>
-                        <div>
-                            <InputField
-                                type="number"
-                                label="Number of Rooms"
-                                name="number_of_rooms"
-                                value={data.number_of_rooms || ""}
-                                onChange={(e) =>
-                                    setData("number_of_rooms", e.target.value)
-                                }
-                                placeholder="Enter number of rooms"
-                            />
-                            <InputError
-                                message={errors.number_of_rooms}
-                                className="mt-2"
-                            />
-                        </div>
-                        <div>
-                            <InputField
-                                type="number"
-                                label="Number of Floors"
-                                name="number_of_floors"
-                                value={data.number_of_floors || ""}
-                                onChange={(e) =>
-                                    setData("number_of_floors", e.target.value)
-                                }
-                                placeholder="Enter number of floors"
-                            />
-                            <InputError
-                                message={errors.number_of_floors}
-                                className="mt-2"
-                            />
-                        </div>
-                        <div>
-                            <DropdownInputField
-                                label="Bath and Wash Area"
-                                name="bath_and_wash_area"
-                                value={data.bath_and_wash_area || ""}
-                                onChange={(e) =>
-                                    setData(
-                                        "bath_and_wash_area",
-                                        e.target.value
-                                    )
-                                }
-                                placeholder="Select or Enter"
-                                items={[
-                                    {
-                                        label: "with own sink and bath",
-                                        value: "with_own_sink_and_bath",
-                                    },
-                                    {
-                                        label: "with own sink only",
-                                        value: "with_own_sink_only",
-                                    },
-                                    {
-                                        label: "with own bath only",
-                                        value: "with_own_bath_only",
-                                    },
-                                    {
-                                        label: "shared or communal",
-                                        value: "shared_or_communal",
-                                    },
-                                    { label: "none", value: "none" },
-                                ]}
-                            />
-                            <InputError
-                                message={errors.bath_and_wash_area}
-                                className="mt-2"
-                            />
-                        </div>
-                        <div>
-                            <DropdownInputField
-                                label="Internet Connection Type"
-                                name="type_of_internet"
-                                value={data.type_of_internet || ""}
-                                onChange={(e) =>
-                                    setData("type_of_internet", e.target.value)
-                                }
-                                placeholder="Select internet connection type"
-                                items={[
-                                    {
-                                        label: "Mobile Data",
-                                        value: "mobile_data",
-                                    },
-                                    {
-                                        label: "Wireless Fidelity (Wi-Fi)",
-                                        value: "wireless_fidelity",
-                                    },
-                                    { label: "None", value: "none" },
-                                ]}
-                            />
-                            <InputError
-                                message={errors.type_of_internet}
-                                className="mt-2"
-                            />
-                        </div>
-                        {/* Toilets */}
-                        <div className="w-full">
-                            <label className="block text-sm font-semibold text-gray-700 mb-0 mt-4">
-                                Type of Toilet(s)
-                            </label>
-                            <div className="flex flex-col gap-2">
-                                {(data.toilets || []).map((toilet, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="flex items-center gap-2 w-full"
-                                    >
-                                        <div>
-                                            <DropdownInputField
-                                                name="toilet_type"
-                                                value={toilet.toilet_type || ""}
-                                                onChange={(e) =>
-                                                    handleDynamicFieldChange(
-                                                        "toilets",
-                                                        idx,
-                                                        e
-                                                    )
-                                                }
-                                                placeholder="Select toilet type"
-                                                items={[
-                                                    {
-                                                        label: "Water sealed",
-                                                        value: "water_sealed",
-                                                    },
-                                                    {
-                                                        label: "Compost pit toilet",
-                                                        value: "compost_pit_toilet",
-                                                    },
-                                                    {
-                                                        label: "Shared communal public toilet",
-                                                        value: "shared_communal_public_toilet",
-                                                    },
-                                                    {
-                                                        label: "Shared or communal",
-                                                        value: "shared_or_communal",
-                                                    },
-                                                    {
-                                                        label: "No latrine",
-                                                        value: "no_latrine",
-                                                    },
-                                                ]}
-                                            />
-                                            <InputError
-                                                message={
-                                                    errors?.[
-                                                        `toilets.${idx}.toilet_type`
-                                                    ]
-                                                }
-                                                className="mt-1"
-                                            />
-                                        </div>
-
-                                        {data.toilets.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    removeDynamicField(
-                                                        "toilets",
-                                                        idx
-                                                    )
-                                                }
-                                                className="text-red-500 hover:text-red-700 text-xl"
-                                            >
-                                                <IoIosCloseCircleOutline />
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
-                                <div className="flex items-center gap-2 mt-3">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            addDynamicField("toilets", {
-                                                toilet_type: "",
-                                            })
-                                        }
-                                        className="text-blue-600 hover:text-blue-800 text-3xl"
-                                    >
-                                        <IoIosAddCircleOutline />
-                                    </button>
-                                    <span className="text-sm text-gray-600">
-                                        Add type of toilet
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Electricity */}
-                        <div className="w-full">
-                            <label className="block text-sm font-semibold text-gray-700 mb-0 mt-4">
-                                Electricity Source(s)
-                            </label>
-                            <div className="flex flex-col gap-2">
-                                {(data.electricity_types || []).map(
-                                    (entry, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="flex items-center gap-2 w-full"
-                                        >
-                                            <div>
-                                                <DropdownInputField
-                                                    name="electricity_type"
-                                                    value={
-                                                        entry.electricity_type ||
-                                                        ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleDynamicFieldChange(
-                                                            "electricity_types",
-                                                            idx,
-                                                            e
-                                                        )
-                                                    }
-                                                    placeholder="Select electricity source"
-                                                    items={[
-                                                        {
-                                                            label: "ISELCO II",
-                                                            value: "distribution_company_iselco_ii",
-                                                        },
-                                                        {
-                                                            label: "Generator",
-                                                            value: "generator",
-                                                        },
-                                                        {
-                                                            label: "Solar / Renewable",
-                                                            value: "solar_renewable_energy_source",
-                                                        },
-                                                        {
-                                                            label: "Battery",
-                                                            value: "battery",
-                                                        },
-                                                        {
-                                                            label: "None",
-                                                            value: "none",
-                                                        },
-                                                    ]}
-                                                />
-                                                <InputError
-                                                    message={
-                                                        errors?.[
-                                                            `electricity_types.${idx}.electricity_type`
-                                                        ]
-                                                    }
-                                                    className="mt-1"
-                                                />
-                                            </div>
-                                            {data.electricity_types.length >
-                                                1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        removeDynamicField(
-                                                            "electricity_types",
-                                                            idx
-                                                        )
-                                                    }
-                                                    className="text-red-500 hover:text-red-700 text-xl"
-                                                >
-                                                    <IoIosCloseCircleOutline />
-                                                </button>
-                                            )}
-                                        </div>
-                                    )
-                                )}
-                                <div className="flex items-center gap-2 mt-3">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            addDynamicField(
-                                                "electricity_types",
-                                                {
-                                                    electricity_type: "",
-                                                }
-                                            )
-                                        }
-                                        className="text-blue-600 hover:text-blue-800 text-3xl"
-                                    >
-                                        <IoIosAddCircleOutline />
-                                    </button>
-                                    <span className="text-sm text-gray-600">
-                                        Add electricity source
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Water Source */}
-                        <div className="w-full">
-                            <label className="block text-sm font-semibold text-gray-700 mb-0 mt-4">
-                                Water Source(s)
-                            </label>
-                            <div className="flex flex-col gap-2">
-                                {(data.water_source_types || []).map(
-                                    (entry, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="flex items-center gap-2 w-full"
-                                        >
-                                            <div>
-                                                <DropdownInputField
-                                                    name="water_source_type"
-                                                    value={
-                                                        entry.water_source_type ||
-                                                        ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleDynamicFieldChange(
-                                                            "water_source_types",
-                                                            idx,
-                                                            e
-                                                        )
-                                                    }
-                                                    placeholder="Select water source"
-                                                    items={[
-                                                        {
-                                                            label: "Level II",
-                                                            value: "level_ii_water_system",
-                                                        },
-                                                        {
-                                                            label: "Level III",
-                                                            value: "level_iii_water_system",
-                                                        },
-                                                        {
-                                                            label: "Deep Well",
-                                                            value: "deep_well_level_i",
-                                                        },
-                                                        {
-                                                            label: "Artesian Well",
-                                                            value: "artesian_well_level_i",
-                                                        },
-                                                        {
-                                                            label: "Shallow Well",
-                                                            value: "shallow_well_level_i",
-                                                        },
-                                                        {
-                                                            label: "Refill Source",
-                                                            value: "commercial_water_refill_source",
-                                                        },
-                                                        {
-                                                            label: "None",
-                                                            value: "none",
-                                                        },
-                                                    ]}
-                                                />
-                                                <InputError
-                                                    message={
-                                                        errors?.[
-                                                            `water_source_types.${idx}.water_source_type`
-                                                        ]
-                                                    }
-                                                    className="mt-1"
-                                                />
-                                            </div>
-                                            {data.water_source_types.length >
-                                                1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        removeDynamicField(
-                                                            "water_source_types",
-                                                            idx
-                                                        )
-                                                    }
-                                                    className="text-red-500 hover:text-red-700 text-xl"
-                                                >
-                                                    <IoIosCloseCircleOutline />
-                                                </button>
-                                            )}
-                                        </div>
-                                    )
-                                )}
-                                <div className="flex items-center gap-2 mt-3">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            addDynamicField(
-                                                "water_source_types",
-                                                {
-                                                    water_source_type: "",
-                                                }
-                                            )
-                                        }
-                                        className="text-blue-600 hover:text-blue-800 text-3xl"
-                                    >
-                                        <IoIosAddCircleOutline />
-                                    </button>
-                                    <span className="text-sm text-gray-600">
-                                        Add water source
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Waste Management */}
-                        <div className="w-full">
-                            <label className="block text-sm font-semibold text-gray-700 mb-0 mt-4">
-                                Waste Disposal Method(s)
-                            </label>
-                            <div className="flex flex-col gap-2">
-                                {(data.waste_management_types || []).map(
-                                    (entry, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="flex items-center gap-2 w-full"
-                                        >
-                                            <div>
-                                                <DropdownInputField
-                                                    name="waste_management_type"
-                                                    value={
-                                                        entry.waste_management_type ||
-                                                        ""
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleDynamicFieldChange(
-                                                            "waste_management_types",
-                                                            idx,
-                                                            e
-                                                        )
-                                                    }
-                                                    placeholder="Select waste disposal method"
-                                                    items={[
-                                                        {
-                                                            label: "Open Dump",
-                                                            value: "open_dump_site",
-                                                        },
-                                                        {
-                                                            label: "Sanitary Landfill",
-                                                            value: "sanitary_landfill",
-                                                        },
-                                                        {
-                                                            label: "Compost Pits",
-                                                            value: "compost_pits",
-                                                        },
-                                                        {
-                                                            label: "Material Recovery",
-                                                            value: "material_recovery_facility",
-                                                        },
-                                                        {
-                                                            label: "Garbage Collected",
-                                                            value: "garbage_is_collected",
-                                                        },
-                                                        {
-                                                            label: "None",
-                                                            value: "none",
-                                                        },
-                                                    ]}
-                                                />
-                                                <InputError
-                                                    message={
-                                                        errors?.[
-                                                            `waste_management_types.${idx}.waste_management_type`
-                                                        ]
-                                                    }
-                                                    className="mt-1"
-                                                />
-                                            </div>
-
-                                            {data.waste_management_types
-                                                .length > 1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        removeDynamicField(
-                                                            "waste_management_types",
-                                                            idx
-                                                        )
-                                                    }
-                                                    className="text-red-500 hover:text-red-700 text-xl"
-                                                >
-                                                    <IoIosCloseCircleOutline />
-                                                </button>
-                                            )}
-                                        </div>
-                                    )
-                                )}
-                                <div className="flex items-center gap-2 mt-3">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            addDynamicField(
-                                                "waste_management_types",
-                                                {
-                                                    waste_management_type: "",
-                                                }
-                                            )
-                                        }
-                                        className="text-blue-600 hover:text-blue-800 text-3xl"
-                                    >
-                                        <IoIosAddCircleOutline />
-                                    </button>
-                                    <span className="text-sm text-gray-600">
-                                        Add waste disposal method
-                                    </span>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div>
+                    <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="flex items-center gap-3">
+                            <Switch
+                                checked={showNewHouseToggle}
+                                onCheckedChange={setShowNewHouseToggle}
+                            />
                             <div>
-                                <hr className="h-[2px] bg-sky-500 border-0 mt-7" />
-                                <p className="font-bold text-lg mt-3 text-gray-800">
-                                    Livestock Ownership Details
+                                <p className="text-sm font-medium text-slate-700">
+                                    Add new house number
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                    Use this if the household is not yet in the
+                                    records.
                                 </p>
                             </div>
-                            <div className="grid md:grid-cols-1 gap-4">
+                        </div>
+
+                        <div
+                            className={`overflow-hidden transition-all duration-300 ${
+                                showNewHouseToggle
+                                    ? "mt-4 max-h-60 opacity-100"
+                                    : "max-h-0 opacity-0"
+                            }`}
+                        >
+                            <div className="pt-2">
+                                <InputField
+                                    type="text"
+                                    label="New House Number"
+                                    name="new_housenumber"
+                                    value={data.new_housenumber || ""}
+                                    onChange={(e) =>
+                                        setData(
+                                            "new_housenumber",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Enter new house or lot number"
+                                />
+                                <InputError
+                                    message={errors.new_housenumber}
+                                    className="mt-1"
+                                />
+                                <FieldHint>
+                                    Add a new household number if it does not
+                                    exist in the database yet.
+                                </FieldHint>
+                            </div>
+                        </div>
+                    </div>
+                </SectionCard>
+            )}
+
+            {head !== false && (
+                <>
+                    <SectionCard
+                        title="Household Structure"
+                        description="Provide the main housing and location details for the household."
+                    >
+                        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+                            <div>
+                                <InputField
+                                    type="text"
+                                    label="House/Unit No./Lot/Blk No."
+                                    name="housenumber"
+                                    value={data.housenumber || ""}
+                                    onChange={(e) =>
+                                        setData("housenumber", e.target.value)
+                                    }
+                                    placeholder="Enter house number"
+                                />
+                                <InputError
+                                    message={errors.housenumber}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <DropdownInputField
+                                    label="Street Name"
+                                    name="street_id"
+                                    type="text"
+                                    value={data.street_name}
+                                    onChange={handleStreetChange}
+                                    placeholder="Select street"
+                                    items={streetList}
+                                />
+                                <InputError
+                                    message={errors.street_id}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <InputField
+                                    type="text"
+                                    label="Subdivision/Village/Compound"
+                                    name="subdivision"
+                                    value={data.subdivision || ""}
+                                    onChange={(e) =>
+                                        setData("subdivision", e.target.value)
+                                    }
+                                    placeholder="Enter subdivision or village"
+                                />
+                                <InputError
+                                    message={errors.subdivision}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <SelectField
+                                    label="Purok Number"
+                                    name="purok_number"
+                                    value={data.purok_number || ""}
+                                    onChange={(e) =>
+                                        setData("purok_number", e.target.value)
+                                    }
+                                    items={purok_numbers}
+                                />
+                                <InputError
+                                    message={errors.purok_number}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <DropdownInputField
+                                    label="Ownership Type"
+                                    name="ownership_type"
+                                    value={data.ownership_type || ""}
+                                    onChange={(e) =>
+                                        setData(
+                                            "ownership_type",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Select ownership type"
+                                    items={[
+                                        "owned",
+                                        "rented",
+                                        "shared",
+                                        "goverment-provided",
+                                        "inherited",
+                                    ]}
+                                />
+                                <InputError
+                                    message={errors.ownership_type}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <SelectField
+                                    label="Housing Condition"
+                                    name="housing_condition"
+                                    value={data.housing_condition || ""}
+                                    onChange={(e) =>
+                                        setData(
+                                            "housing_condition",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Select house condition"
+                                    items={[
+                                        { label: "Good", value: "good" },
+                                        {
+                                            label: "Needs Repair",
+                                            value: "needs_repair",
+                                        },
+                                        {
+                                            label: "Dilapidated",
+                                            value: "dilapidated",
+                                        },
+                                    ]}
+                                />
+                                <InputError
+                                    message={errors.housing_condition}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <SelectField
+                                    label="House Structure"
+                                    name="house_structure"
+                                    value={data.house_structure || ""}
+                                    onChange={(e) =>
+                                        setData(
+                                            "house_structure",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Select house structure"
+                                    items={[
+                                        {
+                                            label: "Concrete",
+                                            value: "concrete",
+                                        },
+                                        {
+                                            label: "Semi-Concrete",
+                                            value: "semi_concrete",
+                                        },
+                                        { label: "Wood", value: "wood" },
+                                        {
+                                            label: "Makeshift",
+                                            value: "makeshift",
+                                        },
+                                    ]}
+                                />
+                                <InputError
+                                    message={errors.house_structure}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <YearDropdown
+                                    label="Year Established"
+                                    name="year_established"
+                                    value={data.year_established || ""}
+                                    onChange={(e) =>
+                                        setData(
+                                            "year_established",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Select year"
+                                />
+                                <InputError
+                                    message={errors.year_established}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <InputField
+                                    type="number"
+                                    label="Number of Rooms"
+                                    name="number_of_rooms"
+                                    value={data.number_of_rooms || ""}
+                                    onChange={(e) =>
+                                        setData(
+                                            "number_of_rooms",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Enter number of rooms"
+                                />
+                                <InputError
+                                    message={errors.number_of_rooms}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <InputField
+                                    type="number"
+                                    label="Number of Floors"
+                                    name="number_of_floors"
+                                    value={data.number_of_floors || ""}
+                                    onChange={(e) =>
+                                        setData(
+                                            "number_of_floors",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Enter number of floors"
+                                />
+                                <InputError
+                                    message={errors.number_of_floors}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <DropdownInputField
+                                    label="Bath and Wash Area"
+                                    name="bath_and_wash_area"
+                                    value={data.bath_and_wash_area || ""}
+                                    onChange={(e) =>
+                                        setData(
+                                            "bath_and_wash_area",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Select option"
+                                    items={[
+                                        {
+                                            label: "with own sink and bath",
+                                            value: "with_own_sink_and_bath",
+                                        },
+                                        {
+                                            label: "with own sink only",
+                                            value: "with_own_sink_only",
+                                        },
+                                        {
+                                            label: "with own bath only",
+                                            value: "with_own_bath_only",
+                                        },
+                                        {
+                                            label: "shared or communal",
+                                            value: "shared_or_communal",
+                                        },
+                                        { label: "none", value: "none" },
+                                    ]}
+                                />
+                                <InputError
+                                    message={errors.bath_and_wash_area}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <DropdownInputField
+                                    label="Internet Connection Type"
+                                    name="type_of_internet"
+                                    value={data.type_of_internet || ""}
+                                    onChange={(e) =>
+                                        setData(
+                                            "type_of_internet",
+                                            e.target.value,
+                                        )
+                                    }
+                                    placeholder="Select internet connection type"
+                                    items={[
+                                        {
+                                            label: "Mobile Data",
+                                            value: "mobile_data",
+                                        },
+                                        {
+                                            label: "Wireless Fidelity (Wi-Fi)",
+                                            value: "wireless_fidelity",
+                                        },
+                                        { label: "None", value: "none" },
+                                    ]}
+                                />
+                                <InputError
+                                    message={errors.type_of_internet}
+                                    className="mt-1"
+                                />
+                            </div>
+                        </div>
+                    </SectionCard>
+
+                    <SectionCard
+                        title="Utilities & Sanitation"
+                        description="Record utility sources and sanitation-related facilities used by the household."
+                    >
+                        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                            <DynamicSelectList
+                                label="Type of Toilet(s)"
+                                field="toilets"
+                                entries={data.toilets}
+                                errors={errors}
+                                items={[
+                                    {
+                                        label: "Water sealed",
+                                        value: "water_sealed",
+                                    },
+                                    {
+                                        label: "Compost pit toilet",
+                                        value: "compost_pit_toilet",
+                                    },
+                                    {
+                                        label: "Shared communal public toilet",
+                                        value: "shared_communal_public_toilet",
+                                    },
+                                    {
+                                        label: "Shared or communal",
+                                        value: "shared_or_communal",
+                                    },
+                                    {
+                                        label: "No latrine",
+                                        value: "no_latrine",
+                                    },
+                                ]}
+                                addLabel="Add type of toilet"
+                                addDynamicField={addDynamicField}
+                                removeDynamicField={removeDynamicField}
+                                handleDynamicFieldChange={
+                                    handleDynamicFieldChange
+                                }
+                                valueKey="toilet_type"
+                                placeholder="Select toilet type"
+                            />
+
+                            <DynamicSelectList
+                                label="Electricity Source(s)"
+                                field="electricity_types"
+                                entries={data.electricity_types}
+                                errors={errors}
+                                items={[
+                                    {
+                                        label: "ISELCO II",
+                                        value: "distribution_company_iselco_ii",
+                                    },
+                                    { label: "Generator", value: "generator" },
+                                    {
+                                        label: "Solar / Renewable",
+                                        value: "solar_renewable_energy_source",
+                                    },
+                                    { label: "Battery", value: "battery" },
+                                    { label: "None", value: "none" },
+                                ]}
+                                addLabel="Add electricity source"
+                                addDynamicField={addDynamicField}
+                                removeDynamicField={removeDynamicField}
+                                handleDynamicFieldChange={
+                                    handleDynamicFieldChange
+                                }
+                                valueKey="electricity_type"
+                                placeholder="Select electricity source"
+                            />
+
+                            <DynamicSelectList
+                                label="Water Source(s)"
+                                field="water_source_types"
+                                entries={data.water_source_types}
+                                errors={errors}
+                                items={[
+                                    {
+                                        label: "Level II",
+                                        value: "level_ii_water_system",
+                                    },
+                                    {
+                                        label: "Level III",
+                                        value: "level_iii_water_system",
+                                    },
+                                    {
+                                        label: "Deep Well",
+                                        value: "deep_well_level_i",
+                                    },
+                                    {
+                                        label: "Artesian Well",
+                                        value: "artesian_well_level_i",
+                                    },
+                                    {
+                                        label: "Shallow Well",
+                                        value: "shallow_well_level_i",
+                                    },
+                                    {
+                                        label: "Refill Source",
+                                        value: "commercial_water_refill_source",
+                                    },
+                                    { label: "None", value: "none" },
+                                ]}
+                                addLabel="Add water source"
+                                addDynamicField={addDynamicField}
+                                removeDynamicField={removeDynamicField}
+                                handleDynamicFieldChange={
+                                    handleDynamicFieldChange
+                                }
+                                valueKey="water_source_type"
+                                placeholder="Select water source"
+                            />
+
+                            <DynamicSelectList
+                                label="Waste Disposal Method(s)"
+                                field="waste_management_types"
+                                entries={data.waste_management_types}
+                                errors={errors}
+                                items={[
+                                    {
+                                        label: "Open Dump",
+                                        value: "open_dump_site",
+                                    },
+                                    {
+                                        label: "Sanitary Landfill",
+                                        value: "sanitary_landfill",
+                                    },
+                                    {
+                                        label: "Compost Pits",
+                                        value: "compost_pits",
+                                    },
+                                    {
+                                        label: "Material Recovery",
+                                        value: "material_recovery_facility",
+                                    },
+                                    {
+                                        label: "Garbage Collected",
+                                        value: "garbage_is_collected",
+                                    },
+                                    { label: "None", value: "none" },
+                                ]}
+                                addLabel="Add waste disposal method"
+                                addDynamicField={addDynamicField}
+                                removeDynamicField={removeDynamicField}
+                                handleDynamicFieldChange={
+                                    handleDynamicFieldChange
+                                }
+                                valueKey="waste_management_type"
+                                placeholder="Select waste disposal method"
+                            />
+                        </div>
+                    </SectionCard>
+
+                    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                        <SectionCard
+                            title="Livestock Ownership"
+                            description="Record animals raised by the household for personal or commercial use."
+                        >
+                            <div className="space-y-4">
                                 <div>
                                     <RadioGroup
-                                        label="Do you have a livestock?"
+                                        label="Do you have livestock?"
                                         name="has_livestock"
                                         options={[
                                             { label: "Yes", value: 1 },
@@ -1366,45 +953,53 @@ const Section5 = ({
                                         onChange={(e) =>
                                             setData(
                                                 "has_livestock",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                     />
                                 </div>
-                                <div>
-                                    {data.has_livestock == 1 ? (
-                                        <>
-                                            {data.livestocks.length === 0 && (
-                                                <p className="text-sm text-gray-500 italic mt-2">
-                                                    No livestock added yet.
-                                                </p>
-                                            )}
-                                            <div className="grid md:grid-cols-2 gap-4">
-                                                {data.livestocks.map(
-                                                    (livestock, livIndex) => (
-                                                        <div
-                                                            key={livIndex}
-                                                            className="relative mb-4 p-4 bg-sky-100 border rounded-md"
-                                                        >
+
+                                {data.has_livestock == 1 ? (
+                                    <>
+                                        {(data.livestocks || []).length ===
+                                            0 && (
+                                            <p className="text-sm italic text-slate-500">
+                                                No livestock added yet.
+                                            </p>
+                                        )}
+
+                                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                                            {(data.livestocks || []).map(
+                                                (livestock, livIndex) => (
+                                                    <EntryCard
+                                                        key={livIndex}
+                                                        title={`Livestock #${livIndex + 1}`}
+                                                        onRemove={() =>
+                                                            removeLivestock(
+                                                                livIndex,
+                                                            )
+                                                        }
+                                                    >
+                                                        <div className="space-y-4">
                                                             <div>
                                                                 <DropdownInputField
-                                                                    label="Livestock animal"
+                                                                    label="Livestock Animal"
                                                                     name="livestock_type"
                                                                     value={
                                                                         livestock.livestock_type ||
                                                                         ""
                                                                     }
                                                                     onChange={(
-                                                                        e
+                                                                        e,
                                                                     ) =>
                                                                         handleArrayValues(
                                                                             e,
                                                                             livIndex,
                                                                             "livestock_type",
-                                                                            "livestocks"
+                                                                            "livestocks",
                                                                         )
                                                                     }
-                                                                    placeholder="Select or enter type of animal"
+                                                                    placeholder="Select animal"
                                                                     items={[
                                                                         "cattle",
                                                                         "carabao",
@@ -1422,9 +1017,10 @@ const Section5 = ({
                                                                             `livestocks.${livIndex}.livestock_type`
                                                                         ]
                                                                     }
-                                                                    className="mt-2"
+                                                                    className="mt-1"
                                                                 />
                                                             </div>
+
                                                             <div>
                                                                 <InputField
                                                                     label="Quantity"
@@ -1434,13 +1030,13 @@ const Section5 = ({
                                                                         ""
                                                                     }
                                                                     onChange={(
-                                                                        e
+                                                                        e,
                                                                     ) =>
                                                                         handleArrayValues(
                                                                             e,
                                                                             livIndex,
                                                                             "quantity",
-                                                                            "livestocks"
+                                                                            "livestocks",
                                                                         )
                                                                     }
                                                                     placeholder="Enter quantity"
@@ -1452,9 +1048,10 @@ const Section5 = ({
                                                                             `livestocks.${livIndex}.quantity`
                                                                         ]
                                                                     }
-                                                                    className="mt-2"
+                                                                    className="mt-1"
                                                                 />
                                                             </div>
+
                                                             <div>
                                                                 <SelectField
                                                                     label="Purpose"
@@ -1464,13 +1061,13 @@ const Section5 = ({
                                                                         ""
                                                                     }
                                                                     onChange={(
-                                                                        e
+                                                                        e,
                                                                     ) =>
                                                                         handleArrayValues(
                                                                             e,
                                                                             livIndex,
                                                                             "purpose",
-                                                                            "livestocks"
+                                                                            "livestocks",
                                                                         )
                                                                     }
                                                                     placeholder="Select purpose"
@@ -1495,56 +1092,40 @@ const Section5 = ({
                                                                             `livestocks.${livIndex}.purpose`
                                                                         ]
                                                                     }
-                                                                    className="mt-2"
+                                                                    className="mt-1"
                                                                 />
                                                             </div>
-
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    removeLivestock(
-                                                                        livIndex
-                                                                    )
-                                                                }
-                                                                className="absolute top-2 right-2 text-red-400 hover:text-red-700 text-xl"
-                                                                title="Remove livestock"
-                                                            >
-                                                                <IoIosCloseCircleOutline className="text-2xl" />
-                                                            </button>
                                                         </div>
-                                                    )
-                                                )}
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={addLivestock}
-                                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-base mt-2 font-medium"
-                                                title="Add livestock"
-                                            >
-                                                <IoIosAddCircleOutline className="text-2xl" />
-                                                Add Livestock
-                                            </button>
-                                        </>
-                                    ) : data.has_livestock == 0 ? (
-                                        <p className="text-sm text-gray-500 italic mt-2">
-                                            No livestock declared.
-                                        </p>
-                                    ) : null}
-                                </div>
-                            </div>
-                        </div>
+                                                    </EntryCard>
+                                                ),
+                                            )}
+                                        </div>
 
-                        <div>
-                            <div>
-                                <hr className="h-[2px] bg-sky-500 border-0 mt-7" />
-                                <p className="font-bold text-md mt-3 text-gray-800">
-                                    Pet Ownership Details
-                                </p>
+                                        <button
+                                            type="button"
+                                            onClick={addLivestock}
+                                            className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+                                        >
+                                            <IoIosAddCircleOutline className="text-2xl" />
+                                            <span>Add Livestock</span>
+                                        </button>
+                                    </>
+                                ) : data.has_livestock == 0 ? (
+                                    <p className="text-sm italic text-slate-500">
+                                        No livestock declared.
+                                    </p>
+                                ) : null}
                             </div>
-                            <div className="grid md:grid-cols-1 gap-4">
+                        </SectionCard>
+
+                        <SectionCard
+                            title="Pet Ownership"
+                            description="Record household pets and rabies vaccination information."
+                        >
+                            <div className="space-y-4">
                                 <div>
                                     <RadioGroup
-                                        label="Do you have a Pets?"
+                                        label="Do you have pets?"
                                         name="has_pets"
                                         options={[
                                             { label: "Yes", value: 1 },
@@ -1556,21 +1137,26 @@ const Section5 = ({
                                         }
                                     />
                                 </div>
-                                <div>
-                                    {data.has_pets == 1 ? (
-                                        <>
-                                            {data.pets.length === 0 && (
-                                                <p className="text-sm text-gray-500 italic mt-2">
-                                                    No pet added yet.
-                                                </p>
-                                            )}
-                                            <div className="grid md:grid-cols-2 gap-4">
-                                                {data.pets.map(
-                                                    (pet, petIndex) => (
-                                                        <div
-                                                            key={petIndex}
-                                                            className="relative mb-4 p-4 bg-sky-100 border rounded-md"
-                                                        >
+
+                                {data.has_pets == 1 ? (
+                                    <>
+                                        {(data.pets || []).length === 0 && (
+                                            <p className="text-sm italic text-slate-500">
+                                                No pets added yet.
+                                            </p>
+                                        )}
+
+                                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                                            {(data.pets || []).map(
+                                                (pet, petIndex) => (
+                                                    <EntryCard
+                                                        key={petIndex}
+                                                        title={`Pet #${petIndex + 1}`}
+                                                        onRemove={() =>
+                                                            removePet(petIndex)
+                                                        }
+                                                    >
+                                                        <div className="space-y-4">
                                                             <div>
                                                                 <DropdownInputField
                                                                     label="Type of Pet"
@@ -1580,16 +1166,16 @@ const Section5 = ({
                                                                         ""
                                                                     }
                                                                     onChange={(
-                                                                        e
+                                                                        e,
                                                                     ) =>
                                                                         handleArrayValues(
                                                                             e,
                                                                             petIndex,
                                                                             "pet_type",
-                                                                            "pets"
+                                                                            "pets",
                                                                         )
                                                                     }
-                                                                    placeholder="Select or enter type of pet"
+                                                                    placeholder="Select pet type"
                                                                     items={[
                                                                         "dog",
                                                                         "cat",
@@ -1602,12 +1188,13 @@ const Section5 = ({
                                                                             `pets.${petIndex}.pet_type`
                                                                         ]
                                                                     }
-                                                                    className="mt-2"
+                                                                    className="mt-1"
                                                                 />
                                                             </div>
+
                                                             <div>
                                                                 <RadioGroup
-                                                                    label="Is the pet vaccinated for rabies?"
+                                                                    label="Vaccinated for Rabies?"
                                                                     name="is_vaccinated"
                                                                     options={[
                                                                         {
@@ -1624,13 +1211,13 @@ const Section5 = ({
                                                                         ""
                                                                     }
                                                                     onChange={(
-                                                                        e
+                                                                        e,
                                                                     ) =>
                                                                         handleArrayValues(
                                                                             e,
                                                                             petIndex,
                                                                             "is_vaccinated",
-                                                                            "pets"
+                                                                            "pets",
                                                                         )
                                                                     }
                                                                 />
@@ -1640,48 +1227,35 @@ const Section5 = ({
                                                                             `pets.${petIndex}.is_vaccinated`
                                                                         ]
                                                                     }
-                                                                    className="mt-2"
+                                                                    className="mt-1"
                                                                 />
                                                             </div>
-
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    removePet(
-                                                                        petIndex
-                                                                    )
-                                                                }
-                                                                className="absolute top-2 right-2 text-red-400 hover:text-red-700 text-xl"
-                                                                title="Remove pet"
-                                                            >
-                                                                <IoIosCloseCircleOutline className="text-2xl" />
-                                                            </button>
                                                         </div>
-                                                    )
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    onClick={addPet}
-                                                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-base mt-2 font-medium"
-                                                    title="Add pet"
-                                                >
-                                                    <IoIosAddCircleOutline className="text-2xl" />
-                                                    Add Pet
-                                                </button>
-                                            </div>
-                                        </>
-                                    ) : data.has_pets == 0 ? (
-                                        <p className="text-sm text-gray-500 italic mt-2">
-                                            No pet declared.
-                                        </p>
-                                    ) : null}
-                                </div>
+                                                    </EntryCard>
+                                                ),
+                                            )}
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={addPet}
+                                            className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+                                        >
+                                            <IoIosAddCircleOutline className="text-2xl" />
+                                            <span>Add Pet</span>
+                                        </button>
+                                    </>
+                                ) : data.has_pets == 0 ? (
+                                    <p className="text-sm italic text-slate-500">
+                                        No pets declared.
+                                    </p>
+                                ) : null}
                             </div>
-                        </div>
+                        </SectionCard>
                     </div>
                 </>
             )}
-        </>
+        </div>
     );
 };
 

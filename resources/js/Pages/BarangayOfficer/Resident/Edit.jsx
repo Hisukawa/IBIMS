@@ -1,10 +1,9 @@
 import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
-import EditPersonalInformation from "@/Components/ResidentInput/EditPersonalInformation";
-import PersonalInformation from "@/Components/ResidentInput/PersonalInformation";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, router, usePage } from "@inertiajs/react";
 import { useEffect } from "react";
 import { Toaster, toast } from "sonner";
+import EditPersonalInformation from "./Partials/EditPersonalInformation";
 
 export default function Index({
     auth,

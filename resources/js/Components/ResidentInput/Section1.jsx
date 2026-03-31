@@ -9,6 +9,22 @@ import YearDropdown from "../YearDropdown";
 import { IoIosAddCircleOutline, IoIosCloseCircleOutline } from "react-icons/io";
 import { toTitleCase } from "@/utils/stringFormat";
 
+const SectionCard = ({ title, description, children }) => (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="mb-5 border-b border-slate-100 pb-3">
+            <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
+            {description && (
+                <p className="mt-1 text-sm text-slate-500">{description}</p>
+            )}
+        </div>
+        {children}
+    </div>
+);
+
+const FieldHint = ({ children }) => (
+    <p className="mt-1 text-xs leading-relaxed text-slate-500">{children}</p>
+);
+
 const Section1 = ({
     data,
     setData,
@@ -22,16 +38,18 @@ const Section1 = ({
     const addVehicle = () => {
         setData("vehicles", [...(data.vehicles || []), {}]);
     };
-    const purok_numbers = puroks.map((purok) => ({
-        label: "Purok " + purok,
-        value: purok.toString(),
-    }));
 
     const removeVehicle = (vehicleIndex) => {
         const updated = [...(data.vehicles || [])];
         updated.splice(vehicleIndex, 1);
         setData("vehicles", updated);
     };
+
+    const purok_numbers = puroks.map((purok) => ({
+        label: "Purok " + purok,
+        value: purok.toString(),
+    }));
+
     const barangayList = Object.entries(barangays).map(([id, name]) => ({
         label: name,
         value: id,
@@ -39,246 +57,262 @@ const Section1 = ({
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col mb-6">
-                {/* Header */}
-                <h2 className="text-3xl font-semibold text-gray-800 mb-1 mt-5">
+            {/* Page Header */}
+            <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-slate-50 px-6 py-5 shadow-sm">
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-800">
                     Resident Information
                 </h2>
-                <p className="text-sm text-gray-600 mb-6">
+                <p className="mt-2 max-w-3xl text-sm text-slate-600">
                     Please provide the personal details of the resident. Fields
-                    marked with <span className="text-red-700">*</span> are
+                    marked with{" "}
+                    <span className="font-semibold text-red-600">*</span> are
                     required.
                 </p>
             </div>
 
-            {/* PERSONAL INFORMATION */}
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-y-4 md:gap-x-6">
-                {/* Profile Photo */}
-                <div className="md:row-span-2 flex flex-col items-center space-y-3">
-                    <InputLabel
-                        htmlFor="resident_image"
-                        value="Profile Photo"
-                    />
-                    <img
-                        src={
-                            data.resident_image instanceof File
-                                ? URL.createObjectURL(data.resident_image)
-                                : existingImagePath ||
-                                  "/images/default-avatar.jpg"
-                        }
-                        alt="Resident Image"
-                        className="w-32 h-32 object-cover rounded-full border border-gray-200 shadow-sm"
-                    />
-                    <input
-                        id="resident_image"
-                        type="file"
-                        name="resident_image"
-                        accept="image/*"
-                        onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (file) setData("resident_image", file);
-                        }}
-                        className="block w-full text-sm text-gray-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    />
-                    <InputError
-                        message={errors.resident_image}
-                        className="mt-1"
-                    />
-                    <p className="text-xs text-gray-500 text-center mt-1">
-                        Upload a clear profile photo (JPEG, PNG). Max size 5MB.
-                    </p>
-                </div>
+            {/* Personal Information */}
+            <SectionCard
+                title="Personal Information"
+                description="Enter the resident's basic identity details and upload a profile photo."
+            >
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-6">
+                    {/* Profile Photo */}
+                    <div className="lg:col-span-2">
+                        <div className="flex h-full flex-col items-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center">
+                            <InputLabel
+                                htmlFor="resident_image"
+                                value="Profile Photo"
+                            />
 
-                {/* Names and basic info */}
-                <div className="md:col-span-5 space-y-4">
-                    {/* Names */}
-                    <div
-                        className={`grid gap-3 grid-cols-1 sm:grid-cols-2 md:${
-                            showMaidenMiddleName ? "grid-cols-4" : "grid-cols-3"
-                        }`}
-                    >
-                        <div>
-                            <InputField
-                                label="Last Name"
-                                name="lastname"
-                                value={data.lastname || ""}
-                                placeholder="Enter last name"
-                                onChange={(e) =>
-                                    setData(
-                                        "lastname",
-                                        toTitleCase(e.target.value)
-                                    )
+                            <img
+                                src={
+                                    data.resident_image instanceof File
+                                        ? URL.createObjectURL(
+                                              data.resident_image,
+                                          )
+                                        : existingImagePath ||
+                                          "/images/default-avatar.jpg"
                                 }
-                                required
+                                alt="Resident Image"
+                                className="mt-4 h-32 w-32 rounded-full border-4 border-white object-cover shadow-md"
+                            />
+
+                            <input
+                                id="resident_image"
+                                type="file"
+                                name="resident_image"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const file = e.target.files[0];
+                                    if (file) setData("resident_image", file);
+                                }}
+                                className="mt-4 block w-full text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-blue-700"
                             />
                             <InputError
-                                message={errors.lastname}
-                                className="mt-1"
+                                message={errors.resident_image}
+                                className="mt-2"
                             />
+                            <FieldHint>
+                                Upload a clear profile photo in JPEG or PNG
+                                format. Maximum size: 5MB.
+                            </FieldHint>
                         </div>
-                        <div>
-                            <InputField
-                                label="First Name"
-                                name="firstname"
-                                value={data.firstname || ""}
-                                placeholder="Enter first name"
-                                onChange={(e) =>
-                                    setData(
-                                        "firstname",
-                                        toTitleCase(e.target.value)
-                                    )
-                                }
-                                required
-                            />
-                            <InputError
-                                message={errors.firstname}
-                                className="mt-1"
-                            />
-                        </div>
-                        <div>
-                            <InputField
-                                label="Middle Name"
-                                name="middlename"
-                                value={data.middlename || ""}
-                                placeholder="Enter middle name"
-                                onChange={(e) =>
-                                    setData(
-                                        "middlename",
-                                        toTitleCase(e.target.value)
-                                    )
-                                }
-                            />
-                            <InputError
-                                message={errors.middlename}
-                                className="mt-1"
-                            />
-                        </div>
-                        {showMaidenMiddleName && (
+                    </div>
+
+                    {/* Main Fields */}
+                    <div className="lg:col-span-4 space-y-5">
+                        <div
+                            className={`grid gap-4 grid-cols-1 sm:grid-cols-2 ${
+                                showMaidenMiddleName
+                                    ? "xl:grid-cols-4"
+                                    : "xl:grid-cols-3"
+                            }`}
+                        >
                             <div>
                                 <InputField
-                                    label="Maiden Middle Name"
-                                    name="maiden_middle_name"
-                                    value={data.maiden_middle_name || ""}
-                                    placeholder="Enter maiden middle name"
+                                    label="Last Name"
+                                    name="lastname"
+                                    value={data.lastname || ""}
+                                    placeholder="Enter last name"
                                     onChange={(e) =>
                                         setData(
-                                            "maiden_middle_name",
-                                            toTitleCase(e.target.value)
+                                            "lastname",
+                                            toTitleCase(e.target.value),
+                                        )
+                                    }
+                                    required
+                                />
+                                <InputError
+                                    message={errors.lastname}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <InputField
+                                    label="First Name"
+                                    name="firstname"
+                                    value={data.firstname || ""}
+                                    placeholder="Enter first name"
+                                    onChange={(e) =>
+                                        setData(
+                                            "firstname",
+                                            toTitleCase(e.target.value),
+                                        )
+                                    }
+                                    required
+                                />
+                                <InputError
+                                    message={errors.firstname}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <InputField
+                                    label="Middle Name"
+                                    name="middlename"
+                                    value={data.middlename || ""}
+                                    placeholder="Enter middle name"
+                                    onChange={(e) =>
+                                        setData(
+                                            "middlename",
+                                            toTitleCase(e.target.value),
                                         )
                                     }
                                 />
                                 <InputError
-                                    message={errors.maiden_middle_name}
+                                    message={errors.middlename}
                                     className="mt-1"
                                 />
                             </div>
-                        )}
-                    </div>
 
-                    {/* Other personal info */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                        <div>
-                            <DropdownInputField
-                                label="Suffix"
-                                name="suffix"
-                                value={data.suffix}
-                                items={["Jr.", "Sr.", "III", "IV"]}
-                                placeholder="Select suffix"
-                                onChange={(e) =>
-                                    setData("suffix", e.target.value)
-                                }
-                            />
-                            <InputError
-                                message={errors.suffix}
-                                className="mt-1"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Suffix is optional.
-                            </p>
+                            {showMaidenMiddleName && (
+                                <div>
+                                    <InputField
+                                        label="Maiden Middle Name"
+                                        name="maiden_middle_name"
+                                        value={data.maiden_middle_name || ""}
+                                        placeholder="Enter maiden middle name"
+                                        onChange={(e) =>
+                                            setData(
+                                                "maiden_middle_name",
+                                                toTitleCase(e.target.value),
+                                            )
+                                        }
+                                    />
+                                    <InputError
+                                        message={errors.maiden_middle_name}
+                                        className="mt-1"
+                                    />
+                                </div>
+                            )}
                         </div>
-                        <div>
-                            <DropdownInputField
-                                label="Civil Status"
-                                name="civil_status"
-                                value={data.civil_status || ""}
-                                items={[
-                                    "Single",
-                                    "Married",
-                                    "Widowed",
-                                    "Divorced",
-                                    "Separated",
-                                    "Annulled",
-                                ]}
-                                placeholder="Select civil status"
-                                onChange={(e) =>
-                                    setData(
-                                        "civil_status",
-                                        e.target.value.toLowerCase()
-                                    )
-                                }
-                                required
-                            />
-                            <InputError
-                                message={errors.civil_status}
-                                className="mt-1"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Select the resident's current civil status.
-                            </p>
-                        </div>
-                        <div>
-                            <RadioGroup
-                                label="Sex"
-                                name="sex"
-                                options={[
-                                    { label: "Male", value: "male" },
-                                    { label: "Female", value: "female" },
-                                ]}
-                                selectedValue={data.sex || ""}
-                                onChange={(e) => setData("sex", e.target.value)}
-                                required
-                            />
-                            <InputError message={errors.sex} className="mt-1" />
-                        </div>
-                        <div>
-                            <DropdownInputField
-                                label="Gender"
-                                name="gender"
-                                items={[
-                                    { label: "Male", value: "male" },
-                                    { label: "Female", value: "female" },
-                                    { label: "LGBTQ+", value: "lgbtq" },
-                                ]}
-                                value={data.gender || ""}
-                                onChange={(e) =>
-                                    setData("gender", e.target.value)
-                                }
-                                placeholder={"Select gender"}
-                            />
-                            <InputError
-                                message={errors.gender}
-                                className="mt-1"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Gender identity (optional, can differ from sex).
-                            </p>
+
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                            <div>
+                                <DropdownInputField
+                                    label="Suffix"
+                                    name="suffix"
+                                    value={data.suffix}
+                                    items={["Jr.", "Sr.", "III", "IV"]}
+                                    placeholder="Select suffix"
+                                    onChange={(e) =>
+                                        setData("suffix", e.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={errors.suffix}
+                                    className="mt-1"
+                                />
+                                <FieldHint>Optional field.</FieldHint>
+                            </div>
+
+                            <div>
+                                <DropdownInputField
+                                    label="Civil Status"
+                                    name="civil_status"
+                                    value={data.civil_status || ""}
+                                    items={[
+                                        "Single",
+                                        "Married",
+                                        "Widowed",
+                                        "Divorced",
+                                        "Separated",
+                                        "Annulled",
+                                    ]}
+                                    placeholder="Select civil status"
+                                    onChange={(e) =>
+                                        setData(
+                                            "civil_status",
+                                            e.target.value.toLowerCase(),
+                                        )
+                                    }
+                                    required
+                                />
+                                <InputError
+                                    message={errors.civil_status}
+                                    className="mt-1"
+                                />
+                                <FieldHint>
+                                    Select the resident's current civil status.
+                                </FieldHint>
+                            </div>
+
+                            <div>
+                                <RadioGroup
+                                    label="Sex"
+                                    name="sex"
+                                    options={[
+                                        { label: "Male", value: "male" },
+                                        { label: "Female", value: "female" },
+                                    ]}
+                                    selectedValue={data.sex || ""}
+                                    onChange={(e) =>
+                                        setData("sex", e.target.value)
+                                    }
+                                    required
+                                />
+                                <InputError
+                                    message={errors.sex}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <DropdownInputField
+                                    label="Gender"
+                                    name="gender"
+                                    items={[
+                                        { label: "Male", value: "male" },
+                                        { label: "Female", value: "female" },
+                                        { label: "LGBTQ+", value: "lgbtq" },
+                                    ]}
+                                    value={data.gender || ""}
+                                    onChange={(e) =>
+                                        setData("gender", e.target.value)
+                                    }
+                                    placeholder="Select gender"
+                                />
+                                <InputError
+                                    message={errors.gender}
+                                    className="mt-1"
+                                />
+                                <FieldHint>
+                                    Optional. This may differ from sex.
+                                </FieldHint>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </SectionCard>
 
-            {/* BIRTH & CITIZENSHIP */}
-            <div className="bg-gray-50 p-4 rounded-lg shadow-sm space-y-3">
-                <h3 className="text-lg font-semibold text-gray-700">
-                    Birth & Citizenship
-                </h3>
-                <p className="text-sm text-gray-500">
-                    Please provide the resident's birth information and
-                    citizenship details.
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    {/* Birth Date */}
+            {/* Birth & Citizenship */}
+            <SectionCard
+                title="Birth & Citizenship"
+                description="Provide the resident's birth details, religious affiliation, ethnicity, and citizenship."
+            >
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
                     <div>
                         <InputField
                             type="date"
@@ -288,27 +322,42 @@ const Section1 = ({
                             required
                             onChange={(e) => {
                                 setData("birthdate", e.target.value);
-                                // Calculate age based on birthdate
+
                                 const birthDate = new Date(e.target.value);
                                 const today = new Date();
-                                const calculatedAge =
+
+                                let calculatedAge =
                                     today.getFullYear() -
                                     birthDate.getFullYear();
-                                if (calculatedAge >= 0)
+
+                                const monthDiff =
+                                    today.getMonth() - birthDate.getMonth();
+
+                                if (
+                                    monthDiff < 0 ||
+                                    (monthDiff === 0 &&
+                                        today.getDate() < birthDate.getDate())
+                                ) {
+                                    calculatedAge--;
+                                }
+
+                                if (
+                                    !isNaN(calculatedAge) &&
+                                    calculatedAge >= 0
+                                ) {
                                     setData("age", calculatedAge);
+                                }
                             }}
                         />
                         <InputError
                             message={errors.birthdate}
                             className="mt-1"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                            Select the resident's birth date. Age will be
-                            calculated automatically.
-                        </p>
+                        <FieldHint>
+                            Age will be calculated automatically.
+                        </FieldHint>
                     </div>
 
-                    {/* Birth Place */}
                     <div>
                         <InputField
                             label="Birth Place"
@@ -319,7 +368,7 @@ const Section1 = ({
                             onChange={(e) =>
                                 setData(
                                     "birthplace",
-                                    toTitleCase(e.target.value)
+                                    toTitleCase(e.target.value),
                                 )
                             }
                         />
@@ -327,13 +376,11 @@ const Section1 = ({
                             message={errors.birthplace}
                             className="mt-1"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                            Specify the city or municipality where the resident
-                            was born.
-                        </p>
+                        <FieldHint>
+                            Enter the city or municipality of birth.
+                        </FieldHint>
                     </div>
 
-                    {/* Religion */}
                     <div>
                         <DropdownInputField
                             label="Religion"
@@ -355,12 +402,11 @@ const Section1 = ({
                             message={errors.religion}
                             className="mt-1"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
+                        <FieldHint>
                             Choose the resident's religious affiliation.
-                        </p>
+                        </FieldHint>
                     </div>
 
-                    {/* Ethnicity */}
                     <div>
                         <DropdownInputField
                             label="Ethnicity"
@@ -376,7 +422,7 @@ const Section1 = ({
                             onChange={(e) =>
                                 setData(
                                     "ethnicity",
-                                    toTitleCase(e.target.value)
+                                    toTitleCase(e.target.value),
                                 )
                             }
                         />
@@ -384,12 +430,9 @@ const Section1 = ({
                             message={errors.ethnicity}
                             className="mt-1"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                            Select the resident's ethnic group.
-                        </p>
+                        <FieldHint>Select the ethnic group.</FieldHint>
                     </div>
 
-                    {/* Citizenship */}
                     <div>
                         <DropdownInputField
                             label="Citizenship"
@@ -401,7 +444,7 @@ const Section1 = ({
                             onChange={(e) =>
                                 setData(
                                     "citizenship",
-                                    toTitleCase(e.target.value)
+                                    toTitleCase(e.target.value),
                                 )
                             }
                         />
@@ -409,26 +452,20 @@ const Section1 = ({
                             message={errors.citizenship}
                             className="mt-1"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
+                        <FieldHint>
                             Specify the resident's citizenship.
-                        </p>
+                        </FieldHint>
                     </div>
                 </div>
-            </div>
+            </SectionCard>
 
-            {/* CONTACT & RESIDENCY */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                {/* Contact Info */}
-                <div className="bg-gray-50 p-4 rounded-lg shadow-sm space-y-3">
-                    <h3 className="text-lg font-semibold text-gray-700">
-                        Contact Information
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                        Provide the resident's current contact details. Include
-                        at least one method of contact.
-                    </p>
-
-                    <div className="space-y-3">
+            {/* Contact and Residency */}
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <SectionCard
+                    title="Contact Information"
+                    description="Provide the resident's contact details for communication."
+                >
+                    <div className="space-y-4">
                         <div>
                             <InputField
                                 label="Contact Number"
@@ -443,10 +480,9 @@ const Section1 = ({
                                 message={errors.contactNumber}
                                 className="mt-1"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Include country code if applicable (e.g., +63
-                                912 345 6789).
-                            </p>
+                            <FieldHint>
+                                Include the correct mobile or telephone number.
+                            </FieldHint>
                         </div>
 
                         <div>
@@ -464,24 +500,18 @@ const Section1 = ({
                                 message={errors.email}
                                 className="mt-1"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Provide a valid email address for official
-                                communication.
-                            </p>
+                            <FieldHint>
+                                Use a valid email for official communication.
+                            </FieldHint>
                         </div>
                     </div>
-                </div>
+                </SectionCard>
 
-                {/* Residency Info */}
-                <div className="bg-gray-50 p-4 rounded-lg shadow-sm space-y-3">
-                    <h3 className="text-lg font-semibold text-gray-700">
-                        Residency Information
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                        Specify the type and duration of the resident's stay.
-                    </p>
-
-                    <div className="space-y-3">
+                <SectionCard
+                    title="Residency Information"
+                    description="Specify the type and duration of the resident's stay in the barangay."
+                >
+                    <div className="space-y-4">
                         <div>
                             <SelectField
                                 label="Residency Type"
@@ -500,15 +530,13 @@ const Section1 = ({
                                 message={errors.residency_type}
                                 className="mt-1"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Permanent residents live in the area
-                                indefinitely. Temporary and immigrant residents
-                                may have limited stay periods.
-                            </p>
+                            <FieldHint>
+                                Select the category that best describes the
+                                resident's stay.
+                            </FieldHint>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Purok Select */}
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
                                 <SelectField
                                     label="Purok Number"
@@ -524,13 +552,11 @@ const Section1 = ({
                                     message={errors.purok_number}
                                     className="mt-1"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Select the assigned Purok number for the
-                                    resident.
-                                </p>
+                                <FieldHint>
+                                    Select the assigned purok number.
+                                </FieldHint>
                             </div>
 
-                            {/* Residency Date */}
                             <div>
                                 <YearDropdown
                                     label="Residency Date"
@@ -540,7 +566,7 @@ const Section1 = ({
                                     onChange={(e) =>
                                         setData(
                                             "residency_date",
-                                            e.target.value
+                                            e.target.value,
                                         )
                                     }
                                 />
@@ -548,77 +574,28 @@ const Section1 = ({
                                     message={errors.residency_date}
                                     className="mt-1"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Specify the year the resident started living
+                                <FieldHint>
+                                    Select the year the resident started living
                                     in the area.
-                                </p>
+                                </FieldHint>
                             </div>
                         </div>
-
-                        {/* Optional Household/Family Head Radios (commented out) */}
-                        {/*
-            <div className="flex flex-col sm:flex-row gap-6 mt-2">
-                <div>
-                    <RadioGroup
-                        label="Household Head?"
-                        name="is_household_head"
-                        selectedValue={parseInt(data.is_household_head)}
-                        options={[
-                            { label: "Yes", value: 1 },
-                            { label: "No", value: 0 },
-                        ]}
-                        onChange={(e) =>
-                            setData("is_household_head", e.target.value)
-                        }
-                    />
-                    <InputError
-                        message={errors.is_household_head}
-                        className="mt-1"
-                    />
-                </div>
-                <div>
-                    <RadioGroup
-                        label="Family Head?"
-                        name="is_family_head"
-                        selectedValue={parseInt(data.is_family_head)}
-                        options={[
-                            { label: "Yes", value: 1 },
-                            { label: "No", value: 0 },
-                        ]}
-                        onChange={(e) =>
-                            setData("is_family_head", e.target.value)
-                        }
-                    />
-                    <InputError
-                        message={errors.is_family_head}
-                        className="mt-1"
-                    />
-                </div>
-            </div>
-            */}
                     </div>
-                </div>
+                </SectionCard>
             </div>
 
-            {/* GOVERNMENT PROGRAMS */}
-            <div className="bg-gray-50 p-4 rounded-lg shadow-sm space-y-4 mt-6">
-                <h3 className="text-lg font-semibold text-gray-700">
-                    Government Programs
-                </h3>
-                <p className="text-sm text-gray-500">
-                    Indicate if the resident is part of any government programs
-                    or registered as a voter.
-                </p>
-
-                {/* Primary Program Fields */}
+            {/* Government Programs */}
+            <SectionCard
+                title="Government Programs"
+                description="Indicate whether the resident is enrolled in government programs or registered as a voter."
+            >
                 <div
-                    className={`grid grid-cols-1 sm:grid-cols-2 ${
+                    className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${
                         data.is_solo_parent == 1
-                            ? "md:grid-cols-4"
-                            : "md:grid-cols-3"
-                    } gap-4`}
+                            ? "xl:grid-cols-5"
+                            : "xl:grid-cols-4"
+                    }`}
                 >
-                    {/* 4Ps Beneficiary */}
                     <div>
                         <RadioGroup
                             label="4Ps Beneficiary"
@@ -636,13 +613,11 @@ const Section1 = ({
                             message={errors.is_4ps_beneficiary}
                             className="mt-1"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                            Specify if the resident is a beneficiary of the
-                            Pantawid Pamilyang Pilipino Program (4Ps).
-                        </p>
+                        <FieldHint>
+                            Pantawid Pamilyang Pilipino Program beneficiary.
+                        </FieldHint>
                     </div>
 
-                    {/* Solo Parent */}
                     <div>
                         <RadioGroup
                             label="Solo Parent"
@@ -660,12 +635,11 @@ const Section1 = ({
                             message={errors.is_solo_parent}
                             className="mt-1"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                            Indicate if the resident is a solo parent.
-                        </p>
+                        <FieldHint>
+                            Indicate whether the resident is a solo parent.
+                        </FieldHint>
                     </div>
 
-                    {/* Solo Parent ID (conditional) */}
                     {data.is_solo_parent == 1 && (
                         <div>
                             <InputField
@@ -675,7 +649,7 @@ const Section1 = ({
                                 onChange={(e) =>
                                     setData(
                                         "solo_parent_id_number",
-                                        e.target.value
+                                        e.target.value,
                                     )
                                 }
                                 placeholder="Enter ID number"
@@ -684,14 +658,12 @@ const Section1 = ({
                                 message={errors.solo_parent_id_number}
                                 className="mt-1"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Provide the solo parent ID number issued by the
-                                DSWD.
-                            </p>
+                            <FieldHint>
+                                ID number issued by the proper office.
+                            </FieldHint>
                         </div>
                     )}
 
-                    {/* Registered Voter */}
                     <div>
                         <RadioGroup
                             label="Registered Voter"
@@ -709,11 +681,11 @@ const Section1 = ({
                             message={errors.registered_voter}
                             className="mt-1"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
+                        <FieldHint>
                             Specify if the resident is a registered voter.
-                        </p>
+                        </FieldHint>
                     </div>
-                    {/* PhilSys Card Number */}
+
                     <div>
                         <InputField
                             label="PhilSys Card Number (PCN)"
@@ -729,111 +701,109 @@ const Section1 = ({
                             message={errors.philsys_card_number}
                             className="mt-1"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                            Enter the 16-digit PhilSys Card Number (PCN) found
-                            on the National ID.
-                        </p>
+                        <FieldHint>
+                            Enter the 16-digit number from the National ID.
+                        </FieldHint>
                     </div>
                 </div>
 
-                {/* Voter Information (conditional) */}
                 {data.registered_voter == 1 && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-                        {/* Voting Status */}
-                        <div>
-                            <DropdownInputField
-                                label="Voting Status"
-                                name="voting_status"
-                                value={data.voting_status || ""}
-                                items={[
-                                    { label: "Active", value: "active" },
-                                    { label: "Inactive", value: "inactive" },
-                                    {
-                                        label: "Disqualified",
-                                        value: "disqualified",
-                                    },
-                                    { label: "Medical", value: "medical" },
-                                    { label: "Overseas", value: "overseas" },
-                                    { label: "Detained", value: "detained" },
-                                    { label: "Deceased", value: "deceased" },
-                                ]}
-                                placeholder="Select status"
-                                onChange={(e) =>
-                                    setData("voting_status", e.target.value)
-                                }
-                            />
-                            <InputError
-                                message={errors.voting_status}
-                                className="mt-1"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Choose the resident's current voter registration
-                                status.
-                            </p>
-                        </div>
+                    <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+                        <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-blue-800">
+                            Voter Details
+                        </h4>
 
-                        {/* Voter ID Number */}
-                        <div>
-                            <InputField
-                                label="Voter ID Number"
-                                name="voter_id_number"
-                                value={data.voter_id_number || ""}
-                                placeholder="Enter voter ID number"
-                                onChange={(e) =>
-                                    setData("voter_id_number", e.target.value)
-                                }
-                            />
-                            <InputError
-                                message={errors.voter_id_number}
-                                className="mt-1"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Provide the official voter ID number if
-                                available.
-                            </p>
-                        </div>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div>
+                                <DropdownInputField
+                                    label="Voting Status"
+                                    name="voting_status"
+                                    value={data.voting_status || ""}
+                                    items={[
+                                        { label: "Active", value: "active" },
+                                        {
+                                            label: "Inactive",
+                                            value: "inactive",
+                                        },
+                                        {
+                                            label: "Disqualified",
+                                            value: "disqualified",
+                                        },
+                                        { label: "Medical", value: "medical" },
+                                        {
+                                            label: "Overseas",
+                                            value: "overseas",
+                                        },
+                                        {
+                                            label: "Detained",
+                                            value: "detained",
+                                        },
+                                        {
+                                            label: "Deceased",
+                                            value: "deceased",
+                                        },
+                                    ]}
+                                    placeholder="Select status"
+                                    onChange={(e) =>
+                                        setData("voting_status", e.target.value)
+                                    }
+                                />
+                                <InputError
+                                    message={errors.voting_status}
+                                    className="mt-1"
+                                />
+                            </div>
 
-                        {/* Registered Barangay */}
-                        <div>
-                            <DropdownInputField
-                                label="Registered Barangay"
-                                name="registered_barangay"
-                                value={data.registered_barangay || ""}
-                                items={barangayList}
-                                placeholder="Select registered barangay"
-                                onChange={(e) =>
-                                    setData(
-                                        "registered_barangay",
-                                        e.target.value
-                                    )
-                                }
-                            />
-                            <InputError
-                                message={errors.registered_barangay}
-                                className="mt-1"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Choose the barangay where the resident is
-                                officially registered to vote.
-                            </p>
+                            <div>
+                                <InputField
+                                    label="Voter ID Number"
+                                    name="voter_id_number"
+                                    value={data.voter_id_number || ""}
+                                    placeholder="Enter voter ID number"
+                                    onChange={(e) =>
+                                        setData(
+                                            "voter_id_number",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <InputError
+                                    message={errors.voter_id_number}
+                                    className="mt-1"
+                                />
+                            </div>
+
+                            <div>
+                                <DropdownInputField
+                                    label="Registered Barangay"
+                                    name="registered_barangay"
+                                    value={data.registered_barangay || ""}
+                                    items={barangayList}
+                                    placeholder="Select registered barangay"
+                                    onChange={(e) =>
+                                        setData(
+                                            "registered_barangay",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <InputError
+                                    message={errors.registered_barangay}
+                                    className="mt-1"
+                                />
+                            </div>
                         </div>
                     </div>
                 )}
-            </div>
+            </SectionCard>
 
-            {/* SENIOR CITIZEN (CONDITIONAL) */}
+            {/* Senior Citizen */}
             {data.age >= 60 && (
-                <div className="bg-gray-50 p-4 rounded-lg shadow-sm space-y-4 mt-6">
-                    <h3 className="text-lg font-semibold text-gray-700">
-                        Senior Citizen Information
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                        Provide details for residents aged 60 and above. This
-                        includes pension and living arrangements.
-                    </p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                        {/* Pensioner Status */}
+                <SectionCard
+                    title="Senior Citizen Information"
+                    description="Provide additional details for residents aged 60 and above."
+                >
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         <div>
                             <RadioGroup
                                 label="Pensioner"
@@ -852,12 +822,12 @@ const Section1 = ({
                                 message={errors.is_pensioner}
                                 className="mt-1"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Indicate if the resident is receiving a pension.
-                            </p>
+                            <FieldHint>
+                                Indicate if the resident currently receives a
+                                pension.
+                            </FieldHint>
                         </div>
 
-                        {/* Conditional Pension Details */}
                         {data.is_pensioner === "yes" && (
                             <>
                                 <div>
@@ -870,7 +840,7 @@ const Section1 = ({
                                         onChange={(e) =>
                                             setData(
                                                 "osca_id_number",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                     />
@@ -878,10 +848,9 @@ const Section1 = ({
                                         message={errors.osca_id_number}
                                         className="mt-1"
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Enter the official OSCA ID number issued
-                                        to the senior citizen.
-                                    </p>
+                                    <FieldHint>
+                                        Official ID number for senior citizens.
+                                    </FieldHint>
                                 </div>
 
                                 <div>
@@ -896,11 +865,11 @@ const Section1 = ({
                                             "Private",
                                             "None",
                                         ]}
-                                        placeholder="Select or enter pension type"
+                                        placeholder="Select pension type"
                                         onChange={(e) =>
                                             setData(
                                                 "pension_type",
-                                                e.target.value
+                                                e.target.value,
                                             )
                                         }
                                     />
@@ -908,15 +877,13 @@ const Section1 = ({
                                         message={errors.pension_type}
                                         className="mt-1"
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Choose the type of pension the resident
-                                        is receiving.
-                                    </p>
+                                    <FieldHint>
+                                        Select the applicable pension source.
+                                    </FieldHint>
                                 </div>
                             </>
                         )}
 
-                        {/* Living Alone */}
                         <div>
                             <RadioGroup
                                 label="Living Alone"
@@ -934,28 +901,20 @@ const Section1 = ({
                                 message={errors.living_alone}
                                 className="mt-1"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
-                                Indicate if the senior citizen lives alone or
-                                with family/others.
-                            </p>
+                            <FieldHint>
+                                Indicate whether the resident lives alone.
+                            </FieldHint>
                         </div>
                     </div>
-                </div>
+                </SectionCard>
             )}
 
-            {/* VEHICLE INFORMATION */}
-            <div className="bg-gray-50 p-4 rounded-lg shadow-sm mt-6">
-                <h3 className="text-lg font-semibold text-gray-700">
-                    Vehicle Information
-                </h3>
-                <p className="text-sm text-gray-500">
-                    Provide information about vehicles owned by the resident,
-                    including type, classification, usage, and registration
-                    status.
-                </p>
-
-                {/* Own Vehicle */}
-                <div className="mt-3">
+            {/* Vehicle Information */}
+            <SectionCard
+                title="Vehicle Information"
+                description="Record vehicles owned by the resident, including classification, purpose, and registration."
+            >
+                <div>
                     <RadioGroup
                         label="Owns Vehicle(s)?"
                         name="has_vehicle"
@@ -969,16 +928,29 @@ const Section1 = ({
                     <InputError message={errors.has_vehicle} className="mt-1" />
                 </div>
 
-                {/* Vehicle List */}
                 {data.has_vehicle == 1 && (
-                    <div className="space-y-4 mt-4">
+                    <div className="mt-5 space-y-4">
                         {(data.vehicles || []).map((vehicle, vecIndex) => (
                             <div
                                 key={vecIndex}
-                                className="border p-4 rounded-md relative bg-gray-50 shadow-sm"
+                                className="relative rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm"
                             >
-                                <div className="grid md:grid-cols-4 gap-4">
-                                    {/* Vehicle Type */}
+                                <div className="mb-4 flex items-center justify-between">
+                                    <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-700">
+                                        Vehicle #{vecIndex + 1}
+                                    </h4>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => removeVehicle(vecIndex)}
+                                        className="text-2xl text-red-500 transition hover:text-red-700"
+                                        title="Remove Vehicle"
+                                    >
+                                        <IoIosCloseCircleOutline />
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                                     <div>
                                         <DropdownInputField
                                             label="Vehicle Type"
@@ -997,7 +969,7 @@ const Section1 = ({
                                                     e,
                                                     vecIndex,
                                                     "vehicle_type",
-                                                    "vehicles"
+                                                    "vehicles",
                                                 )
                                             }
                                             placeholder="Select type"
@@ -1010,12 +982,8 @@ const Section1 = ({
                                             }
                                             className="mt-1"
                                         />
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Specify the type of vehicle.
-                                        </p>
                                     </div>
 
-                                    {/* Vehicle Classification */}
                                     <div>
                                         <DropdownInputField
                                             label="Classification"
@@ -1036,7 +1004,7 @@ const Section1 = ({
                                                     e,
                                                     vecIndex,
                                                     "vehicle_class",
-                                                    "vehicles"
+                                                    "vehicles",
                                                 )
                                             }
                                             placeholder="Select class"
@@ -1049,13 +1017,8 @@ const Section1 = ({
                                             }
                                             className="mt-1"
                                         />
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Indicate if the vehicle is for
-                                            private or public use.
-                                        </p>
                                     </div>
 
-                                    {/* Usage Purpose */}
                                     <div>
                                         <DropdownInputField
                                             label="Usage Purpose"
@@ -1080,7 +1043,7 @@ const Section1 = ({
                                                     e,
                                                     vecIndex,
                                                     "usage_status",
-                                                    "vehicles"
+                                                    "vehicles",
                                                 )
                                             }
                                             placeholder="Select usage"
@@ -1093,13 +1056,8 @@ const Section1 = ({
                                             }
                                             className="mt-1"
                                         />
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Choose how the vehicle is primarily
-                                            used.
-                                        </p>
                                     </div>
 
-                                    {/* Registration Status */}
                                     <div>
                                         <RadioGroup
                                             label="Is Registered?"
@@ -1116,7 +1074,7 @@ const Section1 = ({
                                                     e,
                                                     vecIndex,
                                                     "is_registered",
-                                                    "vehicles"
+                                                    "vehicles",
                                                 )
                                             }
                                         />
@@ -1128,38 +1086,23 @@ const Section1 = ({
                                             }
                                             className="mt-1"
                                         />
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Indicate if the vehicle is
-                                            officially registered.
-                                        </p>
                                     </div>
                                 </div>
-
-                                {/* Remove Vehicle Button */}
-                                <button
-                                    type="button"
-                                    onClick={() => removeVehicle(vecIndex)}
-                                    className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-2xl transition-colors duration-200"
-                                    title="Remove Vehicle"
-                                >
-                                    <IoIosCloseCircleOutline />
-                                </button>
                             </div>
                         ))}
 
-                        {/* Add Vehicle Button */}
                         <button
                             type="button"
                             onClick={addVehicle}
-                            className="flex items-center text-blue-600 hover:text-blue-800 text-sm mt-2"
+                            className="inline-flex items-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
                             title="Add Vehicle"
                         >
-                            <IoIosAddCircleOutline className="text-4xl" />
-                            <span className="ml-2">Add Vehicle</span>
+                            <IoIosAddCircleOutline className="mr-2 text-2xl" />
+                            Add Vehicle
                         </button>
                     </div>
                 )}
-            </div>
+            </SectionCard>
         </div>
     );
 };

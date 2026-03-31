@@ -3,23 +3,13 @@ import DropdownInputField from "@/Components/DropdownInputField";
 import InputError from "@/Components/InputError";
 import InputField from "@/Components/InputField";
 import InputLabel from "@/Components/InputLabel";
-import RadioGroup from "@/Components/RadioGroup";
-import PersonalInformation from "@/Components/ResidentInput/PersonalInformation";
-import Section5 from "@/Components/ResidentInput/Section5";
 import { Button } from "@/Components/ui/button";
-import {
-    BMI_STATUS,
-    RESIDENT_GENDER_TEXT2,
-    RESIDENT_RECIDENCY_TYPE_TEXT,
-} from "@/constants";
+import { BMI_STATUS, RESIDENT_GENDER_TEXT2 } from "@/constants";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, router, usePage, useForm } from "@inertiajs/react";
 import { useEffect } from "react";
-import useResidentChangeHandler from "@/hooks/handleResidentChange";
 import { RotateCcw } from "lucide-react";
 import { IoIosAddCircleOutline, IoIosCloseCircleOutline } from "react-icons/io";
-import SelectField from "@/Components/SelectField";
-import { href } from "react-router-dom";
 import { Textarea } from "@/Components/ui/textarea";
 import { Toaster, toast } from "sonner";
 export default function Create({ residents }) {
@@ -61,7 +51,7 @@ export default function Create({ residents }) {
             onError: (errors) => {
                 // console.error("Validation Errors:", errors);
                 const errorList = Object.values(errors).map(
-                    (msg, i) => `<div key=${i}> ${msg}</div>`
+                    (msg, i) => `<div key=${i}> ${msg}</div>`,
                 );
 
                 toast.error("Validation Error", {
@@ -183,7 +173,7 @@ export default function Create({ residents }) {
                 data.weight_kg,
                 data.height_cm,
                 data.age,
-                data.gender
+                data.gender,
             );
 
             setData((prev) => ({
@@ -319,7 +309,7 @@ export default function Create({ residents }) {
                                                     placeholder="Select a resident"
                                                     onChange={(e) =>
                                                         handleResidentChange(
-                                                            e.target.value
+                                                            e.target.value,
                                                         )
                                                     }
                                                     items={residentsList}
@@ -377,7 +367,7 @@ export default function Create({ residents }) {
                                                 onChange={(e) =>
                                                     setData(
                                                         "weight_kg",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                             />
@@ -397,7 +387,7 @@ export default function Create({ residents }) {
                                                 onChange={(e) =>
                                                     setData(
                                                         "height_cm",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                             />
@@ -429,7 +419,7 @@ export default function Create({ residents }) {
                                                 onChange={(e) =>
                                                     setData(
                                                         "head_circumference",
-                                                        e.target.value
+                                                        e.target.value,
                                                     )
                                                 }
                                             />
@@ -458,7 +448,7 @@ export default function Create({ residents }) {
                                             onChange={(e) =>
                                                 setData(
                                                     "developmental_milestones",
-                                                    e.target.value
+                                                    e.target.value,
                                                 )
                                             }
                                         />
@@ -494,7 +484,7 @@ export default function Create({ residents }) {
                                                                 "vaccinations", // field
                                                                 index, // index
                                                                 "vaccine", // key
-                                                                e.target.value // value
+                                                                e.target.value, // value
                                                             )
                                                         }
                                                     />
@@ -523,7 +513,7 @@ export default function Create({ residents }) {
                                                                     index, // index
                                                                     "vaccination_date", // key
                                                                     e.target
-                                                                        .value // value
+                                                                        .value, // value
                                                                 )
                                                             }
                                                         />
@@ -544,7 +534,7 @@ export default function Create({ residents }) {
                                                             onClick={() =>
                                                                 removeArrayItem(
                                                                     "vaccinations",
-                                                                    index
+                                                                    index,
                                                                 )
                                                             }
                                                             className="absolute top-1 right-2 text-sm text-red-500 hover:text-red-800"
@@ -553,7 +543,7 @@ export default function Create({ residents }) {
                                                         </button>
                                                     )}
                                                 </div>
-                                            )
+                                            ),
                                         )}
 
                                         {/* Add Vaccination Button */}
