@@ -13,6 +13,7 @@ import {
     UsersRound,
     Pencil,
     CircleUser,
+    KeyRound,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
@@ -32,6 +33,7 @@ import PasswordValidationChecklist from "@/Components/PasswordValidationChecklis
 import EmailValidationInput from "@/Components/EmailValidationInput";
 import { Switch } from "@/Components/ui/switch";
 import BarangayEmailValidation from "@/Components/BarangayEmailValidation";
+import ResetPasswordModal from "@/Pages/BarangayOfficer/Account/Partials/ResetPasswordModal";
 
 export default function Index({ accounts, queryParams, barangays }) {
     const breadcrumbs = [
@@ -100,6 +102,13 @@ export default function Index({ accounts, queryParams, barangays }) {
             setShowFilters(true);
         }
     }, [hasActiveFilter]);
+
+    const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const handleOpenResetPassword = (user) => {
+        setSelectedUser(user);
+        setIsResetPasswordOpen(true);
+    };
 
     const [showFilters, setShowFilters] = useState(hasActiveFilter);
     const toggleShowFilters = () => setShowFilters((prev) => !prev);
@@ -256,6 +265,11 @@ export default function Index({ accounts, queryParams, barangays }) {
                         label: "Delete",
                         icon: <Trash2 className="w-4 h-4 text-red-600" />,
                         onClick: () => handleDeleteClick(row.id),
+                    },
+                    {
+                        label: "Reset Password",
+                        icon: <KeyRound className="w-4 h-4 text-amber-600" />,
+                        onClick: () => handleOpenResetPassword(row),
                     },
                 ]}
             />
@@ -734,6 +748,14 @@ export default function Index({ accounts, queryParams, barangays }) {
                     }}
                     onConfirm={confirmDelete}
                     residentId={recordToDelete}
+                />
+                <ResetPasswordModal
+                    open={isResetPasswordOpen}
+                    onClose={() => {
+                        setIsResetPasswordOpen(false);
+                        setSelectedUser(null);
+                    }}
+                    selectedUser={selectedUser}
                 />
             </div>
         </AdminLayout>
