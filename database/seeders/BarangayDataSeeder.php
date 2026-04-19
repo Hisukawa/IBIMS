@@ -194,7 +194,7 @@ class BarangayDataSeeder extends Seeder
         ];
 
         // Seed ONLY one barangay for testing
-        $barangays = Barangay::take(1)->get();
+        $barangays = Barangay::take(15)->get();
         //$barangays = Barangay::all();
         foreach ($barangays as $barangay) {
             /**
@@ -269,7 +269,7 @@ class BarangayDataSeeder extends Seeder
             /**
              * RESIDENTS + RELATED DATA
              */
-            $residents = Resident::factory(100)->create(['barangay_id' => $barangay->id]);
+            $residents = Resident::factory(200)->create(['barangay_id' => $barangay->id]);
 
             foreach ($residents as $res) {
                 Occupation::factory(rand(1, 3))->create(['resident_id' => $res->id]);

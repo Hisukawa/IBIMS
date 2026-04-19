@@ -145,15 +145,15 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
 
-            // foreach ($puroks as $purok) {
-            //     Street::factory(2)->create(['purok_id' => $purok->id]);
-            // }
+            foreach ($puroks as $purok) {
+                Street::factory(2)->create(['purok_id' => $purok->id]);
+            }
         }
 
         // Call lookup/fix seeders
         $this->call([
             BarangayDataSeeder::class,
-            ExcelDataSeeder::class,
+            //ExcelDataSeeder::class,
             OccupationTypeSeeder::class,
             //FixHouseholdResidentSeeder::class,
             //FamilyRelationSeeder::class,
