@@ -2,7 +2,14 @@ import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, router, useForm, usePage } from "@inertiajs/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileCheck2, FilePlus2, ListPlus, Search, Trash2 } from "lucide-react";
+import {
+    FileCheck2,
+    FilePlus2,
+    FileText,
+    ListPlus,
+    Search,
+    Trash2,
+} from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
 import InputField from "@/Components/InputField";
@@ -16,6 +23,8 @@ import { useMemo } from "react";
 import DeleteConfirmationModal from "@/Components/DeleteConfirmationModal";
 import SelectField from "@/Components/SelectField";
 import { SPECIFIC_PURPOSE_TEXT } from "@/constants";
+import DocumentFormModal from "./Partials/DocumentFormModal";
+import PageHeader from "@/Components/PageHeader";
 
 export default function Index({ documents, queryParams }) {
     const breadcrumbs = [
@@ -169,7 +178,7 @@ export default function Index({ documents, queryParams }) {
                 });
             }
         },
-        [residentToDelete]
+        [residentToDelete],
     );
 
     useEffect(() => {
@@ -203,33 +212,54 @@ export default function Index({ documents, queryParams }) {
         <AdminLayout>
             <Head title="Documents Dashboard" />
             <div>
-                {/* <pre>{JSON.stringify(documents, undefined, 3)}</pre> */}
                 <Toaster richColors />
                 <BreadCrumbsHeader breadcrumbs={breadcrumbs} />
-                <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
-                    <div className="overflow-hidden bg-gray-50 shadow-sm rounded-xl sm:rounded-lg p-4 my-8 ">
-                        <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full mb-4">
-                                {/* Title + Description */}
-                                <div className="flex flex-col">
-                                    <h2 className="text-xl font-semibold text-gray-800">
-                                        List of Documents
-                                    </h2>
-                                    <p className="text-sm text-gray-500">
-                                        Manage, search, and upload documents
-                                        within the system.
-                                    </p>
+
+                <div className="p-2 md:p-4">
+                    <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
+                        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:rounded-lg">
+                            <PageHeader
+                                title="Documents"
+                                description={
+                                    <>
+                                        Manage and organize{" "}
+                                        <span className="font-medium">
+                                            documents
+                                        </span>{" "}
+                                        within the system. Use the tools below
+                                        to{" "}
+                                        <span className="font-medium">
+                                            upload, search, view, and delete
+                                        </span>{" "}
+                                        records for administration and file
+                                        management.
+                                    </>
+                                }
+                                icon={FileText}
+                                actions={
+                                    <Button
+                                        onClick={handleAddDocument}
+                                        className="bg-blue-600 text-white hover:bg-blue-700"
+                                    >
+                                        <ListPlus className="mr-2 h-4 w-4" />
+                                        Add Document
+                                    </Button>
+                                }
+                            />
+
+                            <div className="mb-0 flex w-full flex-wrap items-start justify-between gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    {/* Optional controls area if you want future filters/buttons */}
                                 </div>
 
-                                {/* Search & Add Button */}
-                                <div className="flex items-center gap-2 flex-wrap justify-end">
+                                <div className="flex flex-wrap items-center justify-end gap-2">
                                     <form
                                         onSubmit={handleSubmit}
-                                        className="flex w-[280px] max-w-lg items-center space-x-1"
+                                        className="flex w-full items-center gap-2 sm:w-[380px]"
                                     >
                                         <Input
                                             type="text"
-                                            placeholder="Search by name"
+                                            placeholder="Search document name"
                                             value={query}
                                             onChange={(e) =>
                                                 setQuery(e.target.value)
@@ -239,282 +269,72 @@ export default function Index({ documents, queryParams }) {
                                             }
                                             className="w-full"
                                         />
-                                        <div className="relative group">
-                                            <Button
-                                                type="submit"
-                                                className="border border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white active:bg-blue-900 flex items-center gap-2 bg-transparent"
-                                                variant="outline"
-                                            >
-                                                <Search />
-                                            </Button>
-                                            <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                                Search
-                                            </div>
-                                        </div>
-                                    </form>
-
-                                    <div className="relative group">
                                         <Button
+                                            type="submit"
                                             variant="outline"
-                                            className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
-                                            onClick={handleAddDocument}
+                                            className="border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
                                         >
-                                            <ListPlus className="w-4 h-4" />
+                                            <Search className="h-4 w-4" />
                                         </Button>
-                                        <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                            Add a Document
-                                        </div>
-                                    </div>
+                                    </form>
                                 </div>
                             </div>
+
                             <DynamicTable
                                 passedData={documents}
-                                columnRenderers={columnRenderers}
                                 allColumns={allColumns}
+                                columnRenderers={columnRenderers}
+                                queryParams={queryParams}
                                 is_paginated={isPaginated}
                                 toggleShowAll={() => setShowAll(!showAll)}
                                 showAll={showAll}
                                 visibleColumns={allColumns.map(
-                                    (col) => col.key
-                                )} // always show all
+                                    (col) => col.key,
+                                )}
                             />
                         </div>
                     </div>
                 </div>
-                <SidebarModal
+
+                <DocumentFormModal
                     isOpen={isModalOpen}
                     onClose={handleModalClose}
                     title="Add Document"
-                >
-                    <div className="w-full p-4 bg-gray-50 rounded-md">
-                        <form
-                            onSubmit={handleSubmitDocument}
-                            className="space-y-6"
-                        >
-                            {/* Section Header */}
-                            <div>
-                                <h3 className="text-xl font-semibold text-gray-800">
-                                    Document Details
-                                </h3>
-                                <p className="text-sm text-gray-500">
-                                    Fill out the form below to upload a new
-                                    document.
-                                </p>
-                            </div>
+                    handleSubmitDocument={handleSubmitDocument}
+                    fileInputRef={fileInputRef}
+                    handleDivClick={handleDivClick}
+                    data={data}
+                    setData={setData}
+                    errors={errors}
+                    processing={processing}
+                />
 
-                            {/* File Upload */}
-                            <div className="space-y-2">
-                                <label
-                                    htmlFor="file"
-                                    className="text-sm font-medium text-gray-700"
-                                >
-                                    Upload File
-                                </label>
-                                <input
-                                    id="file"
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={(e) =>
-                                        setData(
-                                            "file",
-                                            e.target.files?.[0] || null
-                                        )
-                                    }
-                                    className="hidden"
-                                />
-                                <div
-                                    onClick={handleDivClick}
-                                    onDragOver={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        e.currentTarget.classList.add(
-                                            "border-blue-400",
-                                            "bg-blue-50"
-                                        );
-                                    }}
-                                    onDragLeave={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        e.currentTarget.classList.remove(
-                                            "border-blue-400",
-                                            "bg-blue-50"
-                                        );
-                                    }}
-                                    onDrop={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        e.currentTarget.classList.remove(
-                                            "border-blue-400",
-                                            "bg-blue-50"
-                                        );
-
-                                        if (
-                                            e.dataTransfer.files &&
-                                            e.dataTransfer.files.length > 0
-                                        ) {
-                                            const file =
-                                                e.dataTransfer.files[0];
-                                            setData("file", file);
-
-                                            if (fileInputRef.current) {
-                                                fileInputRef.current.files =
-                                                    e.dataTransfer.files;
-                                            }
-
-                                            e.dataTransfer.clearData();
-                                        }
-                                    }}
-                                    className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer transition ${
-                                        data.file
-                                            ? "border-blue-400 bg-blue-50"
-                                            : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50"
-                                    }`}
-                                >
-                                    {data.file ? (
-                                        <>
-                                            <FileCheck2 className="h-10 w-10 text-blue-500" />
-                                            <p className="mt-2 text-sm text-gray-700">
-                                                {data.file.name}
-                                            </p>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FilePlus2 className="h-10 w-10 text-blue-400" />
-                                            <p className="mt-2 text-sm text-gray-500">
-                                                Click or drag & drop to upload
-                                            </p>
-                                        </>
-                                    )}
-                                </div>
-
-                                {errors.file && (
-                                    <p className="text-xs text-red-600">
-                                        {errors.file}
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* Document Name */}
-                            <div className="flex justify-between gap-4">
-                                <div className="space-y-2 w-full">
-                                    <label
-                                        htmlFor="name"
-                                        className="text-sm font-medium text-gray-700"
-                                    >
-                                        Document Name
-                                    </label>
-                                    <InputField
-                                        id="name"
-                                        type="text"
-                                        name="name"
-                                        value={data.name}
-                                        onChange={(e) =>
-                                            setData("name", e.target.value)
-                                        }
-                                        placeholder="e.g., Barangay Clearance"
-                                        className="w-full"
-                                    />
-                                    {errors.name && (
-                                        <p className="text-xs text-red-600">
-                                            {errors.name}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="space-y-2 w-full">
-                                    <label
-                                        htmlFor="name"
-                                        className="text-sm font-medium text-gray-700"
-                                    >
-                                        Specific Purpose
-                                    </label>
-                                    <SelectField
-                                        name="specific_purpose"
-                                        value={data.specific_purpose || ""}
-                                        onChange={(e) =>
-                                            setData(
-                                                "specific_purpose",
-                                                e.target.value
-                                            )
-                                        }
-                                        items={[
-                                            {
-                                                label: "Certification",
-                                                value: "certification",
-                                            },
-                                            {
-                                                label: "Blotter Report Form",
-                                                value: "blotter",
-                                            },
-                                            {
-                                                label: "Summon Report Form",
-                                                value: "summon",
-                                            },
-                                            {
-                                                label: "File to Action Form",
-                                                value: "file_action",
-                                            },
-                                        ]}
-                                    />
-                                    {errors.name && (
-                                        <p className="text-xs text-red-600">
-                                            {errors.name}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Description */}
-                            <div className="space-y-2">
-                                <label
-                                    htmlFor="description"
-                                    className="text-sm font-medium text-gray-700"
-                                >
-                                    Description
-                                </label>
-                                <Textarea
-                                    id="description"
-                                    name="description"
-                                    value={data.description}
-                                    onChange={(e) =>
-                                        setData("description", e.target.value)
-                                    }
-                                    placeholder="Brief description of the document"
-                                    rows={4}
-                                    className="w-full text-gray-600"
-                                />
-                                {errors.description && (
-                                    <p className="text-xs text-red-600">
-                                        {errors.description}
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex items-center justify-end gap-3 pt-6 border-t">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={handleModalClose}
-                                    className="px-4 py-2 rounded-lg text-gray-500 hover:text-black"
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {processing ? "Submitting..." : "Submit"}
-                                </Button>
-                            </div>
-                        </form>
-                    </div>
-                </SidebarModal>
                 <DeleteConfirmationModal
                     isOpen={isDeleteModalOpen}
                     onClose={() => setIsDeleteModalOpen(false)}
                     onConfirm={confirmDelete}
                     residentId={residentToDelete}
+                    title="Delete Document"
+                    description="This action requires password confirmation before removing the selected document from the system."
+                    message="Are you sure you want to delete this document? Once deleted, the record and its associated file reference can no longer be recovered."
+                    buttonLabel="DELETE DOCUMENT"
+                    cancelLabel="Keep Document"
+                    processingText="Verifying..."
+                    itemName={
+                        documents?.data?.find(
+                            (doc) => doc.id === residentToDelete,
+                        )?.name ||
+                        documents?.find?.((doc) => doc.id === residentToDelete)
+                            ?.name ||
+                        ""
+                    }
+                    itemLabel="Selected Document"
+                    note="Only delete this document if it is incorrect, duplicated, outdated, or no longer needed in the records."
+                    passwordLabel="Account Password"
+                    passwordPlaceholder="Enter your password to confirm deletion"
+                    passwordHelpText="For security purposes, please enter your current account password before deleting this document."
+                    showSecurityNote={true}
+                    danger={true}
                 />
             </div>
         </AdminLayout>

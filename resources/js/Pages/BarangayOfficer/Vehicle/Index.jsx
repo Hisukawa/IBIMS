@@ -20,7 +20,7 @@ import useResidentChangeHandler from "@/hooks/handleResidentChange";
 import axios from "axios";
 import useAppUrl from "@/hooks/useAppUrl";
 import DeleteConfirmationModal from "@/Components/DeleteConfirmationModal";
-import VehicleForm from "./VehicleForm";
+import VehicleForm from "./Partials/VehicleForm";
 import ExportButton from "@/Components/ExportButton";
 
 export default function Index({
@@ -122,7 +122,7 @@ export default function Index({
     ];
 
     const [visibleColumns, setVisibleColumns] = useState(
-        allColumns.map((col) => col.key)
+        allColumns.map((col) => col.key),
     );
     const [isPaginated, setIsPaginated] = useState(true);
     const [showAll, setShowAll] = useState(false);
@@ -132,7 +132,7 @@ export default function Index({
         ([key, value]) =>
             ["purok", "v_type", "v_class", "usage"].includes(key) &&
             value &&
-            value !== ""
+            value !== "",
     );
 
     const [showFilters, setShowFilters] = useState(hasActiveFilter);
@@ -256,7 +256,7 @@ export default function Index({
         setModalState("add");
         try {
             const response = await axios.get(
-                `${APP_URL}/vehicle/details/${id}`
+                `${APP_URL}/vehicle/details/${id}`,
             );
             const vehicle = response.data.vehicle;
             setVehicleDetails(vehicle);
