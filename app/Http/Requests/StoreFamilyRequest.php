@@ -29,7 +29,7 @@ class StoreFamilyRequest extends FormRequest
             'fmaily_name' => ['nullable', 'string'],
 
             // Family Members (array of members)
-            'members' => ['required', 'array'],
+            'members' => ['nullable', 'array'],
             'members.*.resident_id' => ['required', 'exists:residents,id'],
             'members.*.relationship_to_head' => ['required', 'string'],
             'members.*.household_position' => ['required', 'string'],

@@ -8,6 +8,7 @@ use App\Models\Family;
 use App\Http\Requests\StoreFamilyRequest;
 use App\Http\Requests\UpdateFamilyRequest;
 use App\Models\FamilyRelation;
+use App\Models\Household;
 use App\Models\HouseholdResident;
 use App\Models\Purok;
 use App\Models\Resident;
@@ -81,7 +82,7 @@ class FamilyController extends Controller
         $members = Resident::with('latestHousehold:household_id,house_number')
         ->where('barangay_id', $barangayId)
         ->where('is_deceased', false) // filter by barangay
-        ->select('id', 'household_id', 'purok_number', 'resident_picture_path', 'firstname', 'middlename', 'lastname', 'birthdate', 'barangay_id')
+        ->select('id', 'household_id', 'purok_number', 'resident_picture_path', 'firstname', 'middlename', 'lastname', 'birthdate', 'barangay_id')->with('household:id,barangay_id,house_number')
         ->get();
 
         // 🟢 Return to View
@@ -98,7 +99,7 @@ class FamilyController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('BarangayOfficer/Family/Create');
     }
 
     /**
@@ -566,6 +567,26 @@ class FamilyController extends Controller
         // Return as JSON
         return response()->json([
             'members' => $members,
+        ]);
+    }
+    public function addFamily($id)
+    {
+        $barangayId = auth()->user()->barangay_id;
+        $household = Household::with([
+            'barangay:id,barangay_name',
+            'purok:id,barangay_id,purok_number',
+            'street:id,street_name',
+        ])->findOrFail($id);
+
+        $residents = Resident::with('latestHousehold:household_id,house_number')
+        ->where('barangay_id', $barangayId)
+        ->where('is_deceased', false) // filter by barangay
+        ->select('id', 'household_id', 'purok_number', 'resident_picture_path', 'firstname', 'middlename', 'lastname', 'birthdate', 'barangay_id')
+        ->get();
+
+        return Inertia::render('BarangayOfficer/Household/AddFamily', [
+            'household' => $household,
+            'residents' => $residents,
         ]);
     }
 }

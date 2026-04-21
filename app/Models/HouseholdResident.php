@@ -26,9 +26,14 @@ class HouseholdResident extends Model
         return $this->belongsTo(Resident::class);
     }
 
-    // Each HouseholdResident belongs to a single household
     public function household()
     {
         return $this->belongsTo(Household::class);
     }
+
+    public function family()
+    {
+        return $this->belongsTo(Family::class);
+    }
+
 }
