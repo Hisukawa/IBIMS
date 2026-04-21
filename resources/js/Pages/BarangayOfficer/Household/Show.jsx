@@ -59,7 +59,7 @@ export default function Index({
         queryKey: ["head", household_details.id], // reactive to household ID
         queryFn: async () => {
             const { data } = await axios.get(
-                `${APP_URL}/household/getlatesthead/${household_details.id}`
+                `${APP_URL}/household/getlatesthead/${household_details.id}`,
             );
             return data?.head || null; // return null if no head
         },
@@ -89,7 +89,7 @@ export default function Index({
             route("household.show", {
                 household: household_details.id,
                 ...queryParams,
-            })
+            }),
         );
     };
 
@@ -117,7 +117,7 @@ export default function Index({
     const handleView = async (resident) => {
         try {
             const response = await axios.get(
-                `${APP_URL}/resident/showresident/${resident}`
+                `${APP_URL}/resident/showresident/${resident}`,
             );
             setSelectedResident(response.data.resident);
         } catch (error) {
@@ -130,7 +130,7 @@ export default function Index({
     // === BEING ADDED
 
     const [visibleColumns, setVisibleColumns] = useState(
-        allColumns.map((col) => col.key)
+        allColumns.map((col) => col.key),
     );
 
     useEffect(() => {
@@ -154,7 +154,7 @@ export default function Index({
                 "is_pwd",
             ].includes(key) &&
             value &&
-            value !== ""
+            value !== "",
     );
 
     useEffect(() => {
@@ -326,82 +326,113 @@ export default function Index({
         props.error = null;
     }, [error]);
 
+    // Helper Functions
+    const Section = ({ title, children }) => (
+        <div className="bg-gray-50 border rounded-xl p-4">
+            <h3 className="text-md font-semibold text-gray-700 mb-3">
+                {title}
+            </h3>
+            <div className="grid md:grid-cols-2 gap-3">{children}</div>
+        </div>
+    );
+    const Detail = ({ label, value }) => (
+        <div className="flex flex-col bg-white border rounded-lg p-3">
+            <span className="text-xs text-gray-500">{label}</span>
+            <span className="text-sm font-medium text-gray-800">
+                {value || "—"}
+            </span>
+        </div>
+    );
+    const formatBathWash = (data) => {
+        if (Array.isArray(data.bath_and_wash_area)) {
+            return data.bath_and_wash_area
+                .map((item) => CONSTANTS.HOUSEHOLD_BATH_WASH_TEXT[item] || item)
+                .join(", ");
+        }
+
+        if (
+            data.bath_and_wash_area &&
+            typeof data.bath_and_wash_area === "object"
+        ) {
+            return Object.values(data.bath_and_wash_area)
+                .map((item) => CONSTANTS.HOUSEHOLD_BATH_WASH_TEXT[item] || item)
+                .join(", ");
+        }
+
+        return (
+            CONSTANTS.HOUSEHOLD_BATH_WASH_TEXT[data.bath_and_wash_area] ||
+            data.bath_and_wash_area ||
+            "None"
+        );
+    };
+    const formatToilets = (data) =>
+        data.toilets?.length > 0
+            ? data.toilets
+                  .map(
+                      (t) =>
+                          CONSTANTS.HOUSEHOLD_TOILET_TYPE_TEXT[t.toilet_type] ||
+                          t.toilet_type,
+                  )
+                  .join(", ")
+            : "None";
+    const formatWater = (data) =>
+        data.water_source_types?.length > 0
+            ? data.water_source_types
+                  .map(
+                      (w) =>
+                          CONSTANTS.HOUSEHOLD_WATER_SOURCE_TEXT[
+                              w.water_source_type
+                          ] || w.water_source_type,
+                  )
+                  .join(", ")
+            : "None";
+    const formatElectricity = (data) =>
+        data.electricity_types?.length > 0
+            ? data.electricity_types
+                  .map(
+                      (e) =>
+                          CONSTANTS.HOUSEHOLD_ELECTRICITY_TYPE[
+                              e.electricity_type
+                          ] || e.electricity_type,
+                  )
+                  .join(", ")
+            : "None";
+    const formatWaste = (data) =>
+        data.waste_management_types?.length > 0
+            ? data.waste_management_types
+                  .map(
+                      (item) =>
+                          CONSTANTS.HOUSEHOLD_WASTE_DISPOSAL_TEXT[
+                              item.waste_management_type
+                          ] || item.waste_management_type,
+                  )
+                  .join(", ")
+            : "None";
+
     return (
         <AdminLayout>
             <Head title="Family" />
             <Toaster richColors />
             <BreadCrumbsHeader breadcrumbs={breadcrumbs} />
             {/* <pre>{JSON.stringify(household_members, undefined, 3)}</pre> */}
-            <div className="bg-white shadow-md rounded-lg m-5 border border-gray-200">
-                {/* Header */}
-                <div className="px-4 py-4 border-b bg-gray-100 rounded-t-lg">
-                    <h2 className="text-2xl font-semibold text-gray-800">
+            {/* ================= HOUSEHOLD DETAILS ================= */}
+            <div className="bg-white shadow-md rounded-xl m-5 border border-gray-200 overflow-hidden">
+                {/* HEADER */}
+                <div className="px-6 py-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+                    <h2 className="text-2xl font-bold text-gray-800">
                         House #{household_details.house_number}
                     </h2>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 mt-1">
                         {household_details?.purok?.barangay?.barangay_name ||
                             ""}{" "}
-                        • Purok {household_details?.purok?.purok_number || ""} •{" "}
+                        • Purok {household_details?.purok?.purok_number || ""} •
                         {household_details?.street?.street_name || ""} Street
                     </p>
                 </div>
 
-                {/* Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+                {/* QUICK STATS */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-gray-50 border-b">
                     {[
-                        {
-                            label: "Ownership Type",
-                            value: CONSTANTS.HOUSEHOLD_OWNERSHIP_TEXT[
-                                household_details.ownership_type
-                            ],
-                        },
-                        {
-                            label: "Housing Condition",
-                            value: CONSTANTS.HOUSEHOLD_CONDITION_TEXT[
-                                household_details.housing_condition
-                            ],
-                        },
-                        {
-                            label: "Year Established",
-                            value: household_details.year_established,
-                        },
-                        {
-                            label: "House Structure",
-                            value: CONSTANTS.HOUSEHOLD_STRUCTURE_TEXT[
-                                household_details.house_structure
-                            ],
-                        },
-                        {
-                            label: "Bath & Wash Area",
-                            value: Array.isArray(
-                                household_details.bath_and_wash_area
-                            )
-                                ? household_details.bath_and_wash_area
-                                      .map(
-                                          (item) =>
-                                              CONSTANTS
-                                                  .HOUSEHOLD_BATH_WASH_TEXT[
-                                                  item
-                                              ] || item
-                                      )
-                                      .join(", ")
-                                : typeof household_details.bath_and_wash_area ===
-                                  "object"
-                                ? Object.values(
-                                      household_details.bath_and_wash_area
-                                  )
-                                      .map(
-                                          (item) =>
-                                              CONSTANTS
-                                                  .HOUSEHOLD_BATH_WASH_TEXT[
-                                                  item
-                                              ] || item
-                                      )
-                                      .join(", ")
-                                : CONSTANTS.HOUSEHOLD_BATH_WASH_TEXT[
-                                      household_details.bath_and_wash_area
-                                  ] || household_details.bath_and_wash_area,
-                        },
                         {
                             label: "Rooms",
                             value: household_details.number_of_rooms,
@@ -411,84 +442,83 @@ export default function Index({
                             value: household_details.number_of_floors,
                         },
                         {
-                            label: "Coordinates",
-                            value: `${household_details.latitude}, ${household_details.longitude}`,
+                            label: "Year Built",
+                            value: household_details.year_established,
                         },
                         {
-                            label: "Toilet Types",
-                            value:
-                                household_details.toilets?.length > 0
-                                    ? household_details.toilets
-                                          .map(
-                                              (t) =>
-                                                  CONSTANTS
-                                                      .HOUSEHOLD_TOILET_TYPE_TEXT[
-                                                      t.toilet_type
-                                                  ] || t.toilet_type
-                                          )
-                                          .join(", ")
-                                    : "None",
+                            label: "Ownership",
+                            value: CONSTANTS.HOUSEHOLD_OWNERSHIP_TEXT[
+                                household_details.ownership_type
+                            ],
                         },
-                        {
-                            label: "Waste Management Types",
-                            value:
-                                household_details.waste_management_types
-                                    ?.length > 0
-                                    ? household_details.waste_management_types
-                                          .map(
-                                              (item) =>
-                                                  CONSTANTS
-                                                      .HOUSEHOLD_WASTE_DISPOSAL_TEXT[
-                                                      item.waste_management_type
-                                                  ] ||
-                                                  item.waste_management_type
-                                          )
-                                          .join(", ")
-                                    : "None",
-                        },
-                        {
-                            label: "Water Source Types",
-                            value:
-                                household_details.water_source_types?.length > 0
-                                    ? household_details.water_source_types
-                                          .map(
-                                              (w) =>
-                                                  CONSTANTS
-                                                      .HOUSEHOLD_WATER_SOURCE_TEXT[
-                                                      w.water_source_type
-                                                  ] || w.water_source_type
-                                          )
-                                          .join(", ")
-                                    : "None",
-                        },
-                        {
-                            label: "Electricity Types",
-                            value:
-                                household_details.electricity_types?.length > 0
-                                    ? household_details.electricity_types
-                                          .map(
-                                              (e) =>
-                                                  CONSTANTS
-                                                      .HOUSEHOLD_ELECTRICITY_TYPE[
-                                                      e.electricity_type
-                                                  ] || e.electricity_type
-                                          )
-                                          .join(", ")
-                                    : "None",
-                        },
-                    ].map(({ label, value }, index) => (
+                    ].map((item, i) => (
                         <div
-                            key={index}
-                            className="flex justify-between border-b pb-2"
+                            key={i}
+                            className="bg-white rounded-lg p-4 shadow-sm border"
                         >
-                            <span className="text-sm font-medium text-gray-700">
-                                {label}:
-                            </span>
-                            <span className="text-sm text-gray-900 text-right max-w-[60%]">
-                                {value || "—"}
-                            </span>
+                            <p className="text-xs text-gray-500">
+                                {item.label}
+                            </p>
+                            <p className="text-lg font-semibold text-gray-800">
+                                {item.value || "—"}
+                            </p>
                         </div>
                     ))}
+                </div>
+
+                {/* MAIN CONTENT */}
+                <div className="p-6 space-y-6">
+                    {/* STRUCTURE */}
+                    <Section title="🏗 Structure & Condition">
+                        <Detail
+                            label="Housing Condition"
+                            value={
+                                CONSTANTS.HOUSEHOLD_CONDITION_TEXT[
+                                    household_details.housing_condition
+                                ]
+                            }
+                        />
+                        <Detail
+                            label="House Structure"
+                            value={
+                                CONSTANTS.HOUSEHOLD_STRUCTURE_TEXT[
+                                    household_details.house_structure
+                                ]
+                            }
+                        />
+                    </Section>
+
+                    {/* UTILITIES */}
+                    <Section title="🚿 Utilities & Services">
+                        <Detail
+                            label="Bath & Wash Area"
+                            value={formatBathWash(household_details)}
+                        />
+                        <Detail
+                            label="Toilet Types"
+                            value={formatToilets(household_details)}
+                        />
+                        <Detail
+                            label="Water Sources"
+                            value={formatWater(household_details)}
+                        />
+                        <Detail
+                            label="Electricity"
+                            value={formatElectricity(household_details)}
+                        />
+                        <Detail
+                            label="Waste Management"
+                            value={formatWaste(household_details)}
+                        />
+                    </Section>
+
+                    {/* LOCATION */}
+                    <Section title="📍 Location">
+                        <Detail
+                            label="Coordinates"
+                            value={`${household_details.latitude}, ${household_details.longitude}`}
+                        />
+                    </Section>
                 </div>
             </div>
 
@@ -516,7 +546,7 @@ export default function Index({
                                 >
                                     <Input
                                         type="text"
-                                        placeholder="Search for Household Member Name"
+                                        placeholder="Search Name"
                                         value={query}
                                         onChange={(e) =>
                                             setQuery(e.target.value)
@@ -539,27 +569,33 @@ export default function Index({
                                         </div>
                                     </div>
                                 </form>
-
-                                <Link href={route("family.create")}>
-                                    <div className="relative group z-50">
+                                <div className="relative group z-50">
+                                    <Link
+                                        href={route(
+                                            "family.add.family",
+                                            household_details.id,
+                                        )}
+                                    >
                                         <Button
                                             variant="outline"
                                             className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
                                         >
                                             <Share2 className="w-4 h-4" />
                                         </Button>
-                                        <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                            Add Relationship
+
+                                        {/* Tooltip */}
+                                        <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                            Add Family
                                         </div>
-                                    </div>
-                                </Link>
+                                    </Link>
+                                </div>
                                 <div className="relative group z-50">
                                     <Button
                                         variant="outline"
                                         className="flex items-center gap-2 border-red-300 text-red-700 hover:bg-red-600 hover:text-white"
                                         onClick={() =>
                                             handleExportRBIA(
-                                                household_details.id
+                                                household_details.id,
                                             )
                                         }
                                     >
