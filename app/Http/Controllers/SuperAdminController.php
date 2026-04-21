@@ -358,7 +358,6 @@ class SuperAdminController extends Controller
 
         $accounts = $query->paginate(10)->withQueryString();
         $barangays = Barangay::all()->select('id', 'barangay_name');
-
         return Inertia::render('SuperAdmin/Account/Index', [
             'accounts' => $accounts,
             'queryParams' => $request->query() ?: null,
