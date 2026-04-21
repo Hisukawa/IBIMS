@@ -15,7 +15,7 @@ import {
     FileUser,
     MapPin,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
 import { Toaster, toast } from "sonner";
 import ResidentTable from "@/Components/ResidentTable";
@@ -30,8 +30,9 @@ import ExportButton from "@/Components/ExportButton";
 import SidebarModal from "@/Components/SidebarModal";
 import PersonDetailContent from "@/Components/SidebarModalContents/PersonDetailContent";
 import { toTitleCase } from "@/utils/stringFormat";
+import PageHeader from "@/Components/PageHeader";
 
-export default function Index({ households, puroks, streets, queryParams }) {
+export default function Index({ households, puroks, queryParams }) {
     const breadcrumbs = [
         { label: "Residents Information", showOnMobile: false },
         { label: "Households", showOnMobile: true },
@@ -72,18 +73,11 @@ export default function Index({ households, puroks, streets, queryParams }) {
     };
 
     const allColumns = [
-        { key: "id", label: "ID" },
+        { key: "household_info", label: "Household" },
         { key: "name", label: "Household Head" },
-        { key: "house_number", label: "House Number" },
-        { key: "purok_number", label: "Purok" },
-        { key: "street_name", label: "Street" },
-        { key: "ownership_type", label: "Ownership Type" },
-        { key: "housing_condition", label: "Housing Condition" },
-        { key: "year_established", label: "Year Established" },
-        { key: "house_structure", label: "House Structure" },
-        { key: "number_of_rooms", label: "Number of Rooms" },
-        { key: "number_of_floors", label: "Number of Floors" },
-        { key: "number_of_occupants", label: "Number of Occupants" },
+        { key: "status_info", label: "Ownership & Condition" },
+        { key: "structure_info", label: "Structure Details" },
+        { key: "household_count", label: "Occupants / Families" },
         { key: "actions", label: "Actions" },
     ];
 
@@ -95,7 +89,7 @@ export default function Index({ households, puroks, streets, queryParams }) {
         try {
             // Using template literals for route if APP_URL is needed, or just route() helper
             const response = await axios.get(
-                route("resident.showresident", residentId) // Assuming you have a route 'resident.showresident'
+                route("resident.showresident", residentId), // Assuming you have a route 'resident.showresident'
             );
             setSelectedResident(response.data.resident);
         } catch (error) {
@@ -108,7 +102,7 @@ export default function Index({ households, puroks, streets, queryParams }) {
     };
 
     const [visibleColumns, setVisibleColumns] = useState(
-        allColumns.map((col) => col.key)
+        allColumns.map((col) => col.key),
     );
 
     useEffect(() => {
@@ -123,10 +117,24 @@ export default function Index({ households, puroks, streets, queryParams }) {
     const hasActiveFilter = Object.entries(queryParams || {}).some(
         ([key, value]) =>
             ["purok", "street", "own_type", "condition", "structure"].includes(
-                key
+                key,
             ) &&
             value &&
-            value !== ""
+            value !== "",
+    );
+    const calculateAge = useMemo(
+        () => (birthdate) => {
+            if (!birthdate) return "Unknown";
+            const birth = new Date(birthdate);
+            const today = new Date();
+            let age = today.getFullYear() - birth.getFullYear();
+            const m = today.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+                age--;
+            }
+            return age;
+        },
+        [],
     );
 
     useEffect(() => {
@@ -137,132 +145,195 @@ export default function Index({ households, puroks, streets, queryParams }) {
 
     const [showFilters, setShowFilters] = useState(hasActiveFilter);
     const columnRenderers = {
-        id: (house) =>
-            house.household?.id ?? (
-                <span className="text-gray-400 italic">N/A</span>
-            ),
+        household_info: (entry) => {
+            const household = entry.household;
+            const houseId = household?.id;
+            const houseNumber = household?.house_number;
+            const purok = household?.purok?.purok_number;
+
+            return (
+                <div className="flex flex-col gap-1 min-w-[180px]">
+                    <Link
+                        href={route("household.show", houseId)}
+                        className="font-semibold text-slate-800 hover:text-blue-600 hover:underline"
+                    >
+                        House #{houseNumber ?? "N/A"}
+                    </Link>
+
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 font-medium">
+                            ID: {houseId ?? "N/A"}
+                        </span>
+
+                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 font-medium text-blue-700">
+                            Purok {purok ?? "N/A"}
+                        </span>
+                    </div>
+                </div>
+            );
+        },
 
         name: (entry) => {
             const head = entry.resident;
-            return head ? (
-                <span
-                    className="font-medium text-blue-600 hover:underline cursor-pointer"
-                    onClick={() => handleView(head.id)}
-                >
-                    {toTitleCase(
-                        `${head.firstname} ${head.middlename ?? ""} ${
-                            head.lastname ?? ""
-                        }`
-                    )}{" "}
-                    {head.suffix ?? ""}
-                </span>
-            ) : (
-                <span className="text-gray-400 italic">No household head</span>
+
+            if (!head) {
+                return (
+                    <span className="text-gray-400 italic">
+                        No household head
+                    </span>
+                );
+            }
+
+            const fullName = toTitleCase(
+                `${head.firstname} ${head.middlename ?? ""} ${head.lastname ?? ""} ${head.suffix ?? ""}`,
             );
-        },
-
-        house_number: (house) =>
-            house.household?.house_number ? (
-                <Link
-                    href={route("household.show", house.household?.id)}
-                    className="text-gray-700 hover:text-blue-600 hover:underline font-medium"
-                >
-                    {house.household.house_number}
-                </Link>
-            ) : (
-                <span className="text-gray-400 italic">N/A</span>
-            ),
-
-        purok_number: (house) => {
-            const purok = house.household?.purok?.purok_number;
-            return purok ? (
-                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
-                    Purok {purok}
-                </span>
-            ) : (
-                <span className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-xs font-medium">
-                    No Purok
-                </span>
-            );
-        },
-
-        street_name: (house) => {
-            const street = house.household?.street?.street_name;
-            return street ? (
-                <span className="text-gray-700 font-medium">{street}</span>
-            ) : (
-                <span className="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1">
-                    <MapPin size={14} /> No street assigned
-                </span>
-            );
-        },
-
-        ownership_type: (house) => {
-            const type = house.household?.ownership_type;
-            const text = CONSTANTS.HOUSEHOLD_OWNERSHIP_TEXT[type];
-
-            return text ? (
-                <span className="text-gray-700 font-medium">{text}</span>
-            ) : (
-                <span className="text-gray-400 italic">Unknown</span>
-            );
-        },
-
-        housing_condition: (house) => {
-            const condition = house.household?.housing_condition;
-            const color =
-                CONSTANTS.HOUSING_CONDITION_COLOR[condition] ??
-                "bg-gray-100 text-gray-500";
-            const text =
-                CONSTANTS.HOUSEHOLD_CONDITION_TEXT[condition] ?? "Unknown";
 
             return (
-                <span
-                    className={`px-2 py-1 text-xs font-medium rounded-lg ${color}`}
-                >
-                    {text}
-                </span>
+                <div className="flex flex-col gap-1 min-w-[220px]">
+                    <button
+                        type="button"
+                        onClick={() => handleView(head.id)}
+                        className="text-left font-semibold text-slate-800 hover:text-blue-600 hover:underline"
+                    >
+                        {fullName}
+                    </button>
+
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                        {head.gender && (
+                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 font-medium">
+                                {head.gender}
+                            </span>
+                        )}
+
+                        {head.birthdate && (
+                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 font-medium">
+                                {calculateAge(head.birthdate)} yrs old
+                            </span>
+                        )}
+                    </div>
+                </div>
             );
         },
 
-        year_established: (house) =>
-            house.household?.year_established ? (
-                <span className="text-gray-700 font-medium">
-                    {house.household.year_established}
-                </span>
-            ) : (
-                <span className="text-gray-400 italic">Unknown</span>
-            ),
+        status_info: (entry) => {
+            const household = entry.household;
+            const ownershipType = household?.ownership_type;
+            const condition = household?.housing_condition;
 
-        house_structure: (house) => {
-            const structure = house.household?.house_structure;
-            const text = CONSTANTS.HOUSEHOLD_STRUCTURE_TEXT[structure];
+            const ownershipText =
+                CONSTANTS.HOUSEHOLD_OWNERSHIP_TEXT[ownershipType] ?? "Unknown";
 
-            return text ? (
-                <span className="text-gray-700 font-medium">{text}</span>
-            ) : (
-                <span className="text-gray-400 italic">Unknown</span>
+            const conditionText =
+                CONSTANTS.HOUSEHOLD_CONDITION_TEXT[condition] ?? "Unknown";
+
+            const conditionColor =
+                CONSTANTS.HOUSING_CONDITION_COLOR[condition] ??
+                "bg-gray-100 text-gray-500";
+
+            return (
+                <div className="flex flex-col gap-2 min-w-[200px]">
+                    <div>
+                        <p className="text-xs uppercase tracking-wide text-slate-400">
+                            Ownership
+                        </p>
+                        <p className="text-sm font-medium text-slate-800">
+                            {ownershipText}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-xs uppercase tracking-wide text-slate-400">
+                            Condition
+                        </p>
+                        <span
+                            className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-medium ${conditionColor}`}
+                        >
+                            {conditionText}
+                        </span>
+                    </div>
+                </div>
             );
         },
 
-        number_of_rooms: (house) =>
-            house.household?.number_of_rooms ?? (
-                <span className="text-gray-400 italic">N/A</span>
-            ),
+        structure_info: (entry) => {
+            const household = entry.household;
 
-        number_of_floors: (house) =>
-            house.household?.number_of_floors ?? (
-                <span className="text-gray-400 italic">N/A</span>
-            ),
+            const structureText =
+                CONSTANTS.HOUSEHOLD_STRUCTURE_TEXT[
+                    household?.house_structure
+                ] ?? "Unknown";
 
-        number_of_occupants: (house) => (
-            <span className="flex items-center gap-1 font-medium text-gray-700">
-                <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
-                    {house?.household?.residents_count?.[0]?.aggregate ?? 0}
-                </span>
-                <User className="h-4 w-4" />
-            </span>
-        ),
+            return (
+                <div className="grid gap-2 min-w-[220px]">
+                    <div className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2">
+                        <span className="text-xs text-slate-500">
+                            Structure
+                        </span>
+                        <span className="text-sm font-medium text-slate-800 text-right">
+                            {structureText}
+                        </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2">
+                        <span className="text-xs text-slate-500">
+                            Year Built
+                        </span>
+                        <span className="text-sm font-medium text-slate-800">
+                            {household?.year_established ?? "N/A"}
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="rounded-lg bg-blue-50 px-3 py-2 text-center">
+                            <p className="text-xs text-blue-600">Rooms</p>
+                            <p className="text-sm font-semibold text-blue-800">
+                                {household?.number_of_rooms ?? 0}
+                            </p>
+                        </div>
+
+                        <div className="rounded-lg bg-indigo-50 px-3 py-2 text-center">
+                            <p className="text-xs text-indigo-600">Floors</p>
+                            <p className="text-sm font-semibold text-indigo-800">
+                                {household?.number_of_floors ?? 0}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        },
+
+        household_count: (entry) => {
+            const household = entry.household;
+
+            const occupants =
+                household?.residents_count?.[0]?.aggregate ??
+                household?.residents_count ??
+                0;
+
+            const families = household?.families_count ?? 0;
+
+            return (
+                <div className="flex flex-col gap-2 min-w-[160px]">
+                    <div className="flex items-center justify-between rounded-lg bg-green-50 px-3 py-2">
+                        <span className="text-xs font-medium text-green-700">
+                            Occupants
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-sm font-semibold text-green-800">
+                            {occupants}
+                        </span>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2">
+                        <span className="text-xs font-medium text-amber-700">
+                            Families
+                        </span>
+                        <span className="text-sm font-semibold text-amber-800">
+                            {families}
+                        </span>
+                    </div>
+                </div>
+            );
+        },
 
         actions: (house) => (
             <ActionMenu
@@ -272,7 +343,7 @@ export default function Index({ households, puroks, streets, queryParams }) {
                         icon: <Eye className="w-4 h-4 text-indigo-600" />,
                         onClick: () =>
                             router.visit(
-                                route("household.show", house.household?.id)
+                                route("household.show", house.household?.id),
                             ),
                     },
                     {
@@ -280,7 +351,7 @@ export default function Index({ households, puroks, streets, queryParams }) {
                         icon: <SquarePen className="w-4 h-4 text-green-500" />,
                         onClick: () =>
                             router.visit(
-                                route("household.edit", house.household?.id)
+                                route("household.edit", house.household?.id),
                             ),
                     },
                     {
@@ -334,24 +405,47 @@ export default function Index({ households, puroks, streets, queryParams }) {
             <div className="pt-4">
                 <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
                     <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
-                        <div className="mb-6">
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl shadow-sm">
-                                <div className="p-2 bg-indigo-100 rounded-full">
-                                    <Home className="w-6 h-6 text-indigo-600" />
-                                </div>
-                                <div>
-                                    <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
-                                        Households Records
-                                    </h1>
-                                    <p className="text-sm text-gray-500">
-                                        Manage all registered households in the
-                                        barangay. Search, filter, or export
-                                        data, and add new households for
-                                        accurate community tracking.
-                                    </p>
-                                </div>
+                        <PageHeader
+                            title="Household Records"
+                            description="Manage all registered households in the barangay. Search, filter, export records, and add new household entries for accurate community tracking."
+                            icon={Home}
+                            badge={
+                                <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-200">
+                                    Community Registry
+                                </span>
+                            }
+                            iconWrapperClassName="bg-indigo-100 text-indigo-600 shadow-sm"
+                            containerClassName="border border-slate-200 bg-gradient-to-r from-white via-slate-50 to-indigo-50/60 shadow-sm"
+                            titleClassName="tracking-tight"
+                            descriptionClassName="max-w-2xl text-sm text-slate-600"
+                            actions={
+                                <>
+                                    <Link href={route("household.create")}>
+                                        <Button
+                                            variant="outline"
+                                            className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
+                                        >
+                                            <HousePlus className="w-4 h-4" />
+                                            <span className="hidden sm:inline">
+                                                Add Household
+                                            </span>
+                                        </Button>
+                                    </Link>
+                                </>
+                            }
+                        >
+                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                                    Search households
+                                </span>
+                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                                    Filter records
+                                </span>
+                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                                    Export data
+                                </span>
                             </div>
-                        </div>
+                        </PageHeader>
                         <div className="flex flex-wrap items-start justify-between gap-2 w-full mb-0">
                             <div className="flex items-start gap-2 flex-wrap">
                                 <DynamicTableControls
@@ -397,7 +491,7 @@ export default function Index({ households, puroks, streets, queryParams }) {
                                 >
                                     <Input
                                         type="text"
-                                        placeholder="Search for Household Member Name"
+                                        placeholder="Search for Household Name"
                                         value={query}
                                         onChange={(e) =>
                                             setQuery(e.target.value)
@@ -420,19 +514,6 @@ export default function Index({ households, puroks, streets, queryParams }) {
                                         </div>
                                     </div>
                                 </form>
-                                <Link href={route("household.create")}>
-                                    <div className="relative group z-50">
-                                        <Button
-                                            variant="outline"
-                                            className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
-                                        >
-                                            <HousePlus className="w-4 h-4" />
-                                        </Button>
-                                        <div className="absolute left-1/2 -translate-x-1/2 mt-2 w-max px-3 py-1.5 rounded-md bg-blue-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-                                            Add Household
-                                        </div>
-                                    </div>
-                                </Link>
                             </div>
                         </div>
 
@@ -442,14 +523,12 @@ export default function Index({ households, puroks, streets, queryParams }) {
                                 searchFieldName={searchFieldName}
                                 visibleFilters={[
                                     "purok",
-                                    "street",
                                     "own_type",
                                     "condition",
                                     "structure",
                                 ]}
                                 showFilters={true}
                                 puroks={puroks}
-                                streets={streets}
                                 clearRouteName="household.index"
                                 clearRouteParams={{}}
                             />

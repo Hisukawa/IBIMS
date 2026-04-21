@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\BarangayAdmin\ResidentInformation;
 
 use App\Helpers\ActivityLogHelper;
+use App\Http\Controllers\Controller;
 use App\Models\Barangay;
 use App\Models\BarangayOfficial;
 use App\Models\Family;
@@ -38,25 +39,33 @@ class HouseholdController extends Controller
         $barangayId = auth()->user()->barangay_id;
         $request = request();
 
-        // 🧠 Cache commonly used lists (short lifetime to stay fresh)
         $puroks = Cache::remember("puroks_{$barangayId}", now()->addMinutes(10), function () use ($barangayId) {
             return Purok::where('barangay_id', $barangayId)
                 ->orderBy('purok_number')
                 ->pluck('purok_number');
         });
 
-        $streets = Cache::remember("streets_{$barangayId}", now()->addMinutes(10), function () use ($barangayId) {
-            return Street::whereHas('purok', fn($q) => $q->where('barangay_id', $barangayId))
-                ->orderBy('street_name')
-                ->pluck('street_name');
-        });
-
-        // 🟢 Base query for latest household heads
         $query = HouseholdResident::query()
             ->select('id', 'resident_id', 'household_id', 'relationship_to_head', 'updated_at')
             ->with([
                 'resident:id,firstname,lastname,middlename,suffix,resident_picture_path,gender,birthdate,residency_type,residency_date',
-                'household:id,barangay_id,purok_id,street_id,house_number,ownership_type,housing_condition,year_established,house_structure,number_of_rooms,number_of_floors',
+
+                'household' => function ($q) {
+                    $q->select(
+                        'id',
+                        'barangay_id',
+                        'purok_id',
+                        'street_id',
+                        'house_number',
+                        'ownership_type',
+                        'housing_condition',
+                        'year_established',
+                        'house_structure',
+                        'number_of_rooms',
+                        'number_of_floors'
+                    )->withCount('families');
+                },
+
                 'household.street:id,street_name',
                 'household.purok:id,purok_number',
                 'household.residentsCount',
@@ -71,7 +80,6 @@ class HouseholdController extends Controller
             })
             ->latest('updated_at');
 
-        // 🟡 Filter: Name search (optimized multi-part handling)
         if ($name = trim($request->get('name', ''))) {
             $parts = array_filter(explode(' ', $name));
             $query->whereHas('resident', function ($r) use ($parts, $name) {
@@ -82,23 +90,21 @@ class HouseholdController extends Controller
                             ->orWhere('middlename', 'like', "%{$part}%")
                             ->orWhere('suffix', 'like', "%{$part}%");
                     }
+
                     $w->orWhereRaw("CONCAT(firstname, ' ', lastname) LIKE ?", ["%{$name}%"])
-                    ->orWhereRaw("CONCAT(firstname, ' ', middlename, ' ', lastname) LIKE ?", ["%{$name}%"])
-                    ->orWhereRaw("CONCAT(firstname, ' ', middlename, ' ', lastname, ' ', suffix) LIKE ?", ["%{$name}%"]);
+                        ->orWhereRaw("CONCAT(firstname, ' ', middlename, ' ', lastname) LIKE ?", ["%{$name}%"])
+                        ->orWhereRaw("CONCAT(firstname, ' ', middlename, ' ', lastname, ' ', suffix) LIKE ?", ["%{$name}%"]);
                 });
             });
         }
 
-        // 🟡 Map of request filters to their target columns/relations
         $filters = [
             'purok'     => ['relation' => 'household.purok', 'column' => 'purok_number'],
-            'street'    => ['relation' => 'household.street', 'column' => 'street_name'],
             'own_type'  => ['relation' => 'household', 'column' => 'ownership_type'],
             'condition' => ['relation' => 'household', 'column' => 'housing_condition'],
             'structure' => ['relation' => 'household', 'column' => 'house_structure'],
         ];
 
-        // 🟢 Apply filters dynamically
         foreach ($filters as $key => $filter) {
             $value = $request->get($key);
             if ($value && $value !== 'All') {
@@ -106,13 +112,11 @@ class HouseholdController extends Controller
             }
         }
 
-        // 🟢 Pagination with query preservation
         $heads = $query->paginate(10)->withQueryString();
 
         return Inertia::render('BarangayOfficer/Household/Index', [
             'households' => $heads,
             'puroks' => $puroks,
-            'streets' => $streets,
             'queryParams' => $request->query() ?: null,
         ]);
     }

@@ -21,6 +21,7 @@ use App\Http\Controllers\BarangayAdmin\BarangayResources\LandController;
 use App\Http\Controllers\BarangayAdmin\BarangayResources\StreetController;
 
 use App\Http\Controllers\BarangayAdmin\ResidentInformation\ResidentController;
+use App\Http\Controllers\BarangayAdmin\ResidentInformation\HouseholdController;
 
 use App\Http\Controllers\AllergyController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -44,7 +45,6 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\FamilyController;
 use App\Http\Controllers\FamilyRelationController;
 use App\Http\Controllers\FamilyTreeController;
-use App\Http\Controllers\HouseholdController;
 use App\Http\Controllers\IBIMSController;
 use App\Http\Controllers\InstitutionMemberController;
 use App\Http\Controllers\InventoryController;
@@ -130,6 +130,7 @@ Route::middleware(['auth', 'role:barangay_officer|cdrrmo_admin|super_admin|admin
     Route::get('family/remove/{id}', [FamilyController::class, 'remove'])->name('family.remove');
     Route::get('/family/residents-members', [FamilyController::class, 'getResidentsAndMembersJson'])
         ->name('family.residents-members');
+    Route::get('add/family/{id}', [FamilyController::class, 'addFamily'])->name('family.add.family');
 
     // resident
     Route::get('resident/createresident', [ResidentController::class, 'createResident'])->name('resident.createresident');
