@@ -2,12 +2,12 @@ import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, router, useForm, usePage } from "@inertiajs/react";
 import { useEffect } from "react";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, Pencil, Users } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import PageHeader from "@/Components/PageHeader";
 import FamilyForm from "./Partials/FamilyForm";
 
-export default function Create({ members }) {
+export default function Edit({ family, members }) {
     const breadcrumbs = [
         { label: "Residents Information", showOnMobile: false },
         {
@@ -16,8 +16,8 @@ export default function Create({ members }) {
             showOnMobile: true,
         },
         {
-            label: "Create",
-            href: route("family.create"),
+            label: "Edit",
+            href: route("family.edit", family?.id),
             showOnMobile: true,
         },
     ];
@@ -42,17 +42,28 @@ export default function Create({ members }) {
     }));
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        resident_id: null,
-        resident_name: "",
-        resident_image: null,
-        birthdate: null,
-        purok_number: null,
-        house_number: null,
-        family_name: "",
-        family_type: "",
-        members: [{ ...defaultMember }],
-        family_id: null,
-        _method: undefined,
+        resident_id: family?.resident_id ?? null,
+        resident_name: family?.resident_name ?? "",
+        resident_image: family?.resident_image ?? null,
+        birthdate: family?.birthdate ?? null,
+        purok_number: family?.purok_number ?? null,
+        house_number: family?.house_number ?? null,
+        family_name: family?.family_name ?? "",
+        family_type: family?.family_type ?? "",
+        members:
+            family?.members?.length > 0
+                ? family.members.map((member) => ({
+                      resident_id: member.resident_id ?? null,
+                      resident_name: member.resident_name ?? "",
+                      resident_image: member.resident_image ?? null,
+                      birthdate: member.birthdate ?? "",
+                      purok_number: member.purok_number ?? "",
+                      relationship_to_head: member.relationship_to_head ?? "",
+                      household_position: member.household_position ?? "",
+                  }))
+                : [{ ...defaultMember }],
+        family_id: family?.id ?? null,
+        _method: "put",
     });
 
     const addMember = () => {
@@ -125,8 +136,8 @@ export default function Create({ members }) {
 
     const handleSubmitFamily = (e) => {
         e.preventDefault();
-        console.log(data);
-        post(route("family.store"), {
+
+        post(route("family.update", family.id), {
             onError: (errors) => {
                 console.error("Validation Errors:", errors);
 
@@ -144,43 +155,45 @@ export default function Create({ members }) {
     const handleResetFamilyForm = () => {
         reset();
         setData({
-            resident_id: null,
-            resident_name: "",
-            resident_image: null,
-            birthdate: null,
-            purok_number: null,
-            house_number: null,
-            family_name: "",
-            family_type: "",
-            members: [{ ...defaultMember }],
-            family_id: null,
-            _method: undefined,
+            resident_id: family?.resident_id ?? null,
+            resident_name: family?.resident_name ?? "",
+            resident_image: family?.resident_image ?? null,
+            birthdate: family?.birthdate ?? null,
+            purok_number: family?.purok_number ?? null,
+            house_number: family?.house_number ?? null,
+            family_name: family?.family_name ?? "",
+            family_type: family?.family_type ?? "",
+            members:
+                family?.members?.length > 0
+                    ? family.members.map((member) => ({
+                          resident_id: member.resident_id ?? null,
+                          resident_name: member.resident_name ?? "",
+                          resident_image: member.resident_image ?? null,
+                          birthdate: member.birthdate ?? "",
+                          purok_number: member.purok_number ?? "",
+                          relationship_to_head:
+                              member.relationship_to_head ?? "",
+                          household_position: member.household_position ?? "",
+                      }))
+                    : [{ ...defaultMember }],
+            family_id: family?.id ?? null,
+            _method: "put",
         });
     };
 
     useEffect(() => {
         if (success) {
             toast.success(success, {
-                description: "Operation successful!",
+                description: "Family record updated successfully!",
                 duration: 3000,
                 closeButton: true,
             });
         }
     }, [success]);
 
-    // useEffect(() => {
-    //     if (error) {
-    //         toast.error(error, {
-    //             description: "Operation failed!",
-    //             duration: 3000,
-    //             closeButton: true,
-    //         });
-    //     }
-    // }, [error]);
-
     return (
         <AdminLayout>
-            <Head title="Create Family" />
+            <Head title="Edit Family" />
             <BreadCrumbsHeader breadcrumbs={breadcrumbs} />
             <Toaster richColors />
 
@@ -188,12 +201,12 @@ export default function Create({ members }) {
                 <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-6 space-y-6">
                     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                         <PageHeader
-                            title="Create Family Record"
-                            description="Register a new family by selecting the family head and assigning household members from the resident list."
+                            title="Edit Family Record"
+                            description="Update the family head, modify family details, and manage the assigned members for this family record."
                             icon={Users}
                             badge={
-                                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
-                                    New Entry
+                                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600">
+                                    Update Record
                                 </span>
                             }
                             actions={
@@ -211,10 +224,15 @@ export default function Create({ members }) {
                             <div className="flex flex-wrap gap-4 text-xs text-slate-500">
                                 <div>
                                     <span className="font-medium text-slate-700">
+                                        Family ID:
+                                    </span>{" "}
+                                    {family?.id ?? "—"}
+                                </div>
+                                <div>
+                                    <span className="font-medium text-slate-700">
                                         Purpose:
                                     </span>{" "}
-                                    Create family grouping from registered
-                                    residents
+                                    Update family grouping and member details
                                 </div>
                                 <div>
                                     <span className="font-medium text-slate-700">

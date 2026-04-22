@@ -134,7 +134,9 @@ class HouseholdController extends Controller
             ->with(['purok:id,purok_number'])
             ->get(['id', 'street_name', 'purok_id']);
         $barangays = Barangay::all()->pluck('barangay_name', 'id')->toArray();
-        $residents = Resident::where('barangay_id', $brgy_id)->select('id', 'firstname', 'lastname', 'middlename', 'suffix', 'resident_picture_path', 'sex', 'birthdate', 'residency_type', 'residency_date')->get();
+        $residents = Resident::where('barangay_id', $brgy_id)
+        ->orWhere('is_deceased', false)
+        ->select('id', 'firstname', 'lastname', 'middlename', 'suffix', 'resident_picture_path', 'sex', 'birthdate', 'residency_type', 'residency_date')->get();
 
         return Inertia::render("BarangayOfficer/Household/Create", [
             'puroks' => $puroks,
@@ -215,12 +217,6 @@ class HouseholdController extends Controller
                     ]);
                 }
 
-                $household->householdResidents()->create([
-                    'resident_id' => $data['resident_id'],
-                    'household_id' => $household->id,
-                    'relationship_to_head' => 'self',
-                    'household_position' => 'primary',
-                ]);
                 $household->householdHeadHistories()->create([
                     'resident_id' => $data['resident_id'],
                     'start_year' => $data['year_established'] ?? date('Y'),
@@ -240,50 +236,59 @@ class HouseholdController extends Controller
                         'end_year'    => null,
                     ]);
 
-                    // // Assuming $resident already contains the single resident model
-                    // $monthlyIncome = $resident->occupations()
-                    //     ->whereNull('ended_at')
-                    //     ->sum('monthly_income') ?? 0;
+                    // Assuming $resident already contains the single resident model
+                    $monthlyIncome = $resident->occupations()
+                        ->whereNull('ended_at')
+                        ->sum('monthly_income') ?? 0;
 
-                    // // Determine income bracket based on the monthly income
-                    // if ($monthlyIncome < 5000) {
-                    //     $incomeBracket = 'below_5000';
-                    //     $incomeCategory = 'survival';
-                    // } elseif ($monthlyIncome <= 10000) {
-                    //     $incomeBracket = '5001_10000';
-                    //     $incomeCategory = 'poor';
-                    // } elseif ($monthlyIncome <= 20000) {
-                    //     $incomeBracket = '10001_20000';
-                    //     $incomeCategory = 'low_income';
-                    // } elseif ($monthlyIncome <= 40000) {
-                    //     $incomeBracket = '20001_40000';
-                    //     $incomeCategory = 'lower_middle_income';
-                    // } elseif ($monthlyIncome <= 70000) {
-                    //     $incomeBracket = '40001_70000';
-                    //     $incomeCategory = 'middle_income';
-                    // } elseif ($monthlyIncome <= 120000) {
-                    //     $incomeBracket = '70001_120000';
-                    //     $incomeCategory = 'upper_middle_income';
-                    // } else {
-                    //     $incomeBracket = 'above_120001';
-                    //     $incomeCategory = 'high_income';
-                    // }
+                    // Determine income bracket based on the monthly income
+                    if ($monthlyIncome < 5000) {
+                        $incomeBracket = 'below_5000';
+                        $incomeCategory = 'survival';
+                    } elseif ($monthlyIncome <= 10000) {
+                        $incomeBracket = '5001_10000';
+                        $incomeCategory = 'poor';
+                    } elseif ($monthlyIncome <= 20000) {
+                        $incomeBracket = '10001_20000';
+                        $incomeCategory = 'low_income';
+                    } elseif ($monthlyIncome <= 40000) {
+                        $incomeBracket = '20001_40000';
+                        $incomeCategory = 'lower_middle_income';
+                    } elseif ($monthlyIncome <= 70000) {
+                        $incomeBracket = '40001_70000';
+                        $incomeCategory = 'middle_income';
+                    } elseif ($monthlyIncome <= 120000) {
+                        $incomeBracket = '70001_120000';
+                        $incomeCategory = 'upper_middle_income';
+                    } else {
+                        $incomeBracket = 'above_120001';
+                        $incomeCategory = 'high_income';
+                    }
 
-                    // // Create the family record
-                    // $family = Family::create([
-                    //     'barangay_id'     => $barangayId,
-                    //     'household_id'    => $household->id,
-                    //     'income_bracket'  => $incomeBracket,
-                    //     'income_category' => $incomeCategory,
-                    //     'family_name'     => $resident->lastname ?? null,
-                    //     'family_type'     => "nuclear",
-                    // ]);
+                    // Create the family record
+                    $family = Family::create([
+                        'barangay_id'     => $barangayId,
+                        'household_id'    => $household->id,
+                        'income_bracket'  => $incomeBracket,
+                        'income_category' => $incomeCategory,
+                        'family_name'     => $resident->lastname ?? null,
+                        'family_type'     => "nuclear",
+                    ]);
+
+                    $household->householdResidents()->create([
+                        'resident_id' => $data['resident_id'],
+                        'household_id' => $household->id,
+                        'relationship_to_head' => 'self',
+                        'household_position' => 'primary',
+                        'is_household_head' => 1,
+                        'family_id' => $family->id,
+                    ]);
 
                     $resident->update([
                         'household_id' => $household->id,
+                        'family_id' => $resident->family_id ?? $family->id,
+                        'is_family_head' => 1
                     ]);
-
-
                 }
             }
 

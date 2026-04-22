@@ -145,10 +145,12 @@ class ResidentFactory extends Factory
                 'Tagalog', 'Ilocano', 'Bisaya', 'Bicolano', 'Kapampangan'
             ]),
             'is_deceased' => $this->faker->boolean(15),
-            'household_id' => $household->id,
+            // 'household_id' => $household->id,
             'is_household_head' => false,
             'is_family_head' => false,
-            'family_id' => $randomFamily->id,
+            // 'family_id' => $randomFamily->id,
+            'family_id' => null,
+            'household_id' => null,
             'verified' => true,
         ];
     }
