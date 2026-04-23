@@ -23,17 +23,35 @@ class StoreFamilyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Head of Household
-            'headResidentId' => ['nullable'],
-            'resident_id' => ['required', 'exists:residents,id'],
-            'family_type' => ['required', Rule::in(['nuclear', 'extended', 'single_parent', 'stepfamilies', 'grandparent', 'childless', 'cohabiting_partners', 'one_person_household', 'roommates'])],
-            'fmaily_name' => ['nullable', 'string'],
+            'household_id' => ['nullable', 'exists:households,id'],
 
-            // Family Members (array of members)
-            'members' => ['nullable', 'array'],
-            'members.*.resident_id' => ['required', 'exists:residents,id'],
-            'members.*.relationship_to_head' => ['required', 'string'],
-            'members.*.household_position' => ['required', 'string'],
+            'resident_id' => ['required', 'exists:residents,id'],
+
+            'family_type' => [
+                'required',
+                Rule::in([
+                    'nuclear',
+                    'extended',
+                    'single_parent',
+                    'grandparent',
+                    'childless',
+                    'cohabiting_partners',
+                    'one_person_household',
+                    'roommates',
+                ]),
+            ],
+
+            'family_name' => ['nullable', 'string'],
+
+            'members' => ['nullable', 'array', 'min:0'],
+            'members.*' => ['array'],
+
+            'members.*.resident_id' => ['required', 'exists:residents,id', 'distinct'],
+            'members.*.relationship_to_head' => ['required', 'string', 'max:50'],
+            'members.*.household_position' => [
+                'required',
+                Rule::in(['primary', 'extended', 'boarder']),
+            ],
         ];
     }
 

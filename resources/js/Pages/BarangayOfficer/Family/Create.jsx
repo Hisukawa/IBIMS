@@ -7,7 +7,7 @@ import { Toaster, toast } from "sonner";
 import PageHeader from "@/Components/PageHeader";
 import FamilyForm from "./Partials/FamilyForm";
 
-export default function Create({ members }) {
+export default function Create({ members, households }) {
     const breadcrumbs = [
         { label: "Residents Information", showOnMobile: false },
         {
@@ -25,35 +25,38 @@ export default function Create({ members }) {
     const { success, error } = usePage().props;
 
     const defaultMember = {
-        resident_id: null,
+        resident_id: "",
         resident_name: "",
-        resident_image: null,
+        resident_image: "",
         birthdate: "",
         purok_number: "",
         relationship_to_head: "",
         household_position: "",
     };
 
-    const memberList = members.map((mem) => ({
-        label: `${mem.firstname} ${mem.middlename} ${mem.lastname} ${
-            mem.suffix ?? ""
-        }`,
-        value: mem.id.toString(),
-    }));
-
-    const { data, setData, post, processing, errors, reset } = useForm({
-        resident_id: null,
+    const initialFamilyForm = {
+        household_id: "",
+        household_head_name: "",
+        has_linked_household: false,
+        resident_id: "",
         resident_name: "",
-        resident_image: null,
-        birthdate: null,
-        purok_number: null,
-        house_number: null,
+        resident_image: "",
+        birthdate: "",
+        purok_number: "",
+        house_number: "",
         family_name: "",
         family_type: "",
         members: [{ ...defaultMember }],
-        family_id: null,
+        family_id: "",
         _method: undefined,
-    });
+    };
+
+    const { data, setData, post, processing, errors } =
+        useForm(initialFamilyForm);
+
+    const handleResetFamilyForm = () => {
+        setData(initialFamilyForm);
+    };
 
     const addMember = () => {
         setData("members", [...(data.members || []), { ...defaultMember }]);
@@ -69,67 +72,11 @@ export default function Create({ members }) {
         });
     };
 
-    const handleResidentChange = (e) => {
-        const resident = members.find((r) => r.id == e.target.value);
-
-        if (resident) {
-            setData("resident_id", resident.id);
-            setData(
-                "resident_name",
-                `${resident.firstname} ${resident.middlename} ${
-                    resident.lastname
-                } ${resident.suffix ?? ""}`,
-            );
-            setData("purok_number", resident.purok_number);
-            setData(
-                "house_number",
-                resident.latest_household?.house_number ??
-                    resident.household?.house_number,
-            );
-            setData("birthdate", resident.birthdate);
-            setData("resident_image", resident.resident_picture_path);
-        }
-    };
-
-    const handleDynamicResidentChange = (e, index) => {
-        const updatedMembers = [...data.members];
-        const selected = members.find((r) => r.id == e.target.value);
-
-        if (selected) {
-            updatedMembers[index] = {
-                ...updatedMembers[index],
-                resident_id: selected.id ?? "",
-                resident_name: `${selected.firstname ?? ""} ${
-                    selected.middlename ?? ""
-                } ${selected.lastname ?? ""} ${selected.suffix ?? ""}`,
-                purok_number: selected.purok_number ?? "",
-                birthdate: selected.birthdate ?? "",
-                resident_image: selected.resident_picture_path ?? null,
-            };
-
-            setData("members", updatedMembers);
-        }
-    };
-
-    const handleMemberFieldChange = (e, index) => {
-        const { name, value } = e.target;
-        const updatedMembers = [...data.members];
-
-        updatedMembers[index] = {
-            ...updatedMembers[index],
-            [name]: value,
-        };
-
-        setData("members", updatedMembers);
-    };
-
     const handleSubmitFamily = (e) => {
         e.preventDefault();
-        console.log(data);
+
         post(route("family.store"), {
             onError: (errors) => {
-                console.error("Validation Errors:", errors);
-
                 const firstError = Object.values(errors)[0];
 
                 toast.error("Validation Error", {
@@ -138,23 +85,6 @@ export default function Create({ members }) {
                     closeButton: true,
                 });
             },
-        });
-    };
-
-    const handleResetFamilyForm = () => {
-        reset();
-        setData({
-            resident_id: null,
-            resident_name: "",
-            resident_image: null,
-            birthdate: null,
-            purok_number: null,
-            house_number: null,
-            family_name: "",
-            family_type: "",
-            members: [{ ...defaultMember }],
-            family_id: null,
-            _method: undefined,
         });
     };
 
@@ -183,7 +113,6 @@ export default function Create({ members }) {
             <Head title="Create Family" />
             <BreadCrumbsHeader breadcrumbs={breadcrumbs} />
             <Toaster richColors />
-
             <div className="pt-4 mb-6">
                 <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-6 space-y-6">
                     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -229,13 +158,9 @@ export default function Create({ members }) {
                     <FamilyForm
                         data={data}
                         setData={setData}
+                        members={members}
+                        households={households}
                         errors={errors}
-                        memberList={memberList}
-                        handleResidentChange={handleResidentChange}
-                        handleDynamicResidentChange={
-                            handleDynamicResidentChange
-                        }
-                        handleMemberFieldChange={handleMemberFieldChange}
                         handleSubmitFamily={handleSubmitFamily}
                         addMember={addMember}
                         removeMember={removeMember}

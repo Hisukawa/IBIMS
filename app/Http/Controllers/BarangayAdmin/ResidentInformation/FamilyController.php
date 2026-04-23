@@ -121,8 +121,17 @@ class FamilyController extends Controller
         ->select('id', 'household_id', 'purok_number', 'resident_picture_path', 'firstname', 'middlename', 'lastname', 'birthdate', 'barangay_id')->with('household:id,barangay_id,house_number')
         ->get();
 
+        $households = Household::query()
+            ->where('barangay_id', $barangayId)
+            ->select('id', 'barangay_id', 'house_number')
+            ->with([
+                'latestHouseholdHead.resident:id,firstname,middlename,lastname,suffix'
+            ])
+            ->get();
+
         return Inertia::render('BarangayOfficer/Family/Create', [
             'members' => $members,
+            'households' => $households
         ]);
     }
 
@@ -251,6 +260,7 @@ class FamilyController extends Controller
 
     public function store(StoreFamilyRequest $request)
     {
+        dd($request->all());
         $data = $request->validated();
 
         // Head = family head

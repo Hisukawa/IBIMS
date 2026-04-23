@@ -37,17 +37,117 @@ const householdPositionOptions = [
 export default function FamilyForm({
     data,
     setData,
+    members,
+    households,
     errors,
-    memberList,
-    handleResidentChange,
-    handleDynamicResidentChange,
-    handleMemberFieldChange,
     handleSubmitFamily,
     addMember,
     removeMember,
     handleResetFamilyForm,
     processing = false,
 }) {
+    const handleResidentChange = (e) => {
+        const residentId = Number(e.target.value);
+        const resident = members.find((r) => r.id === residentId);
+
+        if (!resident) return;
+
+        const linkedHousehold =
+            resident.latest_household ?? resident.household ?? null;
+
+        setData("resident_id", resident.id);
+        setData(
+            "resident_name",
+            `${resident.firstname} ${resident.middlename ?? ""} ${resident.lastname} ${resident.suffix ?? ""}`.trim(),
+        );
+        setData("birthdate", resident.birthdate ?? "");
+        setData("resident_image", resident.resident_picture_path ?? "");
+
+        if (linkedHousehold) {
+            setData("has_linked_household", true);
+            setData("household_id", linkedHousehold.id ?? "");
+            setData("house_number", linkedHousehold.house_number ?? "");
+            setData(
+                "purok_number",
+                linkedHousehold.purok?.purok_number ??
+                    resident.purok_number ??
+                    "",
+            );
+            setData(
+                "household_head_name",
+                linkedHousehold.latest_household_head?.resident?.full_name ??
+                    `${resident.firstname} ${resident.middlename ?? ""} ${resident.lastname} ${resident.suffix ?? ""}`.trim(),
+            );
+        } else {
+            setData("has_linked_household", false);
+            setData("household_id", "");
+            setData("house_number", "");
+            setData("household_head_name", "");
+            setData("purok_number", resident.purok_number ?? "");
+        }
+    };
+    const memberList = members.map((mem) => ({
+        label: `${mem.firstname} ${mem.middlename} ${mem.lastname} ${
+            mem.suffix ?? ""
+        }`,
+        value: mem.id.toString(),
+    }));
+    const handleDynamicResidentChange = (e, index) => {
+        const updatedMembers = [...data.members];
+        const selected = members.find((r) => r.id == e.target.value);
+
+        if (selected) {
+            updatedMembers[index] = {
+                ...updatedMembers[index],
+                resident_id: selected.id ?? "",
+                resident_name: `${selected.firstname ?? ""} ${
+                    selected.middlename ?? ""
+                } ${selected.lastname ?? ""} ${selected.suffix ?? ""}`,
+                purok_number: selected.purok_number ?? "",
+                birthdate: selected.birthdate ?? "",
+                resident_image: selected.resident_picture_path ?? null,
+            };
+
+            setData("members", updatedMembers);
+        }
+    };
+    const handleMemberFieldChange = (e, index) => {
+        const { name, value } = e.target;
+        const updatedMembers = [...data.members];
+
+        updatedMembers[index] = {
+            ...updatedMembers[index],
+            [name]: value,
+        };
+
+        setData("members", updatedMembers);
+    };
+    const householdList = households.map((household) => ({
+        label: `House #${household.house_number} • ${household.latest_household_head?.resident?.full_name ?? "No household head"}`,
+        value: String(household.id),
+        id: household.id,
+        house_number: household.house_number,
+        head_name: household.latest_household_head?.resident?.full_name ?? "",
+        head_resident_id: household.latest_household_head?.resident?.id ?? "",
+    }));
+    const handleHouseholdChange = (e) => {
+        const selectedHouseholdId = e.target.value;
+        const selectedHousehold = householdList.find(
+            (item) => item.value === selectedHouseholdId,
+        );
+
+        if (!selectedHousehold) {
+            setData("household_id", "");
+            setData("house_number", "");
+            setData("household_head_name", "");
+            return;
+        }
+
+        setData("household_id", selectedHousehold.value);
+        setData("house_number", selectedHousehold.house_number ?? "");
+        setData("household_head_name", selectedHousehold.head_name ?? "");
+    };
+
     return (
         <div className="space-y-6">
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
@@ -158,39 +258,112 @@ export default function FamilyForm({
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                     <div className="mb-4 flex items-center gap-2">
                         <House className="h-5 w-5 text-emerald-600" />
-                        <h2 className="text-lg font-semibold text-slate-900">
-                            Linked Household
-                        </h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                                Purok
-                            </p>
-                            <p className="mt-1 text-sm font-semibold text-slate-900">
-                                {data.purok_number || "—"}
-                            </p>
-                        </div>
-
-                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                                House Number
-                            </p>
-                            <p className="mt-1 text-sm font-semibold text-slate-900">
-                                {data.house_number || "—"}
-                            </p>
-                        </div>
-
-                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                                Head Selected
-                            </p>
-                            <p className="mt-1 text-sm font-semibold text-slate-900">
-                                {data.resident_name || "—"}
+                        <div>
+                            <h2 className="text-lg font-semibold text-slate-900">
+                                Linked Household
+                            </h2>
+                            <p className="text-sm text-slate-500">
+                                Household information connected to the selected
+                                family head.
                             </p>
                         </div>
                     </div>
+
+                    {data.has_linked_household ? (
+                        <>
+                            <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                                <p className="text-sm font-medium text-emerald-800">
+                                    The selected family head already has a
+                                    linked household.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+                                    <p className="text-xs font-medium uppercase tracking-wide text-emerald-600">
+                                        Purok
+                                    </p>
+                                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                                        {data.purok_number || "—"}
+                                    </p>
+                                </div>
+
+                                <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                                    <p className="text-xs font-medium uppercase tracking-wide text-blue-600">
+                                        House Number
+                                    </p>
+                                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                                        {data.house_number || "—"}
+                                    </p>
+                                </div>
+
+                                <div className="rounded-xl border border-violet-100 bg-violet-50 p-4">
+                                    <p className="text-xs font-medium uppercase tracking-wide text-violet-600">
+                                        Household Head
+                                    </p>
+                                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                                        {data.household_head_name ||
+                                            data.resident_name ||
+                                            "—"}
+                                    </p>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                                <p className="text-sm text-amber-800">
+                                    The selected family head does not have a
+                                    linked household yet. Please select a
+                                    household manually.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                <div className="md:col-span-3">
+                                    <DropdownInputField
+                                        label="Select Household"
+                                        name="household_id"
+                                        value={data.household_id || ""}
+                                        items={householdList}
+                                        onChange={handleHouseholdChange}
+                                        placeholder="Choose a household"
+                                    />
+                                    <InputError
+                                        message={errors.household_id}
+                                        className="mt-1"
+                                    />
+                                </div>
+
+                                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Purok
+                                    </p>
+                                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                                        {data.purok_number || "—"}
+                                    </p>
+                                </div>
+
+                                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        House Number
+                                    </p>
+                                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                                        {data.house_number || "—"}
+                                    </p>
+                                </div>
+
+                                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                        Household Head
+                                    </p>
+                                    <p className="mt-1 text-sm font-semibold text-slate-900">
+                                        {data.household_head_name || "—"}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
