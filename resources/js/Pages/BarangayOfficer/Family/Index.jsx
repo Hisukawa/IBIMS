@@ -46,13 +46,9 @@ import DeleteConfirmationModal from "@/Components/DeleteConfirmationModal";
 import ExportButton from "@/Components/ExportButton";
 import { useQuery } from "@tanstack/react-query";
 import FamilyFormModal from "./Partials/FamilyFormModal";
+import PageHeader from "@/Components/PageHeader";
 
-export default function Index({
-    families,
-    queryParams = null,
-    puroks,
-    members,
-}) {
+export default function Index({ families, queryParams = null, puroks }) {
     const breadcrumbs = [
         { label: "Residents Information", showOnMobile: false },
         {
@@ -66,6 +62,8 @@ export default function Index({
     const props = usePage().props;
     const success = props?.success ?? null;
     const error = props?.error ?? null;
+
+    const totalFamilies = families.data.length;
 
     const [query, setQuery] = useState(queryParams["name"] ?? "");
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -207,10 +205,8 @@ export default function Index({
         family_type: (row) => FAMILY_TYPE_TEXT?.[row?.family_type] ?? "Unknown",
 
         house_number: (row) => {
-            const houseNumber =
-                row?.latest_head?.household_residents?.[0]?.household
-                    ?.house_number;
-            return houseNumber ?? "Unknown";
+            if (row?.household?.house_number) return row.household.house_number;
+            return "Unknown";
         },
 
         purok_number: (row) => row?.latest_head?.purok_number ?? "Unknown",
@@ -226,7 +222,11 @@ export default function Index({
                     {
                         label: "Edit",
                         icon: <SquarePen className="w-4 h-4 text-green-500" />,
-                        onClick: () => handleEdit(row?.id),
+                        onClick: () => {
+                            if (!row?.id) return;
+
+                            router.visit(route("family.edit", row.id));
+                        },
                     },
                     {
                         label: "Delete",
@@ -236,13 +236,6 @@ export default function Index({
                 ]}
             />
         ),
-    };
-
-    // add family
-    const handleAddFamily = () => {
-        setQuery(""); // optional
-        setIsModalOpen(true);
-        setData("_method", undefined);
     };
 
     const defaultMember = {
@@ -255,111 +248,9 @@ export default function Index({
         household_position: "",
     };
 
-    const memberList = members.map((mem) => ({
-        label: `${mem.firstname} ${mem.middlename} ${mem.lastname} ${
-            mem.suffix ?? ""
-        }`,
-        value: mem.id.toString(),
-    }));
-
-    const { data, setData, post, errors, reset, clearErrors } = useForm({
-        resident_id: null,
-        resident_name: "",
-        resident_image: null,
-        birthdate: null,
-        purok_number: null,
-        house_number: null,
-        family_name: "",
-        family_type: "",
-        members: [defaultMember],
-        family_id: null,
-        _method: undefined,
-    });
-
     const handleModalClose = () => {
         setIsModalOpen(false);
         setFamilyDetails(null);
-        reset();
-        setData("_method", undefined); // reset method
-        clearErrors();
-    };
-
-    const addMember = () => {
-        setData("members", [...(data.members || []), { ...defaultMember }]);
-    };
-    const removeMember = (memberIndex) => {
-        const updated = [...(data.members || [])];
-        updated.splice(memberIndex, 1);
-        setData("members", updated);
-        toast.warning("Member removed.", {
-            duration: 2000,
-        });
-    };
-
-    const handleResidentChange = (e) => {
-        const resident_id = Number(e.target.value);
-        const resident = members.find((r) => r.id == e.target.value);
-        if (resident) {
-            setData("resident_id", resident.id);
-            setData(
-                "resident_name",
-                `${resident.firstname} ${resident.middlename} ${
-                    resident.lastname
-                } ${resident.suffix ?? ""}`,
-            );
-            setData("purok_number", resident.purok_number);
-            setData(
-                "house_number",
-                resident.latest_household?.house_number ??
-                    resident.household?.house_number,
-            );
-            setData("birthdate", resident.birthdate);
-            setData("resident_image", resident.resident_picture_path);
-        }
-    };
-
-    const handleDynamicResidentChange = (e, index) => {
-        const updatedMembers = [...data.members];
-        const selected = members.find((r) => r.id == e.target.value);
-
-        if (selected) {
-            updatedMembers[index] = {
-                ...updatedMembers[index],
-                resident_id: selected.id ?? "",
-                resident_name: `${selected.firstname ?? ""} ${
-                    selected.middlename ?? ""
-                } ${selected.lastname ?? ""} ${selected.suffix ?? ""}`,
-                purok_number: selected.purok_number ?? "",
-                birthdate: selected.birthdate ?? "",
-                resident_image: selected.image ?? null,
-            };
-            setData({ ...data, members: updatedMembers });
-        }
-    };
-    const handleMemberFieldChange = (e, index) => {
-        const { name, value } = e.target;
-        const updatedMembers = [...data.members];
-        updatedMembers[index] = {
-            ...updatedMembers[index],
-            [name]: value,
-        };
-        setData("members", updatedMembers);
-    };
-    const handleSubmitFamily = (e) => {
-        e.preventDefault();
-        post(route("family.store"), {
-            onError: (errors) => {
-                console.error("Validation Errors:", errors);
-            },
-        });
-    };
-    const handleUpdateFamily = (e) => {
-        e.preventDefault();
-        post(route("family.update", data.family_id), {
-            onError: (errors) => {
-                console.error("Validation Errors:", errors);
-            },
-        });
     };
 
     const handleEdit = async (id) => {
@@ -371,52 +262,52 @@ export default function Index({
             const details = response.data.family_details;
 
             // Find the latest household head
-            const latestHead =
-                details.members
-                    .filter((m) => m.is_household_head === 1)
-                    .sort(
-                        (a, b) =>
-                            new Date(b.updated_at) - new Date(a.updated_at),
-                    )[0] || details.members[0];
+            // const latestHead =
+            //     details.members
+            //         .filter((m) => m.is_household_head === 1)
+            //         .sort(
+            //             (a, b) =>
+            //                 new Date(b.updated_at) - new Date(a.updated_at),
+            //         )[0] || details.members[0];
 
-            setData({
-                resident_id: latestHead?.id ?? null,
-                resident_name: `${latestHead?.firstname} ${
-                    latestHead?.middlename ? latestHead?.middlename + " " : ""
-                }${latestHead?.lastname} ${latestHead?.suffix}`.trim(),
-                resident_image: latestHead?.resident_picture_path,
-                birthdate: latestHead?.birthdate ?? null,
-                purok_number: latestHead?.purok_number ?? null,
-                house_number:
-                    latestHead?.household?.house_number ??
-                    details.household?.house_number ??
-                    null,
-                family_type: details.family_type,
-                family_name: details.family_name,
-                members: (details.members || [])
-                    .map((m) => {
-                        const householdResident =
-                            m.household_residents?.[0] || {};
-                        return {
-                            resident_id: m.id,
-                            resident_name: `${m.firstname} ${
-                                m.middlename ? m.middlename + " " : ""
-                            }${m.lastname} ${m.suffix}`.trim(),
-                            resident_image: m.resident_picture_path,
-                            birthdate: m.birthdate,
-                            purok_number: m.purok_number,
-                            relationship_to_head:
-                                householdResident.relationship_to_head ?? "",
-                            household_position:
-                                householdResident.household_position ?? "",
-                        };
-                    })
-                    .filter(
-                        (m) => m.relationship_to_head.toLowerCase() !== "self",
-                    ),
-                family_id: details.id,
-                _method: "PUT",
-            });
+            // setData({
+            //     resident_id: latestHead?.id ?? null,
+            //     resident_name: `${latestHead?.firstname} ${
+            //         latestHead?.middlename ? latestHead?.middlename + " " : ""
+            //     }${latestHead?.lastname} ${latestHead?.suffix}`.trim(),
+            //     resident_image: latestHead?.resident_picture_path,
+            //     birthdate: latestHead?.birthdate ?? null,
+            //     purok_number: latestHead?.purok_number ?? null,
+            //     house_number:
+            //         latestHead?.household?.house_number ??
+            //         details.household?.house_number ??
+            //         null,
+            //     family_type: details.family_type,
+            //     family_name: details.family_name,
+            //     members: (details.members || [])
+            //         .map((m) => {
+            //             const householdResident =
+            //                 m.household_residents?.[0] || {};
+            //             return {
+            //                 resident_id: m.id,
+            //                 resident_name: `${m.firstname} ${
+            //                     m.middlename ? m.middlename + " " : ""
+            //                 }${m.lastname} ${m.suffix}`.trim(),
+            //                 resident_image: m.resident_picture_path,
+            //                 birthdate: m.birthdate,
+            //                 purok_number: m.purok_number,
+            //                 relationship_to_head:
+            //                     householdResident.relationship_to_head ?? "",
+            //                 household_position:
+            //                     householdResident.household_position ?? "",
+            //             };
+            //         })
+            //         .filter(
+            //             (m) => m.relationship_to_head.toLowerCase() !== "self",
+            //         ),
+            //     family_id: details.id,
+            //     _method: "PUT",
+            // });
 
             console.log(details);
             setFamilyDetails(details);
@@ -436,8 +327,6 @@ export default function Index({
             onSuccess: () => {
                 setIsDeleteModalOpen(false);
                 setFamilyDetails(null);
-                reset(); // reset form
-                setData("_method", undefined); // ensure method is POST
             },
         });
     };
@@ -472,24 +361,60 @@ export default function Index({
             <Toaster richColors />
             <div className="pt-4">
                 <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
-                    {/* <pre>{JSON.stringify(members, undefined, 2)}</pre> */}
+                    {/* <pre>{JSON.stringify(families, undefined, 2)}</pre> */}
                     <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
-                        <div className="mb-6">
-                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl shadow-sm">
-                                <div className="p-2 bg-blue-100 rounded-full">
-                                    <Users className="w-6 h-6 text-blue-600" />
-                                </div>
-                                <div>
-                                    <h1 className="text-xl md:text-2xl font-semibold text-gray-900">
-                                        Family Records
-                                    </h1>
-                                    <p className="text-sm text-gray-500">
-                                        Manage and track families registered in
-                                        the barangay.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        <PageHeader
+                            title="Family Records"
+                            description="Manage, organize, and monitor all registered families and households within the barangay. Keep records updated for accurate reporting and community planning."
+                            icon={Users}
+                            iconWrapperClassName="bg-blue-100 text-blue-600 shadow-sm"
+                            // ✅ Optional badge (quick info)
+                            badge={
+                                <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                                    {/* Replace with dynamic value */}
+                                    {totalFamilies ?? 0} Families
+                                </span>
+                            }
+                            // ✅ Actions
+                            actions={
+                                <>
+                                    {/* Add Family */}
+                                    <Link href={route("family.create")}>
+                                        <Button
+                                            variant="outline"
+                                            className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white transition-all"
+                                        >
+                                            <PiUsersFourBold className="w-4 h-4" />
+                                            <span className="hidden md:inline">
+                                                Add Family
+                                            </span>
+                                        </Button>
+                                    </Link>
+
+                                    {/* <Button
+                                        variant="outline"
+                                        className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
+                                        onClick={handleAddFamily}
+                                    >
+                                        <PiUsersFourBold className="w-4 h-4" />{" "}
+                                        Add Family
+                                    </Button> */}
+
+                                    {/* Add Household */}
+                                    <Link href={route("resident.create")}>
+                                        <Button
+                                            variant="outline"
+                                            className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white transition-all"
+                                        >
+                                            <HousePlus className="w-4 h-4" />
+                                            <span className="hidden md:inline">
+                                                Add Household
+                                            </span>
+                                        </Button>
+                                    </Link>
+                                </>
+                            }
+                        />
                         {/* <pre>{JSON.stringify(residents, undefined, 3)}</pre> */}
                         <div className="flex flex-wrap items-start justify-between gap-2 w-full mb-0">
                             <div className="flex items-start gap-2 flex-wrap">
@@ -559,7 +484,7 @@ export default function Index({
                                         </div>
                                     </div>
                                 </form>
-                                <div className="relative group z-50">
+                                {/* <div className="relative group z-50">
                                     <Button
                                         variant="outline"
                                         className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
@@ -583,7 +508,7 @@ export default function Index({
                                             Add Household
                                         </div>
                                     </div>
-                                </Link>
+                                </Link> */}
                             </div>
                         </div>
 
@@ -613,7 +538,7 @@ export default function Index({
                         />
                     </div>
                     {/* WILL ADD A FAMILY */}
-                    <FamilyFormModal
+                    {/* <FamilyFormModal
                         isOpen={isModalOpen}
                         onClose={handleModalClose}
                         familyDetails={familyDetails}
@@ -631,7 +556,7 @@ export default function Index({
                         addMember={addMember}
                         removeMember={removeMember}
                         reset={reset}
-                    />
+                    /> */}
                     <DeleteConfirmationModal
                         isOpen={isDeleteModalOpen}
                         onClose={() => {

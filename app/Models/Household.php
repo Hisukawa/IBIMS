@@ -94,4 +94,10 @@ class Household extends Model
     public function internetAccessibility(){
         return $this->hasMany(InternetAccessibility::class);
     }
+    public function latestHouseholdHead()
+    {
+        return $this->hasOne(HouseholdResident::class)
+            ->where('is_household_head', true)
+            ->latest('updated_at'); // or created_at
+    }
 }

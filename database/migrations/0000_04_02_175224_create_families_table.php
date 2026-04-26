@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('families', function (Blueprint $table) {
             $table->id();
             $table->foreignId('barangay_id')->constrained('barangays')->onDelete('cascade');
-            $table->foreignId('household_id')->constrained('households')->onDelete('cascade');
+            $table->foreignId('household_id')->nullable()->constrained('households')->onDelete('cascade');
             $table->enum('income_bracket', [
                 'below_5000',
                 '5001_10000',
