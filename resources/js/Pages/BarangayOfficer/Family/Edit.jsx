@@ -2,12 +2,12 @@ import BreadCrumbsHeader from "@/Components/BreadcrumbsHeader";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { Head, router, useForm, usePage } from "@inertiajs/react";
 import { useEffect } from "react";
-import { ArrowLeft, Pencil, Users } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import PageHeader from "@/Components/PageHeader";
 import FamilyForm from "./Partials/FamilyForm";
 
-export default function Edit({ family, members }) {
+export default function Edit({ family, members, households }) {
     const breadcrumbs = [
         { label: "Residents Information", showOnMobile: false },
         {
@@ -25,46 +25,49 @@ export default function Edit({ family, members }) {
     const { success, error } = usePage().props;
 
     const defaultMember = {
-        resident_id: null,
+        resident_id: "",
         resident_name: "",
-        resident_image: null,
+        resident_image: "",
         birthdate: "",
         purok_number: "",
         relationship_to_head: "",
         household_position: "",
     };
 
-    const memberList = members.map((mem) => ({
-        label: `${mem.firstname} ${mem.middlename} ${mem.lastname} ${
-            mem.suffix ?? ""
-        }`,
-        value: mem.id.toString(),
-    }));
+    const initialFamilyForm = {
+        household_id: family?.household_id ?? "",
+        household_head_name: family?.household_head_name ?? "",
+        has_linked_household: Boolean(family?.household_id),
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        resident_id: family?.resident_id ?? null,
+        resident_id: family?.resident_id ?? "",
         resident_name: family?.resident_name ?? "",
-        resident_image: family?.resident_image ?? null,
-        birthdate: family?.birthdate ?? null,
-        purok_number: family?.purok_number ?? null,
-        house_number: family?.house_number ?? null,
+        resident_image: family?.resident_image ?? "",
+        birthdate: family?.birthdate ?? "",
+        purok_number: family?.purok_number ?? "",
+        house_number: family?.house_number ?? "",
+
         family_name: family?.family_name ?? "",
         family_type: family?.family_type ?? "",
+
         members:
             family?.members?.length > 0
                 ? family.members.map((member) => ({
-                      resident_id: member.resident_id ?? null,
+                      resident_id: member.resident_id ?? "",
                       resident_name: member.resident_name ?? "",
-                      resident_image: member.resident_image ?? null,
+                      resident_image: member.resident_image ?? "",
                       birthdate: member.birthdate ?? "",
                       purok_number: member.purok_number ?? "",
                       relationship_to_head: member.relationship_to_head ?? "",
                       household_position: member.household_position ?? "",
                   }))
                 : [{ ...defaultMember }],
-        family_id: family?.id ?? null,
+
+        family_id: family?.id ?? "",
         _method: "put",
-    });
+    };
+
+    const { data, setData, post, processing, errors } =
+        useForm(initialFamilyForm);
 
     const addMember = () => {
         setData("members", [...(data.members || []), { ...defaultMember }]);
@@ -80,58 +83,8 @@ export default function Edit({ family, members }) {
         });
     };
 
-    const handleResidentChange = (e) => {
-        const resident = members.find((r) => r.id == e.target.value);
-
-        if (resident) {
-            setData("resident_id", resident.id);
-            setData(
-                "resident_name",
-                `${resident.firstname} ${resident.middlename} ${
-                    resident.lastname
-                } ${resident.suffix ?? ""}`,
-            );
-            setData("purok_number", resident.purok_number);
-            setData(
-                "house_number",
-                resident.latest_household?.house_number ??
-                    resident.household?.house_number,
-            );
-            setData("birthdate", resident.birthdate);
-            setData("resident_image", resident.resident_picture_path);
-        }
-    };
-
-    const handleDynamicResidentChange = (e, index) => {
-        const updatedMembers = [...data.members];
-        const selected = members.find((r) => r.id == e.target.value);
-
-        if (selected) {
-            updatedMembers[index] = {
-                ...updatedMembers[index],
-                resident_id: selected.id ?? "",
-                resident_name: `${selected.firstname ?? ""} ${
-                    selected.middlename ?? ""
-                } ${selected.lastname ?? ""} ${selected.suffix ?? ""}`,
-                purok_number: selected.purok_number ?? "",
-                birthdate: selected.birthdate ?? "",
-                resident_image: selected.resident_picture_path ?? null,
-            };
-
-            setData("members", updatedMembers);
-        }
-    };
-
-    const handleMemberFieldChange = (e, index) => {
-        const { name, value } = e.target;
-        const updatedMembers = [...data.members];
-
-        updatedMembers[index] = {
-            ...updatedMembers[index],
-            [name]: value,
-        };
-
-        setData("members", updatedMembers);
+    const handleResetFamilyForm = () => {
+        setData(initialFamilyForm);
     };
 
     const handleSubmitFamily = (e) => {
@@ -139,8 +92,6 @@ export default function Edit({ family, members }) {
 
         post(route("family.update", family.id), {
             onError: (errors) => {
-                console.error("Validation Errors:", errors);
-
                 const firstError = Object.values(errors)[0];
 
                 toast.error("Validation Error", {
@@ -149,35 +100,6 @@ export default function Edit({ family, members }) {
                     closeButton: true,
                 });
             },
-        });
-    };
-
-    const handleResetFamilyForm = () => {
-        reset();
-        setData({
-            resident_id: family?.resident_id ?? null,
-            resident_name: family?.resident_name ?? "",
-            resident_image: family?.resident_image ?? null,
-            birthdate: family?.birthdate ?? null,
-            purok_number: family?.purok_number ?? null,
-            house_number: family?.house_number ?? null,
-            family_name: family?.family_name ?? "",
-            family_type: family?.family_type ?? "",
-            members:
-                family?.members?.length > 0
-                    ? family.members.map((member) => ({
-                          resident_id: member.resident_id ?? null,
-                          resident_name: member.resident_name ?? "",
-                          resident_image: member.resident_image ?? null,
-                          birthdate: member.birthdate ?? "",
-                          purok_number: member.purok_number ?? "",
-                          relationship_to_head:
-                              member.relationship_to_head ?? "",
-                          household_position: member.household_position ?? "",
-                      }))
-                    : [{ ...defaultMember }],
-            family_id: family?.id ?? null,
-            _method: "put",
         });
     };
 
@@ -191,6 +113,16 @@ export default function Edit({ family, members }) {
         }
     }, [success]);
 
+    useEffect(() => {
+        if (error) {
+            toast.error(error, {
+                description: "Operation failed!",
+                duration: 3000,
+                closeButton: true,
+            });
+        }
+    }, [error]);
+
     return (
         <AdminLayout>
             <Head title="Edit Family" />
@@ -202,7 +134,7 @@ export default function Edit({ family, members }) {
                     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                         <PageHeader
                             title="Edit Family Record"
-                            description="Update the family head, modify family details, and manage the assigned members for this family record."
+                            description="Update the family head, family details, members, and optional household linkage."
                             icon={Users}
                             badge={
                                 <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600">
@@ -232,13 +164,13 @@ export default function Edit({ family, members }) {
                                     <span className="font-medium text-slate-700">
                                         Purpose:
                                     </span>{" "}
-                                    Update family grouping and member details
+                                    Update family grouping
                                 </div>
                                 <div>
                                     <span className="font-medium text-slate-700">
-                                        Includes:
+                                        Household:
                                     </span>{" "}
-                                    Head, members, type, and household linkage
+                                    Optional
                                 </div>
                             </div>
                         </PageHeader>
@@ -247,13 +179,9 @@ export default function Edit({ family, members }) {
                     <FamilyForm
                         data={data}
                         setData={setData}
+                        members={members}
+                        households={households}
                         errors={errors}
-                        memberList={memberList}
-                        handleResidentChange={handleResidentChange}
-                        handleDynamicResidentChange={
-                            handleDynamicResidentChange
-                        }
-                        handleMemberFieldChange={handleMemberFieldChange}
                         handleSubmitFamily={handleSubmitFamily}
                         addMember={addMember}
                         removeMember={removeMember}

@@ -24,11 +24,12 @@ class UpdateHouseholdRequest extends FormRequest
     {
         return [
             // SECTION 5: Housing Information
-            'resident_id' => ['required', 'exists:residents,id'],
+            'resident_id' => ['nullable', 'exists:residents,id'],
             'housenumber' => ['required', 'string', 'max:55', 'exists:households,house_number'],
             'street_id' => ['required', 'exists:streets,id'],
             'purok_id' => ['required', 'exists:puroks,id'],
             'subdivision' => ['nullable', 'string', 'max:100'],
+            'is_main_house' => ['required', 'boolean'],
 
             'ownership_type' => ['required', 'string', 'max:55'],
             'housing_condition' => ['required', Rule::in(['good', 'needs_repair', 'dilapidated'])],
@@ -64,7 +65,6 @@ class UpdateHouseholdRequest extends FormRequest
     {
         return [
             // SECTION 5: Housing Information
-            'resident_id.required' => 'Please select a resident.',
             'resident_id.exists' => 'The selected resident does not exist in our records.',
 
             'housenumber.required' => 'Please enter the house number.',

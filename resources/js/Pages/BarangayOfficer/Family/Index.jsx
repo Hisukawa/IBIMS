@@ -205,10 +205,8 @@ export default function Index({ families, queryParams = null, puroks }) {
         family_type: (row) => FAMILY_TYPE_TEXT?.[row?.family_type] ?? "Unknown",
 
         house_number: (row) => {
-            const houseNumber =
-                row?.latest_head?.household_residents?.[0]?.household
-                    ?.house_number;
-            return houseNumber ?? "Unknown";
+            if (row?.household?.house_number) return row.household.house_number;
+            return "Unknown";
         },
 
         purok_number: (row) => row?.latest_head?.purok_number ?? "Unknown",
@@ -329,8 +327,6 @@ export default function Index({ families, queryParams = null, puroks }) {
             onSuccess: () => {
                 setIsDeleteModalOpen(false);
                 setFamilyDetails(null);
-                reset(); // reset form
-                setData("_method", undefined); // ensure method is POST
             },
         });
     };

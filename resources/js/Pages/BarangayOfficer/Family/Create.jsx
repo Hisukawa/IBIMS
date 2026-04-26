@@ -51,7 +51,7 @@ export default function Create({ members, households }) {
         _method: undefined,
     };
 
-    const { data, setData, post, processing, errors } =
+    const { data, setData, post, processing, errors, reset } =
         useForm(initialFamilyForm);
 
     const handleResetFamilyForm = () => {

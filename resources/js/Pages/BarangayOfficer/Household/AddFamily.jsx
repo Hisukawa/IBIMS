@@ -36,6 +36,7 @@ const familyTypeOptions = [
 ];
 
 const relationshipOptions = [
+    { label: "Self", value: "self" },
     { label: "Spouse", value: "spouse" },
     { label: "Child", value: "child" },
     { label: "Sibling", value: "sibling" },
