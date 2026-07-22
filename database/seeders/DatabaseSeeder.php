@@ -103,7 +103,7 @@ class DatabaseSeeder extends Seeder
         ])->assignRole($cdrrmoRole);
 
         //$barangays = Barangay::all();
-        $barangays = Barangay::take(1)->get();
+        $barangays = Barangay::take(15)->get();
 
         //  foreach ($barangays->take(2) as $barangay)
 
@@ -174,6 +174,5 @@ class DatabaseSeeder extends Seeder
         CommunityRiskAssessment::factory()->create([
             'year' => 2025
         ]);
-
     }
 }

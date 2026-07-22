@@ -236,7 +236,7 @@ class BarangayDataSeeder extends Seeder
              * HOUSEHOLDS & FAMILIES
              */
             Household::factory()
-                ->count(5)
+                ->count(755)
                 ->for($barangay, 'barangay')
                 ->create()
                 ->each(function ($household) {
@@ -264,12 +264,12 @@ class BarangayDataSeeder extends Seeder
                         ->create();
                 });
 
-            Family::factory(5)->create(['barangay_id' => $barangay->id]);
+            Family::factory(459)->create(['barangay_id' => $barangay->id]);
 
             /**
              * RESIDENTS + RELATED DATA
              */
-            $residents = Resident::factory(20)->create(['barangay_id' => $barangay->id]);
+            $residents = Resident::factory(1578)->create(['barangay_id' => $barangay->id]);
 
             foreach ($residents as $res) {
                 Occupation::factory(rand(1, 3))->create(['resident_id' => $res->id]);
@@ -379,10 +379,10 @@ class BarangayDataSeeder extends Seeder
                     }
                 });
 
-            // /**
-            //  * GEOGRAPHICAL DATA
-            //  */
-             $this->generateLandWater($barangay, $waterTypes, $waterNames, $landTypes, $landNames);
+            /**
+             * GEOGRAPHICAL DATA
+             */
+            $this->generateLandWater($barangay, $waterTypes, $waterNames, $landTypes, $landNames);
         }
     }
 
