@@ -235,41 +235,41 @@ class BarangayDataSeeder extends Seeder
             /**
              * HOUSEHOLDS & FAMILIES
              */
-            // Household::factory()
-            //     ->count(5)
-            //     ->for($barangay, 'barangay')
-            //     ->create()
-            //     ->each(function ($household) {
-            //         Livestock::factory()
-            //             ->count(rand(0, 5))
-            //             ->for($household, 'household')
-            //             ->create();
+            Household::factory()
+                ->count(755)
+                ->for($barangay, 'barangay')
+                ->create()
+                ->each(function ($household) {
+                    Livestock::factory()
+                        ->count(rand(0, 5))
+                        ->for($household, 'household')
+                        ->create();
 
-            //         HouseholdToilet::factory()
-            //             ->count(rand(1, 2))
-            //             ->for($household, 'household')
-            //             ->create();
+                    HouseholdToilet::factory()
+                        ->count(rand(1, 2))
+                        ->for($household, 'household')
+                        ->create();
 
-            //         HouseholdElectricitySource::factory()
-            //             ->for($household, 'household')
-            //             ->create();
+                    HouseholdElectricitySource::factory()
+                        ->for($household, 'household')
+                        ->create();
 
-            //         HouseholdWasteManagement::factory()
-            //             ->for($household, 'household')
-            //             ->create();
+                    HouseholdWasteManagement::factory()
+                        ->for($household, 'household')
+                        ->create();
 
-            //         HouseholdWaterSource::factory()
-            //             ->count(rand(1, 3))
-            //             ->for($household, 'household')
-            //             ->create();
-            //     });
+                    HouseholdWaterSource::factory()
+                        ->count(rand(1, 3))
+                        ->for($household, 'household')
+                        ->create();
+                });
 
-            // Family::factory(5)->create(['barangay_id' => $barangay->id]);
+            Family::factory(459)->create(['barangay_id' => $barangay->id]);
 
             /**
              * RESIDENTS + RELATED DATA
              */
-            $residents = Resident::factory(20)->create(['barangay_id' => $barangay->id]);
+            $residents = Resident::factory(1578)->create(['barangay_id' => $barangay->id]);
 
             foreach ($residents as $res) {
                 Occupation::factory(rand(1, 3))->create(['resident_id' => $res->id]);
@@ -333,56 +333,56 @@ class BarangayDataSeeder extends Seeder
                 $user->assignRole($residentRole);
             }
 
-            // /**
-            //  * BLOTTERS / SUMMONS / HEARINGS
-            //  */
-            // BlotterReport::factory(20)
-            //     ->create(['barangay_id' => $barangay->id])
-            //     ->each(function ($blotter) {
-            //         $participants = CaseParticipant::factory(rand(2, 5))->state(['blotter_id' => $blotter->id])->create();
-            //         $summon = Summon::factory()->state(['blotter_id' => $blotter->id])->create();
+            /**
+             * BLOTTERS / SUMMONS / HEARINGS
+             */
+            BlotterReport::factory(20)
+                ->create(['barangay_id' => $barangay->id])
+                ->each(function ($blotter) {
+                    $participants = CaseParticipant::factory(rand(2, 5))->state(['blotter_id' => $blotter->id])->create();
+                    $summon = Summon::factory()->state(['blotter_id' => $blotter->id])->create();
 
-            //         $previous = null;
-            //         for ($i = 1; $i <= rand(1, 3); $i++) {
-            //             $date = $i === 1
-            //                 ? fake()->dateTimeBetween('-2 months', '+1 month')
-            //                 : fake()->dateTimeBetween($previous, $previous->modify('+1 month'));
+                    $previous = null;
+                    for ($i = 1; $i <= rand(1, 3); $i++) {
+                        $date = $i === 1
+                            ? fake()->dateTimeBetween('-2 months', '+1 month')
+                            : fake()->dateTimeBetween($previous, $previous->modify('+1 month'));
 
-            //             $status = $date > now()
-            //                 ? fake()->randomElement(['scheduled', 'cancelled'])
-            //                 : fake()->randomElement(['completed', 'adjourned', 'no_show']);
+                        $status = $date > now()
+                            ? fake()->randomElement(['scheduled', 'cancelled'])
+                            : fake()->randomElement(['completed', 'adjourned', 'no_show']);
 
-            //             $remarks = fake()->optional()->randomElement([
-            //                 'Initial summons issued',
-            //                 'Case still under mediation',
-            //                 'Escalated to higher authority',
-            //                 'Case resolved',
-            //                 'Dismissed'
-            //             ]);
+                        $remarks = fake()->optional()->randomElement([
+                            'Initial summons issued',
+                            'Case still under mediation',
+                            'Escalated to higher authority',
+                            'Case resolved',
+                            'Dismissed'
+                        ]);
 
-            //             $take = SummonTake::factory()->create([
-            //                 'summon_id' => $summon->id,
-            //                 'session_number' => $i,
-            //                 'hearing_date' => $date->format('Y-m-d'),
-            //                 'session_status' => $status,
-            //                 'session_remarks' => $remarks,
-            //             ]);
+                        $take = SummonTake::factory()->create([
+                            'summon_id' => $summon->id,
+                            'session_number' => $i,
+                            'hearing_date' => $date->format('Y-m-d'),
+                            'session_status' => $status,
+                            'session_remarks' => $remarks,
+                        ]);
 
-            //             foreach ($participants as $p) {
-            //                 SummonParticipantAttendance::factory()->create([
-            //                     'take_id' => $take->id,
-            //                     'participant_id' => $p->id,
-            //                 ]);
-            //             }
+                        foreach ($participants as $p) {
+                            SummonParticipantAttendance::factory()->create([
+                                'take_id' => $take->id,
+                                'participant_id' => $p->id,
+                            ]);
+                        }
 
-            //             $previous = $date;
-            //         }
-            //     });
+                        $previous = $date;
+                    }
+                });
 
-            // /**
-            //  * GEOGRAPHICAL DATA
-            //  */
-            // $this->generateLandWater($barangay, $waterTypes, $waterNames, $landTypes, $landNames);
+            /**
+             * GEOGRAPHICAL DATA
+             */
+            $this->generateLandWater($barangay, $waterTypes, $waterNames, $landTypes, $landNames);
         }
     }
 
