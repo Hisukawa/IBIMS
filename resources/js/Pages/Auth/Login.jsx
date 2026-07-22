@@ -49,7 +49,7 @@ export default function Login({ status, canResetPassword }) {
                 {/* SYSTEM HEADER */}
                 <div className="text-center border-b pb-4 mb-6">
                     <h1 className="text-xl font-semibold text-gray-800 tracking-wide">
-                        iBIMS
+                        IlaganConnect
                     </h1>
 
                     <p className="text-sm text-gray-500 mt-1">
