@@ -15,6 +15,7 @@ class Family extends Model
         'household_id',
         'income_bracket',
         'income_category',
+        'family_monthly_income',
         'family_type',
         'family_name',
         'created_at',
@@ -35,7 +36,7 @@ class Family extends Model
     }
     public function latestHead()
     {
-        return $this->hasOne(Resident::class, 'family_id')
-                    ->where('is_family_head', true);
+        return $this->hasOne(Resident::class, 'family_id', 'id')
+            ->where('residents.is_family_head', true);
     }
 }

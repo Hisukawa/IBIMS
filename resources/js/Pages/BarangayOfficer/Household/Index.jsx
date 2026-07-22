@@ -146,27 +146,24 @@ export default function Index({ households, puroks, queryParams }) {
     const [showFilters, setShowFilters] = useState(hasActiveFilter);
     const columnRenderers = {
         household_info: (entry) => {
-            const household = entry.household;
-            const houseId = household?.id;
-            const houseNumber = household?.house_number;
-            const purok = household?.purok?.purok_number;
+            const household = entry;
 
             return (
                 <div className="flex flex-col gap-1 min-w-[180px]">
                     <Link
-                        href={route("household.show", houseId)}
+                        href={route("household.show", household.id)}
                         className="font-semibold text-slate-800 hover:text-blue-600 hover:underline"
                     >
-                        House #{houseNumber ?? "N/A"}
+                        House #{household.house_number ?? "N/A"}
                     </Link>
 
                     <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 font-medium">
-                            ID: {houseId ?? "N/A"}
+                        <span className="bg-slate-100 px-2 py-0.5 rounded-full">
+                            ID: {household.id}
                         </span>
 
-                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 font-medium text-blue-700">
-                            Purok {purok ?? "N/A"}
+                        <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                            Purok {household.purok?.purok_number ?? "N/A"}
                         </span>
                     </div>
                 </div>
@@ -174,7 +171,7 @@ export default function Index({ households, puroks, queryParams }) {
         },
 
         name: (entry) => {
-            const head = entry.resident;
+            const head = entry.household_residents?.[0]?.resident;
 
             if (!head) {
                 return (
@@ -197,38 +194,26 @@ export default function Index({ households, puroks, queryParams }) {
                     >
                         {fullName}
                     </button>
-
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                        {head.gender && (
-                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 font-medium">
-                                {head.gender}
-                            </span>
-                        )}
-
-                        {head.birthdate && (
-                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 font-medium">
-                                {calculateAge(head.birthdate)} yrs old
-                            </span>
-                        )}
-                    </div>
                 </div>
             );
         },
 
         status_info: (entry) => {
-            const household = entry.household;
-            const ownershipType = household?.ownership_type;
-            const condition = household?.housing_condition;
+            const household = entry;
 
             const ownershipText =
-                CONSTANTS.HOUSEHOLD_OWNERSHIP_TEXT[ownershipType] ?? "Unknown";
+                CONSTANTS.HOUSEHOLD_OWNERSHIP_TEXT[household.ownership_type] ??
+                "Unknown";
 
             const conditionText =
-                CONSTANTS.HOUSEHOLD_CONDITION_TEXT[condition] ?? "Unknown";
+                CONSTANTS.HOUSEHOLD_CONDITION_TEXT[
+                    household.housing_condition
+                ] ?? "Unknown";
 
             const conditionColor =
-                CONSTANTS.HOUSING_CONDITION_COLOR[condition] ??
-                "bg-gray-100 text-gray-500";
+                CONSTANTS.HOUSING_CONDITION_COLOR[
+                    household.housing_condition
+                ] ?? "bg-gray-100 text-gray-500";
 
             return (
                 <div className="flex flex-col gap-2 min-w-[200px]">
@@ -256,12 +241,11 @@ export default function Index({ households, puroks, queryParams }) {
         },
 
         structure_info: (entry) => {
-            const household = entry.household;
+            const household = entry;
 
             const structureText =
-                CONSTANTS.HOUSEHOLD_STRUCTURE_TEXT[
-                    household?.house_structure
-                ] ?? "Unknown";
+                CONSTANTS.HOUSEHOLD_STRUCTURE_TEXT[household.house_structure] ??
+                "Unknown";
 
             return (
                 <div className="grid gap-2 min-w-[220px]">
@@ -279,7 +263,7 @@ export default function Index({ households, puroks, queryParams }) {
                             Year Built
                         </span>
                         <span className="text-sm font-medium text-slate-800">
-                            {household?.year_established ?? "N/A"}
+                            {household.year_established ?? "N/A"}
                         </span>
                     </div>
 
@@ -287,14 +271,14 @@ export default function Index({ households, puroks, queryParams }) {
                         <div className="rounded-lg bg-blue-50 px-3 py-2 text-center">
                             <p className="text-xs text-blue-600">Rooms</p>
                             <p className="text-sm font-semibold text-blue-800">
-                                {household?.number_of_rooms ?? 0}
+                                {household.number_of_rooms ?? 0}
                             </p>
                         </div>
 
                         <div className="rounded-lg bg-indigo-50 px-3 py-2 text-center">
                             <p className="text-xs text-indigo-600">Floors</p>
                             <p className="text-sm font-semibold text-indigo-800">
-                                {household?.number_of_floors ?? 0}
+                                {household.number_of_floors ?? 0}
                             </p>
                         </div>
                     </div>
@@ -303,14 +287,7 @@ export default function Index({ households, puroks, queryParams }) {
         },
 
         household_count: (entry) => {
-            const household = entry.household;
-
-            const occupants =
-                household?.residents_count?.[0]?.aggregate ??
-                household?.residents_count ??
-                0;
-
-            const families = household?.families_count ?? 0;
+            const household = entry;
 
             return (
                 <div className="flex flex-col gap-2 min-w-[160px]">
@@ -318,8 +295,8 @@ export default function Index({ households, puroks, queryParams }) {
                         <span className="text-xs font-medium text-green-700">
                             Occupants
                         </span>
-                        <span className="inline-flex items-center gap-1 text-sm font-semibold text-green-800">
-                            {occupants}
+                        <span className="text-sm font-semibold text-green-800">
+                            {household.residents_count ?? 0}
                         </span>
                     </div>
 
@@ -328,36 +305,32 @@ export default function Index({ households, puroks, queryParams }) {
                             Families
                         </span>
                         <span className="text-sm font-semibold text-amber-800">
-                            {families}
+                            {household.families_count ?? 0}
                         </span>
                     </div>
                 </div>
             );
         },
 
-        actions: (house) => (
+        actions: (entry) => (
             <ActionMenu
                 actions={[
                     {
                         label: "View",
                         icon: <Eye className="w-4 h-4 text-indigo-600" />,
                         onClick: () =>
-                            router.visit(
-                                route("household.show", house.household?.id),
-                            ),
+                            router.visit(route("household.show", entry.id)),
                     },
                     {
                         label: "Edit",
                         icon: <SquarePen className="w-4 h-4 text-green-500" />,
                         onClick: () =>
-                            router.visit(
-                                route("household.edit", house.household?.id),
-                            ),
+                            router.visit(route("household.edit", entry.id)),
                     },
                     {
                         label: "Delete",
                         icon: <Trash2 className="w-4 h-4 text-red-600" />,
-                        onClick: () => handleDeleteClick(house.household?.id),
+                        onClick: () => handleDeleteClick(entry.id),
                     },
                 ]}
             />
@@ -407,45 +380,48 @@ export default function Index({ households, puroks, queryParams }) {
                     <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
                         <PageHeader
                             title="Household Records"
-                            description="Manage all registered households in the barangay. Search, filter, export records, and add new household entries for accurate community tracking."
+                            description="Manage and monitor all registered households within the barangays of the City of Ilagan, Isabela. Maintain accurate residential information, household composition, geolocation data, and socio-economic profiles to support governance, disaster preparedness, resource allocation, and community development initiatives."
                             icon={Home}
                             badge={
-                                <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-200">
-                                    Community Registry
-                                </span>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-200">
+                                        Household Registry
+                                    </span>
+
+                                    <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-200">
+                                        Barangay / City Registry
+                                    </span>
+
+                                    <span className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
+                                        CDRRMO
+                                    </span>
+
+                                    <span className="inline-flex items-center rounded-full bg-violet-50 px-3 py-1 text-xs font-medium text-violet-700 ring-1 ring-inset ring-violet-200">
+                                        Community Profiling
+                                    </span>
+                                </div>
                             }
                             iconWrapperClassName="bg-indigo-100 text-indigo-600 shadow-sm"
-                            containerClassName="border border-slate-200 bg-gradient-to-r from-white via-slate-50 to-indigo-50/60 shadow-sm"
+                            containerClassName="border border-indigo-100 bg-gradient-to-r from-white via-slate-50 to-indigo-50/60 shadow-sm"
                             titleClassName="tracking-tight"
-                            descriptionClassName="max-w-2xl text-sm text-slate-600"
+                            descriptionClassName="max-w-3xl text-sm leading-6 text-slate-600"
                             actions={
-                                <>
+                                <div className="flex items-center gap-2">
                                     <Link href={route("household.create")}>
                                         <Button
                                             variant="outline"
-                                            className="flex items-center gap-2 border-blue-300 text-blue-700 hover:bg-blue-600 hover:text-white"
+                                            className="flex items-center gap-2 border-blue-300 bg-white text-blue-700 shadow-sm transition-all hover:bg-blue-600 hover:text-white"
                                         >
-                                            <HousePlus className="w-4 h-4" />
+                                            <HousePlus className="h-4 w-4" />
+
                                             <span className="hidden sm:inline">
                                                 Add Household
                                             </span>
                                         </Button>
                                     </Link>
-                                </>
+                                </div>
                             }
-                        >
-                            <div className="flex flex-wrap items-center gap-2 pt-1">
-                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-                                    Search households
-                                </span>
-                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-                                    Filter records
-                                </span>
-                                <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
-                                    Export data
-                                </span>
-                            </div>
-                        </PageHeader>
+                        />
                         <div className="flex flex-wrap items-start justify-between gap-2 w-full mb-0">
                             <div className="flex items-start gap-2 flex-wrap">
                                 <DynamicTableControls

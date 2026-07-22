@@ -278,31 +278,30 @@ class ResidentController extends Controller
             // Determine which house number to use
             $houseNumberToUse = $data['housenumber'] ?? $data['new_housenumber'] ?? null;
 
-            if (!$houseNumberToUse) {
-                throw new \Exception("House number is required."); // Optional: validation
+            if ($houseNumberToUse !== null && $houseNumberToUse !== '') {
+                /** ✅ Get or Create Household */
+                $household = Household::firstOrCreate([
+                    'barangay_id' => $barangayId,
+                    'purok_id'    => $purok->id,
+                    'house_number'=> $houseNumberToUse,
+                ]);
             }
 
-            /** ✅ Get or Create Household */
-            $household = Household::firstOrCreate([
-                'barangay_id' => $barangayId,
-                'purok_id'    => $purok->id,
-                'house_number'=> $houseNumberToUse,
-            ]);
-
             $householdId = $household->id ?? null;
+            if ($householdId) {
+                $family = Family::firstOrCreate(
+                    [
+                        'household_id' => $householdId,
+                        'barangay_id'  => $barangayId,
+                    ],
+                    [
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]
+                );
+            }
 
-            $family = Family::firstOrCreate(
-                [
-                    'household_id' => $householdId,
-                    'barangay_id'  => $barangayId,
-                ],
-                [
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]
-            );
-
-            $familyId = $family->id;
+            $familyId = $family->id ?? null;
 
             // ==============================
             // 🔹 MAIN RESIDENT INFORMATION
@@ -459,45 +458,51 @@ class ResidentController extends Controller
                 $resident->occupations()->createMany($normalizedOccupations);
 
                 // Recompute family’s total and average monthly income
-                $family = Family::with('members.occupations')->findOrFail($familyId);
-                $allIncomes = $family->members
-                    ->flatMap(
-                        fn($m) =>
-                        $m->occupations->filter(
-                            fn($occupation) => is_null($occupation->ended_at) || $occupation->ended_at >= now()
+                if ($familyId) {
+                    $family = Family::with('members.occupations')->find($familyId);
+
+                if ($family) {
+                    $allIncomes = $family->members
+                        ->flatMap(fn ($member) =>
+                            $member->occupations->filter(fn ($occupation) =>
+                                is_null($occupation->ended_at) ||
+                                (int) $occupation->ended_at >= now()->year
+                            )
                         )
-                    )
-                    ->pluck('monthly_income')
-                    ->filter();
+                        ->pluck('monthly_income')
+                        ->filter();
 
-                $totalIncome = $allIncomes->sum();
+                    $totalIncome = $allIncomes->sum();
 
-                // Classify based on total income
-                $incomeBracket = match (true) {
-                    $totalIncome < 5000 => 'below_5000',
-                    $totalIncome <= 10000 => '5001_10000',
-                    $totalIncome <= 20000 => '10001_20000',
-                    $totalIncome <= 40000 => '20001_40000',
-                    $totalIncome <= 70000 => '40001_70000',
-                    $totalIncome <= 120000 => '70001_120000',
-                    default => 'above_120001',
-                };
+                    $incomeBracket = match (true) {
+                        $totalIncome < 12030 => 'poor',
+                        $totalIncome <= 24060 => 'low_income_non_poor',
+                        $totalIncome <= 48120 => 'lower_middle_income',
+                        $totalIncome <= 84210 => 'middle_middle_income',
+                        $totalIncome <= 144360 => 'upper_middle_income',
+                        $totalIncome <= 240600 => 'upper_income',
+                        default => 'rich',
+                    };
 
-                $incomeCategory = match (true) {
-                    $totalIncome <= 10000 => 'survival',
-                    $totalIncome <= 20000 => 'poor',
-                    $totalIncome <= 40000 => 'low_income',
-                    $totalIncome <= 70000 => 'lower_middle_income',
-                    $totalIncome <= 120000 => 'middle_income',
-                    $totalIncome <= 200000 => 'upper_middle_income',
-                    default => 'above_high_income',
-                };
+                    $incomeCategory = match ($incomeBracket) {
+                        'poor',
+                        'low_income_non_poor' => 'low_income',
 
-                // Update family record
-                $family->update([
-                    'income_bracket' => $incomeBracket,
-                    'income_category' => $incomeCategory,
-                ]);
+                        'lower_middle_income',
+                        'middle_middle_income',
+                        'upper_middle_income' => 'middle_income',
+
+                        'upper_income',
+                        'rich' => 'high_income',
+                    };
+
+                    $family->update([
+                        'family_monthly_income' => $totalIncome,
+                        'income_bracket' => $incomeBracket,
+                        'income_category' => $incomeCategory,
+                    ]);
+                }
+                }
             }
 
             // ==============================
@@ -568,43 +573,49 @@ class ResidentController extends Controller
             // ==============================
             // 🔹 RECOMPUTE FAMILY INCOME (AVERAGE)
             // ==============================
-            $family = Family::with(['members.occupations'])->findOrFail($familyId);
-            if ($family) {
-                $family->load(['members.occupations']);
 
-                // Sum all active monthly incomes
-                $sumIncome = $family->members->sum(function ($member) {
+            if ($familyId) {
+                $family = Family::with(['members.occupations'])->findOrFail($familyId);
+
+                // 🔹 Total family income (DO NOT divide)
+                $totalIncome = $family->members->sum(function ($member) {
                     return $member->occupations
-                        ->filter(fn($occupation) => is_null($occupation->ended_at) || $occupation->ended_at >= now())
+                        ->filter(fn($occupation) =>
+                            is_null($occupation->ended_at) ||
+                            (int) $occupation->ended_at >= now()->year
+                        )
                         ->sum('monthly_income') ?? 0;
                 });
 
+                // 🔹 Optional: per capita (for analytics only)
                 $memberCount = $family->members->count();
-                $totalIncome = $memberCount > 0 ? $sumIncome / $memberCount : 0;
 
-                // Classify average income
+                // 🔹 PSA Brackets (based on TOTAL income)
                 $incomeBracket = match (true) {
-                    $totalIncome < 5000 => 'below_5000',
-                    $totalIncome <= 10000 => '5001_10000',
-                    $totalIncome <= 20000 => '10001_20000',
-                    $totalIncome <= 40000 => '20001_40000',
-                    $totalIncome <= 70000 => '40001_70000',
-                    $totalIncome <= 120000 => '70001_120000',
-                    default => 'above_120001',
+                    $totalIncome < 12030 => 'poor',
+                    $totalIncome <= 24060 => 'low_income_non_poor',
+                    $totalIncome <= 48120 => 'lower_middle_income',
+                    $totalIncome <= 84210 => 'middle_middle_income',
+                    $totalIncome <= 144360 => 'upper_middle_income',
+                    $totalIncome <= 240600 => 'upper_income',
+                    default => 'rich',
                 };
 
-                $incomeCategory = match (true) {
-                    $totalIncome <= 10000 => 'survival',
-                    $totalIncome <= 20000 => 'poor',
-                    $totalIncome <= 40000 => 'low_income',
-                    $totalIncome <= 70000 => 'lower_middle_income',
-                    $totalIncome <= 120000 => 'middle_income',
-                    $totalIncome <= 200000 => 'upper_middle_income',
-                    default => 'above_high_income',
+                $incomeCategory = match ($incomeBracket) {
+                    'poor',
+                    'low_income_non_poor' => 'low_income',
+
+                    'lower_middle_income',
+                    'middle_middle_income',
+                    'upper_middle_income' => 'middle_income',
+
+                    'upper_income',
+                    'rich' => 'high_income',
                 };
 
-                // Update family record
+                // 🔹 Update family record
                 $family->update([
+                    'family_monthly_income' => $totalIncome,
                     'income_bracket' => $incomeBracket,
                     'income_category' => $incomeCategory,
                 ]);
@@ -728,8 +739,9 @@ class ResidentController extends Controller
                         $family = Family::create([
                             'barangay_id' => $barangayId,
                             'household_id' => $household->id,
-                            'income_bracket' =>  $hhld['income_bracket'] ?? null,
-                            'income_category' =>  $hhld['income_category'] ?? null,
+                            'family_monthly_income' => $familyData['family_monthly_income'] ?? 0,
+                            'income_bracket' => $familyData['income_bracket'] ?? null,
+                            'income_category' => $familyData['income_category'] ?? null,
                             'family_name' =>  null, // Will be updated later from head’s lastname
                             'family_type' =>  $familyData['family_type'] ?? null,
                         ]);
@@ -963,7 +975,7 @@ class ResidentController extends Controller
 
             DB::commit();
             // --- SUCCESS RESPONSE ---
-            //dd('yes');
+            dd('Residents Household created successfully!', $data);
             return redirect()->route('resident.index')->with('success', 'Residents Household created successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1262,47 +1274,47 @@ class ResidentController extends Controller
 
             // Determine house number
             $existingHouseNumber = $data['housenumber'] ?? null;
-            $newHouseNumber      = $data['newhousenumber'] ?? null;
+            $newHouseNumber = $data['newhousenumber'] ?? null;
 
-            // No house number at all
-            if (!$existingHouseNumber && !$newHouseNumber) {
-                throw new \Exception("House number is required.");
-            }
+            $houseNumberToUse = $existingHouseNumber ?? $newHouseNumber ?? null;
 
-            if ($existingHouseNumber) {
-                // 🔍 Find existing household ONLY
-                $household = Household::where('barangay_id', $barangayId)
-                    ->where('purok_id', $purok->id)
-                    ->where('id', $existingHouseNumber)
-                    ->first();
+            $household = null;
+            $family = null;
 
-                if (!$household) {
-                    throw new \Exception("Selected household number does not exist.");
+            if ($houseNumberToUse !== null && $houseNumberToUse !== '') {
+                if ($existingHouseNumber) {
+                    // existing household selected
+                    $household = Household::where('barangay_id', $barangayId)
+                        ->where('purok_id', $purok->id)
+                        ->where('id', $existingHouseNumber)
+                        ->first();
+
+                    if (!$household) {
+                        throw new \Exception("Selected household number does not exist.");
+                    }
+                } else {
+                    // new household number entered
+                    $household = Household::firstOrCreate([
+                        'barangay_id' => $barangayId,
+                        'purok_id'    => $purok->id,
+                        'house_number'=> $newHouseNumber,
+                    ]);
                 }
-            } else {
-                // 🆕 Create new household (because housenumber is null)
-                $household = Household::firstOrCreate([
-                    'barangay_id' => $barangayId,
-                    'purok_id'    => $purok->id,
-                    'house_number'=> $newHouseNumber,
-                ]);
+
+                $family = Family::firstOrCreate(
+                    [
+                        'household_id' => $household->id,
+                        'barangay_id'  => $barangayId,
+                    ],
+                    [
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]
+                );
             }
 
-            $householdId = $household->id;
-
-            // Create or get family
-            $family = Family::firstOrCreate(
-                [
-                    'household_id' => $householdId,
-                    'barangay_id'  => $barangayId,
-                ],
-                [
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]
-            );
-
-            $familyId = $family->id;
+            $householdId = $household?->id;
+            $familyId = $family?->id;
 
             $residentInformation = [
                 'resident_picture_path' => $data['resident_image'] ?? null,
@@ -1327,13 +1339,13 @@ class ResidentController extends Controller
                 'residency_type' => $data['residency_type'] ?? 'permanent',
                 'purok_number' => $data['purok_number'],
                 'street_id' => $data['street_id'] ?? null,
-                'is_household_head' => $data['new_housenumber'] ? 1 : $resident->is_household_head,
-                'is_family_head' => $data['new_housenumber'] ? 1 : $resident->is_family_head,
+                'is_household_head' => $newHouseNumber ? 1 : $resident->is_household_head,
+                'is_family_head' => $newHouseNumber ? 1 : $resident->is_family_head,
                 'is_pwd' => $data['is_pwd'] ?? null,
                 'ethnicity' => $data['ethnicity'] ?? null,
                 'family_id' => $familyId,
-                'household_id' =>  $householdId,
-                'verfied' => $data['verified'] ?? 0,
+                'household_id' => $householdId,
+                'verified' => $data['verified'] ?? 0,
             ];
 
             $residentSocialWelfareProfile = [
@@ -1442,39 +1454,55 @@ class ResidentController extends Controller
                 $resident->occupations()->createMany($normalizedOccupations);
 
                 // Recompute family's total and average monthly income
-                $family = Family::with('members.occupations')->findOrFail($familyId);
-                $totalIncome = $family->members->sum(function ($member) {
-                    return $member->occupations
-                        ->filter(fn($occupation) => is_null($occupation->ended_at) || $occupation->ended_at >= now())
-                        ->sum('monthly_income') ?? 0;
-                });
+                if ($familyId) {
+                    $family = Family::with('members.occupations')->find($familyId);
 
-                // Determine bracket and category
-                $incomeBracket = match (true) {
-                    $totalIncome < 5000 => 'below_5000',
-                    $totalIncome <= 10000 => '5001_10000',
-                    $totalIncome <= 20000 => '10001_20000',
-                    $totalIncome <= 40000 => '20001_40000',
-                    $totalIncome <= 70000 => '40001_70000',
-                    $totalIncome <= 120000 => '70001_120000',
-                    default => 'above_120001',
-                };
+                    if ($family) {
+                        $totalIncome = $family->members->sum(function ($member) {
+                            return $member->occupations
+                                ->filter(fn ($occupation) =>
+                                    is_null($occupation->ended_at) ||
+                                    (int) $occupation->ended_at >= now()->year
+                                )
+                                ->sum('monthly_income') ?? 0;
+                        });
 
-                $incomeCategory = match (true) {
-                    $totalIncome <= 5000 => 'survival',
-                    $totalIncome <= 10000 => 'poor',
-                    $totalIncome <= 20000 => 'low_income',
-                    $totalIncome <= 40000 => 'lower_middle_income',
-                    $totalIncome <= 70000 => 'middle_income',
-                    $totalIncome <= 120000 => 'upper_middle_income',
-                    default => 'above_high_income',
-                };
+                        $memberCount = $family->members->count();
 
-                // Update family in one go
-                $family->update([
-                    'income_bracket' => $incomeBracket,
-                    'income_category' => $incomeCategory,
-                ]);
+                        $perCapitaIncome = $memberCount > 0
+                            ? $totalIncome / $memberCount
+                            : 0;
+
+                        $incomeBracket = match (true) {
+                            $totalIncome < 12030 => 'poor',
+                            $totalIncome <= 24060 => 'low_income_non_poor',
+                            $totalIncome <= 48120 => 'lower_middle_income',
+                            $totalIncome <= 84210 => 'middle_middle_income',
+                            $totalIncome <= 144360 => 'upper_middle_income',
+                            $totalIncome <= 240600 => 'upper_income',
+                            default => 'rich',
+                        };
+
+                        $incomeCategory = match ($incomeBracket) {
+                            'poor',
+                            'low_income_non_poor' => 'low_income',
+
+                            'lower_middle_income',
+                            'middle_middle_income',
+                            'upper_middle_income' => 'middle_income',
+
+                            'upper_income',
+                            'rich' => 'high_income',
+                        };
+
+                        $family->update([
+                            'family_monthly_income' => $totalIncome,
+                            'per_capita_income' => $perCapitaIncome,
+                            'income_bracket' => $incomeBracket,
+                            'income_category' => $incomeCategory,
+                        ]);
+                    }
+                }
             }
 
             $resident->disabilities()->delete();
@@ -1501,12 +1529,15 @@ class ResidentController extends Controller
             }
 
             if (calculateAge($resident->birthdate) >= 60) {
-                $resident->seniorcitizen()->create([
-                    'is_pensioner' => $data['is_pensioner'] ?? null,
-                    'osca_id_number' => $data['osca_id_number'] ?? null,
-                    'pension_type' => $data['pension_type'] ?? null,
-                    'living_alone' => $data['living_alone'] ?? null,
-                ]);
+                $resident->seniorcitizen()->updateOrCreate(
+                    ['resident_id' => $resident->id],
+                    [
+                        'is_pensioner' => $data['is_pensioner'] ?? null,
+                        'osca_id_number' => $data['osca_id_number'] ?? null,
+                        'pension_type' => $data['pension_type'] ?? null,
+                        'living_alone' => $data['living_alone'] ?? null,
+                    ]
+                );
             }
             DB::commit();
 

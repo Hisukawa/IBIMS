@@ -14,6 +14,7 @@ import { Head, router, usePage, useForm } from "@inertiajs/react";
 import { useEffect } from "react";
 import useResidentChangeHandler from "@/hooks/handleResidentChange";
 import { RotateCcw } from "lucide-react";
+import HouseForm from "./Partials/HouseForm";
 
 export default function Edit({
     auth,
@@ -21,7 +22,7 @@ export default function Edit({
     streets,
     barangays,
     residents,
-    latestHead,
+    household,
 }) {
     const breadcrumbs = [
         { label: "Residents Information", showOnMobile: false },
@@ -55,7 +56,7 @@ export default function Edit({
         bath_and_wash_area: null,
         waste_management_types: [{ waste_management_type: "" }],
         toilets: [{ toilet_type: "" }],
-        electricity_types: [{ electricity_types: "" }],
+        electricity_types: [{ electricity_type: "" }],
         water_source_types: [{ water_source_type: "" }],
         type_of_internet: null,
         relationship_to_head: "",
@@ -64,77 +65,90 @@ export default function Edit({
         has_livestock: null,
         livestocks: [],
         has_pets: null,
+        latitude: "",
+        longitude: "",
+        is_main_house: 1,
         pets: [],
         household_id: null,
         _method: "PUT",
     });
     useEffect(() => {
-        if (latestHead) {
-            setData({
-                resident_id: latestHead.resident?.id || null,
-                resident_name: `${latestHead.resident?.firstname || ""} ${
-                    latestHead.resident?.middlename || ""
-                } ${latestHead.resident?.lastname || ""}`.trim(),
-                birthdate: latestHead.resident?.birthdate || "",
-                gender: latestHead.resident?.gender || "",
-                resident_image:
-                    latestHead.resident?.resident_picture_path || null,
-                purok_id: latestHead.household?.purok_id || null,
-                street_id: latestHead.household?.street_id || null,
-                street_name: latestHead.household?.street?.street_name || null,
-                residency_date: latestHead.resident?.residency_date || null,
-                residency_type: latestHead.resident?.residency_type || null,
-                subdivision: latestHead.household?.subdivision || null,
-                housenumber: latestHead.household?.house_number
-                    ? latestHead.household?.house_number.toString()
-                    : null,
-                ownership_type: latestHead.household?.ownership_type || "",
-                housing_condition:
-                    latestHead.household?.housing_condition || "",
-                house_structure: latestHead.household?.house_structure || null,
-                year_established:
-                    latestHead.household?.year_established || null,
-                number_of_rooms: latestHead.household?.number_of_rooms || null,
-                number_of_floors:
-                    latestHead.household?.number_of_floors || null,
-                bath_and_wash_area:
-                    latestHead.household?.bath_and_wash_area || null,
-                waste_management_types:
-                    latestHead.household?.waste_management_types?.map((w) => ({
-                        waste_management_type: w.waste_management_type,
-                    })) || [{ waste_management_type: "" }],
-                toilets: latestHead.household?.toilets?.map((t) => ({
-                    toilet_type: t.toilet_type,
-                })) || [{ toilet_type: "" }],
-                electricity_types: latestHead.household?.electricity_types?.map(
-                    (e) => ({
-                        electricity_type: e.electricity_type,
-                    }),
-                ) || [{ electricity_type: "" }],
-                water_source_types:
-                    latestHead.household?.water_source_types?.map((w) => ({
-                        water_source_type: w.water_source_type,
-                    })) || [{ water_source_type: "" }],
-                type_of_internet:
-                    latestHead.household?.internet_accessibility?.sort(
-                        (a, b) =>
-                            new Date(b.created_at) - new Date(a.created_at),
-                    )[0]?.type_of_internet || null,
-                relationship_to_head: latestHead.relationship_to_head || "",
-                household_position: latestHead.household_position || "",
-                name_of_head: `${latestHead.resident?.firstname || ""} ${
-                    latestHead.resident?.lastname || ""
-                }`.trim(),
-                has_livestock:
-                    latestHead.household?.livestocks?.length > 0 ? "1" : "0",
-                livestocks: latestHead.household?.livestocks || [],
-                has_pets: latestHead.household?.pets?.length > 0 ? "1" : "0",
-                pets: latestHead.household?.pets || [],
-                household_id: latestHead.household?.id,
-                _method: "PUT",
-            });
-        }
-    }, [latestHead]);
+        if (!household) return;
+
+        const latestHead = household.household_residents?.[0] ?? null;
+        const resident = latestHead?.resident ?? null;
+
+        setData({
+            resident_id: resident?.id || null,
+            resident_name: resident
+                ? `${resident.firstname || ""} ${resident.middlename || ""} ${resident.lastname || ""}`.trim()
+                : "",
+            birthdate: resident?.birthdate || "",
+            gender: resident?.gender || "",
+            sex: resident?.gender || "",
+            resident_image: resident?.resident_picture_path || null,
+
+            purok_id: household.purok_id || null,
+            street_id: household.street_id || null,
+            street_name: household.street?.street_name || "",
+            residency_date: resident?.residency_date || "",
+            residency_type: resident?.residency_type || "",
+
+            subdivision: household.subdivision || "",
+            housenumber: household.house_number
+                ? household.house_number.toString()
+                : "",
+            ownership_type: household.ownership_type || "",
+            housing_condition: household.housing_condition || "",
+            house_structure: household.house_structure || "",
+            year_established: household.year_established || "",
+            number_of_rooms: household.number_of_rooms || "",
+            number_of_floors: household.number_of_floors || "",
+            bath_and_wash_area: household.bath_and_wash_area || "",
+
+            waste_management_types: household.waste_management_types?.map(
+                (w) => ({
+                    waste_management_type: w.waste_management_type,
+                }),
+            ) || [{ waste_management_type: "" }],
+
+            toilets: household.toilets?.map((t) => ({
+                toilet_type: t.toilet_type,
+            })) || [{ toilet_type: "" }],
+
+            electricity_types: household.electricity_types?.map((e) => ({
+                electricity_type: e.electricity_type,
+            })) || [{ electricity_type: "" }],
+
+            water_source_types: household.water_source_types?.map((w) => ({
+                water_source_type: w.water_source_type,
+            })) || [{ water_source_type: "" }],
+
+            type_of_internet:
+                household.internet_accessibility?.sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at),
+                )[0]?.type_of_internet || null,
+
+            relationship_to_head: latestHead?.relationship_to_head || "",
+            household_position: latestHead?.household_position || "",
+            name_of_head: resident
+                ? `${resident.firstname || ""} ${resident.lastname || ""}`.trim()
+                : "",
+
+            has_livestock: household.livestocks?.length > 0 ? "1" : "0",
+            livestocks: household.livestocks || [],
+
+            has_pets: household.pets?.length > 0 ? "1" : "0",
+            pets: household.pets || [],
+
+            household_id: household.id,
+            latitude: household.latitude ?? "",
+            longitude: household.longitude ?? "",
+            is_main_house: household.is_main_house ?? 1,
+
+            _method: "PUT",
+        });
+    }, [household]);
     const handleResidentChange = useResidentChangeHandler(residents, setData);
 
     const onSubmit = (e) => {
@@ -180,113 +194,165 @@ export default function Edit({
                             )}
                             <div>
                                 <form onSubmit={onSubmit}>
-                                    <h2 className="text-3xl font-semibold text-gray-800 mb-1">
-                                        Resident Information
-                                    </h2>
-                                    <p className="text-sm text-gray-600 mb-3">
-                                        Search/Select the resident that owns the
-                                        household.
-                                    </p>
-                                    <div className="grid grid-cols-1 md:grid-cols-6 gap-y-2 md:gap-x-4 mb-5">
-                                        <div className="md:row-span-2 flex flex-col items-center space-y-2">
-                                            <InputLabel
-                                                htmlFor={`resident_image`}
-                                                value="Profile Photo"
-                                            />
-                                            <img
-                                                src={
-                                                    data.resident_image
-                                                        ? `/storage/${data.resident_image}`
-                                                        : "/images/default-avatar.jpg"
-                                                }
-                                                alt={`Resident Image`}
-                                                className="w-32 h-32 object-cover rounded-full border border-gray-200"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-5 space-y-2">
-                                            <div className="w-full">
-                                                <DropdownInputField
-                                                    label="Full Name"
-                                                    name="fullname"
-                                                    value={
-                                                        data.resident_name || ""
-                                                    }
-                                                    placeholder="Select a resident"
-                                                    onChange={(e) =>
-                                                        handleResidentChange(e)
-                                                    }
-                                                    items={residentsList}
-                                                />
-                                                <InputError
-                                                    message={errors.resident_id}
-                                                    className="mt-2"
-                                                />
+                                    <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                                        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-slate-800">
+                                                    Household Head
+                                                </h3>
+                                                <p className="text-sm text-slate-500">
+                                                    You may keep the current
+                                                    household head, select a new
+                                                    one, or leave this empty and
+                                                    assign a resident later.
+                                                </p>
                                             </div>
 
-                                            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                                                <div>
+                                            <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                                                Optional
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 gap-5 md:grid-cols-6">
+                                            <div className="flex flex-col items-center rounded-2xl border border-slate-200 bg-slate-50 p-4 md:col-span-1">
+                                                <InputLabel
+                                                    htmlFor="resident_image"
+                                                    value="Profile Photo"
+                                                />
+
+                                                <img
+                                                    src={
+                                                        data.resident_image
+                                                            ? `/storage/${data.resident_image}`
+                                                            : "/images/default-avatar.jpg"
+                                                    }
+                                                    alt="Resident"
+                                                    className="mt-3 h-28 w-28 rounded-full border-4 border-white object-cover shadow-sm ring-1 ring-slate-200"
+                                                />
+
+                                                <p className="mt-3 text-center text-xs text-slate-500">
+                                                    {data.resident_name
+                                                        ? "Current selected household head."
+                                                        : "No household head selected."}
+                                                </p>
+                                            </div>
+
+                                            <div className="space-y-4 md:col-span-5">
+                                                <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
+                                                    <div>
+                                                        <DropdownInputField
+                                                            label="Select Household Head"
+                                                            name="fullname"
+                                                            value={
+                                                                data.resident_name ||
+                                                                ""
+                                                            }
+                                                            placeholder="Optional: search or select a resident"
+                                                            onChange={(e) =>
+                                                                handleResidentChange(
+                                                                    e,
+                                                                )
+                                                            }
+                                                            items={
+                                                                residentsList
+                                                            }
+                                                        />
+                                                        <InputError
+                                                            message={
+                                                                errors.resident_id
+                                                            }
+                                                            className="mt-1"
+                                                        />
+                                                    </div>
+
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        onClick={() =>
+                                                            setData((prev) => ({
+                                                                ...prev,
+                                                                resident_id:
+                                                                    null,
+                                                                resident_name:
+                                                                    "",
+                                                                birthdate: "",
+                                                                sex: "",
+                                                                gender: "",
+                                                                resident_image:
+                                                                    null,
+                                                                residency_date:
+                                                                    "",
+                                                                residency_type:
+                                                                    "",
+                                                                name_of_head:
+                                                                    "",
+                                                            }))
+                                                        }
+                                                    >
+                                                        Clear
+                                                    </Button>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                                                     <InputField
                                                         label="Birthdate"
                                                         name="birthdate"
                                                         value={
                                                             data.birthdate || ""
                                                         }
-                                                        placeholder="Select a resident"
-                                                        readOnly={true}
+                                                        placeholder="Auto-filled"
+                                                        readOnly
                                                     />
-                                                </div>
 
-                                                <div>
                                                     <InputField
-                                                        label="Gender"
-                                                        name="gender"
+                                                        label="Sex"
+                                                        name="sex"
                                                         value={
                                                             RESIDENT_GENDER_TEXT2[
-                                                                data.gender ||
+                                                                data.sex ||
+                                                                    data.gender ||
                                                                     ""
-                                                            ]
+                                                            ] || ""
                                                         }
-                                                        placeholder="Select a resident"
-                                                        readOnly={true}
+                                                        placeholder="Auto-filled"
+                                                        readOnly
                                                     />
-                                                </div>
-                                                <div>
+
                                                     <InputField
-                                                        label="Residentcy Date"
+                                                        label="Residency Date"
                                                         name="residency_date"
                                                         value={
                                                             data.residency_date ||
                                                             ""
                                                         }
-                                                        placeholder="Select a resident"
-                                                        readOnly={true}
+                                                        placeholder="Auto-filled"
+                                                        readOnly
                                                     />
-                                                </div>
 
-                                                <div>
                                                     <InputField
-                                                        label="Residentcy Type"
+                                                        label="Residency Type"
                                                         name="residency_type"
                                                         value={
                                                             RESIDENT_RECIDENCY_TYPE_TEXT[
                                                                 data.residency_type ||
                                                                     ""
-                                                            ]
+                                                            ] || ""
                                                         }
-                                                        placeholder="Select a resident"
-                                                        readOnly={true}
+                                                        placeholder="Auto-filled"
+                                                        readOnly
                                                     />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <Section5
+                                    <HouseForm
                                         data={data}
                                         setData={setData}
                                         handleArrayValues={handleArrayValues}
                                         errors={errors}
                                         puroks={puroks}
                                         streets={streets}
+                                        households={[]}
                                         head={true}
                                     />
                                     {/* Submit Button */}

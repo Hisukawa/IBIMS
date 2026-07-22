@@ -306,14 +306,14 @@ class BarangayDataSeeder extends Seeder
                 }
             }
 
-            // Resident::where('barangay_id', $barangay->id)
-            //     ->orderBy('household_id')
-            //     ->chunkById(100, function ($group) {
-            //         $group->groupBy('household_id')->each(
-            //             fn($g) =>
-            //             $g->first()->update(['is_household_head' => 1, 'is_family_head' => 1])
-            //         );
-            //     });
+            Resident::where('barangay_id', $barangay->id)
+                ->orderBy('household_id')
+                ->chunkById(100, function ($group) {
+                    $group->groupBy('household_id')->each(
+                        fn($g) =>
+                        $g->first()->update(['is_household_head' => 1, 'is_family_head' => 1])
+                    );
+                });
 
             /**
              * SAMPLE USERS

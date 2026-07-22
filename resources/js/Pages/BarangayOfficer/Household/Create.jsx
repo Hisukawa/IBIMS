@@ -3,7 +3,6 @@ import DropdownInputField from "@/Components/DropdownInputField";
 import InputError from "@/Components/InputError";
 import InputField from "@/Components/InputField";
 import InputLabel from "@/Components/InputLabel";
-import Section5 from "@/Components/ResidentInput/Section5";
 import { Button } from "@/Components/ui/button";
 import {
     RESIDENT_GENDER_TEXT2,
@@ -14,6 +13,7 @@ import { Head, router, usePage, useForm } from "@inertiajs/react";
 import { useEffect } from "react";
 import useResidentChangeHandler from "@/hooks/handleResidentChange";
 import { RotateCcw } from "lucide-react";
+import HouseForm from "./Partials/HouseForm";
 
 export default function Create({
     auth,
@@ -34,6 +34,7 @@ export default function Create({
     const { error } = usePage().props.errors;
     const { data, setData, post, errors, reset } = useForm({
         resident_id: null,
+        is_main_house: 1,
         resident_name: "",
         birthdate: "",
         gender: "",
@@ -45,6 +46,8 @@ export default function Create({
         residency_type: null,
         subdivision: "",
         housenumber: null,
+        latitude: "",
+        longitude: "",
         ownership_type: "",
         housing_condition: "",
         house_structure: null,
@@ -54,7 +57,7 @@ export default function Create({
         bath_and_wash_area: null,
         waste_management_types: [{ waste_management_type: "" }],
         toilets: [{ toilet_type: "" }],
-        electricity_types: [{ electricity_types: "" }],
+        electricity_types: [{ electricity_type: "" }],
         water_source_types: [{ water_source_type: "" }],
         type_of_internet: null,
         relationship_to_head: "",
@@ -110,112 +113,130 @@ export default function Create({
                             )}
                             <div>
                                 <form onSubmit={onSubmit}>
-                                    <h2 className="text-3xl font-semibold text-gray-800 mb-1">
-                                        Resident Information
-                                    </h2>
-                                    <p className="text-sm text-gray-600 mb-3">
-                                        Search/Select the resident that owns the
-                                        household.
-                                    </p>
-                                    <div className="grid grid-cols-1 md:grid-cols-6 gap-y-2 md:gap-x-4 mb-5">
-                                        <div className="md:row-span-2 flex flex-col items-center space-y-2">
-                                            <InputLabel
-                                                htmlFor={`resident_image`}
-                                                value="Profile Photo"
-                                            />
-                                            <img
-                                                src={
-                                                    data.resident_image
-                                                        ? `/storage/${data.resident_image}`
-                                                        : "/images/default-avatar.jpg"
-                                                }
-                                                alt={`Resident Image`}
-                                                className="w-32 h-32 object-cover rounded-full border border-gray-200"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-5 space-y-2">
-                                            <div className="w-full">
-                                                <DropdownInputField
-                                                    label="Full Name"
-                                                    name="fullname"
-                                                    value={
-                                                        data.resident_name || ""
-                                                    }
-                                                    placeholder="Select a resident"
-                                                    onChange={(e) =>
-                                                        handleResidentChange(e)
-                                                    }
-                                                    items={residentsList}
-                                                />
-                                                <InputError
-                                                    message={errors.resident_id}
-                                                    className="mt-2"
-                                                />
+                                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm mb-4">
+                                        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-slate-800">
+                                                    Household Head
+                                                </h3>
+                                                <p className="text-sm text-slate-500">
+                                                    You may select a household
+                                                    head now, or add residents
+                                                    to this household later.
+                                                </p>
                                             </div>
 
-                                            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                            <span className="w-fit rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                                                Optional
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 gap-5 md:grid-cols-6">
+                                            <div className="flex flex-col items-center rounded-2xl border border-slate-200 bg-slate-50 p-4 md:col-span-1">
+                                                <InputLabel
+                                                    htmlFor="resident_image"
+                                                    value="Profile Photo"
+                                                />
+
+                                                <img
+                                                    src={
+                                                        data.resident_image
+                                                            ? `/storage/${data.resident_image}`
+                                                            : "/images/default-avatar.jpg"
+                                                    }
+                                                    alt="Resident"
+                                                    className="mt-3 h-28 w-28 rounded-full border-4 border-white object-cover shadow-sm ring-1 ring-slate-200"
+                                                />
+
+                                                <p className="mt-3 text-center text-xs text-slate-500">
+                                                    Image updates after
+                                                    selecting a resident.
+                                                </p>
+                                            </div>
+
+                                            <div className="space-y-4 md:col-span-5">
                                                 <div>
+                                                    <DropdownInputField
+                                                        label="Select Household Head"
+                                                        name="fullname"
+                                                        value={
+                                                            data.resident_name ||
+                                                            ""
+                                                        }
+                                                        placeholder="Search or select a resident"
+                                                        onChange={(e) =>
+                                                            handleResidentChange(
+                                                                e,
+                                                            )
+                                                        }
+                                                        items={residentsList}
+                                                    />
+                                                    <InputError
+                                                        message={
+                                                            errors.resident_id
+                                                        }
+                                                        className="mt-1"
+                                                    />
+                                                </div>
+
+                                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                                                     <InputField
                                                         label="Birthdate"
                                                         name="birthdate"
                                                         value={
                                                             data.birthdate || ""
                                                         }
-                                                        placeholder="Select a resident"
-                                                        readOnly={true}
+                                                        placeholder="Auto-filled"
+                                                        readOnly
                                                     />
-                                                </div>
 
-                                                <div>
                                                     <InputField
                                                         label="Sex"
                                                         name="sex"
                                                         value={
                                                             RESIDENT_GENDER_TEXT2[
                                                                 data.sex || ""
-                                                            ]
+                                                            ] || ""
                                                         }
-                                                        placeholder="Select a resident"
-                                                        readOnly={true}
+                                                        placeholder="Auto-filled"
+                                                        readOnly
                                                     />
-                                                </div>
-                                                <div>
+
                                                     <InputField
-                                                        label="Residentcy Date"
+                                                        label="Residency Date"
                                                         name="residency_date"
                                                         value={
                                                             data.residency_date ||
                                                             ""
                                                         }
-                                                        placeholder="Select a resident"
-                                                        readOnly={true}
+                                                        placeholder="Auto-filled"
+                                                        readOnly
                                                     />
-                                                </div>
 
-                                                <div>
                                                     <InputField
-                                                        label="Residentcy Type"
+                                                        label="Residency Type"
                                                         name="residency_type"
                                                         value={
                                                             RESIDENT_RECIDENCY_TYPE_TEXT[
                                                                 data.residency_type ||
                                                                     ""
-                                                            ]
+                                                            ] || ""
                                                         }
-                                                        placeholder="Select a resident"
-                                                        readOnly={true}
+                                                        placeholder="Auto-filled"
+                                                        readOnly
                                                     />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <Section5
+                                    <HouseForm
                                         data={data}
                                         setData={setData}
-                                        handleArrayValues={handleArrayValues}
                                         errors={errors}
+                                        handleArrayValues={handleArrayValues}
                                         puroks={puroks}
                                         streets={streets}
+                                        households={[]}
                                         head={true}
                                     />
                                     {/* Submit Button */}

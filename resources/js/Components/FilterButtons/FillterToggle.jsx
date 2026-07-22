@@ -19,6 +19,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ClearFilterButton2 from "../ClearFilterButton2";
 import { toTitleCase } from "@/utils/stringFormat";
+import useSearch from "@/hooks/useSearch";
 
 const FilterToggle = ({
     queryParams,
@@ -57,6 +58,8 @@ const FilterToggle = ({
     const isVisible = (key) => visibleFilters.includes(key);
 
     if (!showOnlyFilters && !showFilters) return null;
+
+    searchFieldName = useSearch(clearRouteName, queryParams);
 
     const [openWelfare, setOpenWelfare] = useState(false);
     const welfareRef = useRef();

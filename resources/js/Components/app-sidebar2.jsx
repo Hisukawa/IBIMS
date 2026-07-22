@@ -109,7 +109,7 @@ export function AppSidebar({ auth }) {
                 setPendingCount(apiCount);
                 localStorage.setItem(
                     pendingCountCacheKey,
-                    JSON.stringify({ count: apiCount, _cachedAt: Date.now() })
+                    JSON.stringify({ count: apiCount, _cachedAt: Date.now() }),
                 );
             } else {
                 setPendingCount(cachedCount); // fallback to cached
@@ -122,7 +122,7 @@ export function AppSidebar({ auth }) {
     useEffect(() => {
         if (
             !["barangay_officer", "admin"].some((role) =>
-                userRoles.includes(role)
+                userRoles.includes(role),
             )
         )
             return;
@@ -142,7 +142,7 @@ export function AppSidebar({ auth }) {
     useEffect(() => {
         if (
             !["cdrrmo_admin", "barangay_officer", "admin"].some((role) =>
-                userRoles.includes(role)
+                userRoles.includes(role),
             )
         )
             return;
@@ -164,7 +164,7 @@ export function AppSidebar({ auth }) {
     useEffect(() => {
         if (
             !["cdrrmo_admin", "barangay_officer", "admin"].some((role) =>
-                userRoles.includes(role)
+                userRoles.includes(role),
             )
         )
             return;
@@ -200,7 +200,7 @@ export function AppSidebar({ auth }) {
         const fetchBarangayDetails = async () => {
             try {
                 const res = await axios.get(
-                    `${APP_URL}/barangay_management/barangaydetails`
+                    `${APP_URL}/barangay_management/barangaydetails`,
                 );
                 const apiData = res.data.data;
 
@@ -224,7 +224,7 @@ export function AppSidebar({ auth }) {
                     // Update cache with new data + timestamp
                     localStorage.setItem(
                         cacheKey,
-                        JSON.stringify({ ...apiData, _cachedAt: Date.now() })
+                        JSON.stringify({ ...apiData, _cachedAt: Date.now() }),
                     );
                 }
 
@@ -747,65 +747,65 @@ export function AppSidebar({ auth }) {
                 },
             ],
         },
-        {
-            title: "Community Risk Assessment",
-            icon: Cloudy,
-            roles: ["barangay_officer", "admin"],
-            url: "#",
-            submenu: (() => {
-                if (!availableCra) {
-                    return [
-                        {
-                            title: "Loading years...",
-                            url: "#",
-                            icon: FileInput,
-                            roles: ["barangay_officer", "admin"],
-                            progress: 0,
-                        },
-                    ];
-                }
+        // {
+        //     title: "Community Risk Assessment",
+        //     icon: Cloudy,
+        //     roles: ["barangay_officer", "admin"],
+        //     url: "#",
+        //     submenu: (() => {
+        //         if (!availableCra) {
+        //             return [
+        //                 {
+        //                     title: "Loading years...",
+        //                     url: "#",
+        //                     icon: FileInput,
+        //                     roles: ["barangay_officer", "admin"],
+        //                     progress: 0,
+        //                 },
+        //             ];
+        //         }
 
-                const filtered = availableCra.filter(
-                    (cra) =>
-                        !cra.barangay_id || cra.barangay_id === barangay?.id
-                );
+        //         const filtered = availableCra.filter(
+        //             (cra) =>
+        //                 !cra.barangay_id || cra.barangay_id === barangay?.id
+        //         );
 
-                if (filtered.length === 0) {
-                    return [
-                        {
-                            title: "No CRA Available",
-                            url: "#",
-                            icon: FileInput,
-                            roles: ["barangay_officer", "admin"],
-                            progress: 0,
-                        },
-                    ];
-                }
+        //         if (filtered.length === 0) {
+        //             return [
+        //                 {
+        //                     title: "No CRA Available",
+        //                     url: "#",
+        //                     icon: FileInput,
+        //                     roles: ["barangay_officer", "admin"],
+        //                     progress: 0,
+        //                 },
+        //             ];
+        //         }
 
-                return filtered.map((cra) => ({
-                    title: `Submit CRA ${cra.year}`,
-                    url: `/cra/create?year=${cra.year}`,
-                    icon: FileInput,
-                    roles: ["barangay_officer", "admin"],
-                    year: cra.year,
-                    progress: cra.percentage ?? 0,
-                }));
-            })(),
-        },
-        {
-            title: "CRA Settings",
-            icon: Settings,
-            roles: ["cdrrmo_admin"],
-            url: "#",
-            submenu: [
-                {
-                    title: "Selectfield",
-                    icon: SlidersHorizontal, // import this
-                    url: "/cra/selectfield", // or your actual route
-                    roles: ["cdrrmo_admin"], // make sure it matches your current user role
-                },
-            ],
-        },
+        //         return filtered.map((cra) => ({
+        //             title: `Submit CRA ${cra.year}`,
+        //             url: `/cra/create?year=${cra.year}`,
+        //             icon: FileInput,
+        //             roles: ["barangay_officer", "admin"],
+        //             year: cra.year,
+        //             progress: cra.percentage ?? 0,
+        //         }));
+        //     })(),
+        // },
+        // {
+        //     title: "CRA Settings",
+        //     icon: Settings,
+        //     roles: ["cdrrmo_admin"],
+        //     url: "#",
+        //     submenu: [
+        //         {
+        //             title: "Selectfield",
+        //             icon: SlidersHorizontal, // import this
+        //             url: "/cra/selectfield", // or your actual route
+        //             roles: ["cdrrmo_admin"], // make sure it matches your current user role
+        //         },
+        //     ],
+        // },
         {
             title: "Certificate Issuance",
             icon: FileStack,
@@ -905,7 +905,7 @@ export function AppSidebar({ auth }) {
     // Filter items based on user roles
     const filteredItems = useMemo(() => {
         return items.filter((item) =>
-            item.roles.some((role) => userRoles.includes(role))
+            item.roles.some((role) => userRoles.includes(role)),
         );
     }, [items, userRoles]);
 
@@ -913,7 +913,7 @@ export function AppSidebar({ auth }) {
         const matchedIndex = filteredItems.findIndex(
             (item) =>
                 Array.isArray(item.submenu) &&
-                item.submenu.some((sub) => isActive(sub.url))
+                item.submenu.some((sub) => isActive(sub.url)),
         );
         setOpenIndex(matchedIndex === -1 ? null : matchedIndex);
     }, [location.pathname, JSON.stringify(filteredItems)]);
@@ -975,7 +975,7 @@ export function AppSidebar({ auth }) {
         router.get(
             window.location.pathname,
             { year },
-            { preserveState: true, replace: true }
+            { preserveState: true, replace: true },
         );
     };
 
@@ -1061,15 +1061,15 @@ export function AppSidebar({ auth }) {
                                             <a
                                                 href={item.url || "#"}
                                                 className={`flex items-center justify-between w-full my-1 px-2 py-2 rounded-lg transition-all duration-200 ${isActive(item.url) ||
-                                                        (item.submenu &&
-                                                            item.submenu.some(
-                                                                (sub) =>
-                                                                    isActive(
-                                                                        sub.url
-                                                                    )
-                                                            ))
-                                                        ? "text-gray-900 font-semibold"
-                                                        : "text-gray-700 hover:text-gray-900"
+                                                    (item.submenu &&
+                                                        item.submenu.some(
+                                                            (sub) =>
+                                                                isActive(
+                                                                    sub.url
+                                                                )
+                                                        ))
+                                                    ? "text-gray-900 font-semibold"
+                                                    : "text-gray-700 hover:text-gray-900"
                                                     }`}
                                             >
                                                 <div className="flex items-center">
@@ -1102,15 +1102,15 @@ export function AppSidebar({ auth }) {
                                     {item.submenu?.length > 0 && (
                                         <SidebarGroupContent
                                             className={`overflow-hidden transition-all duration-300 ease-in-out ${openIndex === index
-                                                    ? "max-h-[1000px] opacity-100"
-                                                    : "max-h-0 opacity-0"
+                                                ? "max-h-[1000px] opacity-100"
+                                                : "max-h-0 opacity-0"
                                                 }`}
                                         >
                                             {item.submenu?.length > 0 && (
                                                 <SidebarGroupContent
                                                     className={`overflow-hidden transition-all duration-300 ease-in-out ${openIndex === index
-                                                            ? "max-h-[1000px] opacity-100"
-                                                            : "max-h-0 opacity-0"
+                                                        ? "max-h-[1000px] opacity-100"
+                                                        : "max-h-0 opacity-0"
                                                         }`}
                                                 >
                                                     {/* Check if this is CRA Settings */}
@@ -1124,7 +1124,6 @@ export function AppSidebar({ auth }) {
                                                                 Select Year
                                                             </label>
 
-                                                            {/* Select Year Dropdown */}
                                                             <select
                                                                 id="cra-year"
                                                                 name="cra-year"
@@ -1151,14 +1150,14 @@ export function AppSidebar({ auth }) {
                                                                         ...new Set(
                                                                             craList.map(
                                                                                 (
-                                                                                    cra
+                                                                                    cra,
                                                                                 ) =>
-                                                                                    cra.year
-                                                                            )
+                                                                                    cra.year,
+                                                                            ),
                                                                         ),
                                                                     ].map(
                                                                         (
-                                                                            year
+                                                                            year,
                                                                         ) => (
                                                                             <option
                                                                                 key={
@@ -1172,7 +1171,7 @@ export function AppSidebar({ auth }) {
                                                                                     year
                                                                                 }
                                                                             </option>
-                                                                        )
+                                                                        ),
                                                                     )
                                                                 ) : (
                                                                     <option
@@ -1184,7 +1183,6 @@ export function AppSidebar({ auth }) {
                                                                 )}
                                                             </select>
 
-                                                            {/* Add Button */}
                                                             <button
                                                                 type="button"
                                                                 onClick={
@@ -1200,7 +1198,6 @@ export function AppSidebar({ auth }) {
                                                                 </span>
                                                             </button>
 
-                                                            {/* List of CRA Years */}
                                                             <div className="mt-4 border-t pt-3">
                                                                 <h3 className="text-sm font-medium text-gray-700 mb-2">
                                                                     Existing CRA
@@ -1213,14 +1210,14 @@ export function AppSidebar({ auth }) {
                                                                         ...new Set(
                                                                             craList.map(
                                                                                 (
-                                                                                    cra
+                                                                                    cra,
                                                                                 ) =>
-                                                                                    cra.year
-                                                                            )
+                                                                                    cra.year,
+                                                                            ),
                                                                         ),
                                                                     ].map(
                                                                         (
-                                                                            year
+                                                                            year,
                                                                         ) => (
                                                                             <div
                                                                                 key={
@@ -1236,7 +1233,7 @@ export function AppSidebar({ auth }) {
                                                                                 <button
                                                                                     onClick={() =>
                                                                                         handleDeleteClick(
-                                                                                            year
+                                                                                            year,
                                                                                         )
                                                                                     }
                                                                                     className="text-red-600 hover:text-red-800 text-sm font-medium"
@@ -1244,7 +1241,7 @@ export function AppSidebar({ auth }) {
                                                                                     Delete
                                                                                 </button>
                                                                             </div>
-                                                                        )
+                                                                        ),
                                                                     )
                                                                 ) : (
                                                                     <p className="text-xs text-gray-500 italic">
@@ -1262,17 +1259,17 @@ export function AppSidebar({ auth }) {
                                                                 .filter((sub) =>
                                                                     sub.roles.some(
                                                                         (
-                                                                            role
+                                                                            role,
                                                                         ) =>
                                                                             userRoles.includes(
-                                                                                role
-                                                                            )
-                                                                    )
+                                                                                role,
+                                                                            ),
+                                                                    ),
                                                                 )
                                                                 .map(
                                                                     (
                                                                         sub,
-                                                                        index
+                                                                        index,
                                                                     ) => {
                                                                         const percentage =
                                                                             sub.progress ??
@@ -1294,8 +1291,8 @@ export function AppSidebar({ auth }) {
                                                                                             className={`flex items-center pl-8 pr-2 py-2 my-1 rounded-md transition-all duration-200 ${isActive(
                                                                                                 sub.url
                                                                                             )
-                                                                                                    ? "bg-gray-200 text-gray-900 font-semibold"
-                                                                                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                                                                                ? "bg-gray-200 text-gray-900 font-semibold"
+                                                                                                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                                                                                                 }`}
                                                                                         >
                                                                                             <sub.icon className="mr-2 h-4 w-4" />
@@ -1308,14 +1305,13 @@ export function AppSidebar({ auth }) {
                                                                                     </SidebarMenuButton>
                                                                                 </SidebarMenuItem>
 
-                                                                                {/* Progress bar */}
                                                                                 <div className="ml-10 mr-2">
                                                                                     <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                                                                                         <div
                                                                                             className={`h-2 rounded-full transition-all duration-500 ${percentage >=
-                                                                                                    100
-                                                                                                    ? "bg-green-500"
-                                                                                                    : "bg-blue-500"
+                                                                                                100
+                                                                                                ? "bg-green-500"
+                                                                                                : "bg-blue-500"
                                                                                                 }`}
                                                                                             style={{
                                                                                                 width: `${percentage}%`,
@@ -1333,19 +1329,18 @@ export function AppSidebar({ auth }) {
                                                                                 </div>
                                                                             </div>
                                                                         );
-                                                                    }
+                                                                    },
                                                                 )}
                                                         </div>
                                                     ) : (
-                                                        // 🔸 Default submenu rendering
                                                         item.submenu
                                                             .filter((sub) =>
                                                                 sub.roles.some(
                                                                     (role) =>
                                                                         userRoles.includes(
-                                                                            role
-                                                                        )
-                                                                )
+                                                                            role,
+                                                                        ),
+                                                                ),
                                                             )
                                                             .map((sub) => (
                                                                 <SidebarMenuItem
@@ -1363,8 +1358,8 @@ export function AppSidebar({ auth }) {
                                                                             className={`flex items-center pl-8 pr-2 py-2 my-1 rounded-md transition-all duration-200 ${isActive(
                                                                                 sub.url
                                                                             )
-                                                                                    ? "bg-gray-200 text-gray-900 font-semibold"
-                                                                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                                                                ? "bg-gray-200 text-gray-900 font-semibold"
+                                                                                : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                                                                                 }`}
                                                                         >
                                                                             <sub.icon className="mr-2 h-4 w-4" />

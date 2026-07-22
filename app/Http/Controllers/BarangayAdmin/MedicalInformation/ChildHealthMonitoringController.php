@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+
+namespace App\Http\Controllers\BarangayAdmin\MedicalInformation;
 
 use App\Helpers\ActivityLogHelper;
+use App\Http\Controllers\Controller;
 use App\Models\ChildHealthMonitoringRecord;
 use App\Http\Requests\StoreChildHealthMonitoringRecordRequest;
 use App\Http\Requests\UpdateChildHealthMonitoringRecordRequest;

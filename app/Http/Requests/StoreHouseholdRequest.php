@@ -24,11 +24,12 @@ class StoreHouseholdRequest extends FormRequest
     {
         return [
             // SECTION 5: Housing Information
-            'resident_id' => ['required', 'exists:residents,id'],
+            'resident_id' => ['nullable', 'exists:residents,id'],
             'housenumber' => ['required', 'string', 'max:55', 'unique:households,house_number'],
             'street_id' => ['required', 'exists:streets,id'],
             'purok_id' => ['required', 'exists:puroks,id'],
             'subdivision' => ['nullable', 'string', 'max:100'],
+            'is_main_house' => ['required', 'boolean'],
 
             'ownership_type' => ['required', 'string', 'max:55'],
             'housing_condition' => ['required', Rule::in(['good', 'needs_repair', 'dilapidated'])],
@@ -46,6 +47,8 @@ class StoreHouseholdRequest extends FormRequest
             'water_source_types' => ['required','array'],
             'water_source_types.*.water_source_type' => ['required', 'string', 'max:55'],
             'type_of_internet' => ['required', 'string', 'max:100'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
 
 
             // SECTION 5.1: Livestock information

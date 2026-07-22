@@ -27,6 +27,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import DeleteConfirmationModal from "@/Components/DeleteConfirmationModal";
 import { Toaster, toast } from "sonner";
+import HouseholdDetailsCard from "./Partials/HouseholdDetailsCard";
 
 export default function Index({
     household_details,
@@ -415,116 +416,19 @@ export default function Index({
             <Toaster richColors />
             <BreadCrumbsHeader breadcrumbs={breadcrumbs} />
             {/* <pre>{JSON.stringify(household_members, undefined, 3)}</pre> */}
-            {/* ================= HOUSEHOLD DETAILS ================= */}
-            <div className="bg-white shadow-md rounded-xl m-5 border border-gray-200 overflow-hidden">
-                {/* HEADER */}
-                <div className="px-6 py-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
-                    <h2 className="text-2xl font-bold text-gray-800">
-                        House #{household_details.house_number}
-                    </h2>
-                    <p className="text-sm text-gray-600 mt-1">
-                        {household_details?.purok?.barangay?.barangay_name ||
-                            ""}{" "}
-                        • Purok {household_details?.purok?.purok_number || ""} •
-                        {household_details?.street?.street_name || ""} Street
-                    </p>
-                </div>
-
-                {/* QUICK STATS */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-gray-50 border-b">
-                    {[
-                        {
-                            label: "Rooms",
-                            value: household_details.number_of_rooms,
-                        },
-                        {
-                            label: "Floors",
-                            value: household_details.number_of_floors,
-                        },
-                        {
-                            label: "Year Built",
-                            value: household_details.year_established,
-                        },
-                        {
-                            label: "Ownership",
-                            value: CONSTANTS.HOUSEHOLD_OWNERSHIP_TEXT[
-                                household_details.ownership_type
-                            ],
-                        },
-                    ].map((item, i) => (
-                        <div
-                            key={i}
-                            className="bg-white rounded-lg p-4 shadow-sm border"
-                        >
-                            <p className="text-xs text-gray-500">
-                                {item.label}
-                            </p>
-                            <p className="text-lg font-semibold text-gray-800">
-                                {item.value || "—"}
-                            </p>
-                        </div>
-                    ))}
-                </div>
-
-                {/* MAIN CONTENT */}
-                <div className="p-6 space-y-6">
-                    {/* STRUCTURE */}
-                    <Section title="🏗 Structure & Condition">
-                        <Detail
-                            label="Housing Condition"
-                            value={
-                                CONSTANTS.HOUSEHOLD_CONDITION_TEXT[
-                                    household_details.housing_condition
-                                ]
-                            }
-                        />
-                        <Detail
-                            label="House Structure"
-                            value={
-                                CONSTANTS.HOUSEHOLD_STRUCTURE_TEXT[
-                                    household_details.house_structure
-                                ]
-                            }
-                        />
-                    </Section>
-
-                    {/* UTILITIES */}
-                    <Section title="🚿 Utilities & Services">
-                        <Detail
-                            label="Bath & Wash Area"
-                            value={formatBathWash(household_details)}
-                        />
-                        <Detail
-                            label="Toilet Types"
-                            value={formatToilets(household_details)}
-                        />
-                        <Detail
-                            label="Water Sources"
-                            value={formatWater(household_details)}
-                        />
-                        <Detail
-                            label="Electricity"
-                            value={formatElectricity(household_details)}
-                        />
-                        <Detail
-                            label="Waste Management"
-                            value={formatWaste(household_details)}
-                        />
-                    </Section>
-
-                    {/* LOCATION */}
-                    <Section title="📍 Location">
-                        <Detail
-                            label="Coordinates"
-                            value={`${household_details.latitude}, ${household_details.longitude}`}
-                        />
-                    </Section>
-                </div>
-            </div>
 
             <div className="pt-4">
                 <div className="mx-auto max-w-8xl px-2 sm:px-4 lg:px-6">
                     <div className="bg-white border border-gray-200 shadow-sm rounded-xl sm:rounded-lg p-4 m-0">
+                        <HouseholdDetailsCard
+                            household_details={household_details}
+                            CONSTANTS={CONSTANTS}
+                            formatBathWash={formatBathWash}
+                            formatToilets={formatToilets}
+                            formatWater={formatWater}
+                            formatElectricity={formatElectricity}
+                            formatWaste={formatWaste}
+                        />
                         <div className="flex flex-wrap items-start justify-between gap-2 w-full mb-0">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <DynamicTableControls
