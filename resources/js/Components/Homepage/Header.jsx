@@ -44,7 +44,7 @@ const Header = ({ auth }) => {
                     />
                 </a>
                 <h1 className="text-[#004aad] font-montserrat text-xl font-black">
-                    iBIMS
+                    IlaganConnect
                 </h1>
             </div>
 
