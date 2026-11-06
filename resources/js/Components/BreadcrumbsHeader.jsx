@@ -14,12 +14,17 @@ const BreadCrumbsHeader = ({ breadcrumbs }) => {
     return (
         <header className="flex items-center p-4 bg-white border-b border-gray-200">
             <SidebarTrigger className="text-gray-700 text-xl mr-2 hover:text-gray-900" />
-            <Separator orientation="vertical" className="mr-2 h-4 border-gray-300" />
+            <Separator
+                orientation="vertical"
+                className="mr-2 h-4 border-gray-300"
+            />
             <Breadcrumb>
                 <BreadcrumbList>
                     {breadcrumbs.map((item, index) => {
                         const isLink = !!item.href;
-                        const visibility = !item.showOnMobile ? "hidden md:block" : "";
+                        const visibility = !item.showOnMobile
+                            ? "hidden md:block"
+                            : "";
 
                         return (
                             <React.Fragment key={index}>
@@ -38,7 +43,11 @@ const BreadCrumbsHeader = ({ breadcrumbs }) => {
                                     )}
                                 </BreadcrumbItem>
                                 {index < breadcrumbs.length - 1 && (
-                                    <BreadcrumbSeparator className={visibility + " text-gray-400"} />
+                                    <BreadcrumbSeparator
+                                        className={
+                                            visibility + " text-gray-400"
+                                        }
+                                    />
                                 )}
                             </React.Fragment>
                         );
